@@ -39,7 +39,7 @@ crowdcent submit --help
     ```bash
     crowdcent get-challenge <CHALLENGE_SLUG>
     ```
-    Replace `<CHALLENGE_SLUG>` with the actual challenge slug (e.g., `crowdcent get-challenge stock-prediction`). Output is JSON formatted.
+    Replace `<CHALLENGE_SLUG>` with the actual challenge slug (e.g., `crowdcent get-challenge main-challenge`). Output is JSON formatted.
 
 ### Training Data
 
@@ -71,7 +71,7 @@ crowdcent submit --help
     
     Example:
     ```bash
-    crowdcent download-training-data stock-prediction 1.0 -o data/training_data.parquet
+    crowdcent download-training-data main-challenge 1.0 -o data/training_data.parquet
     ```
 
 ### Inference Data
@@ -104,7 +104,7 @@ crowdcent submit --help
     
     Example:
     ```bash
-    crowdcent download-inference-data stock-prediction 2025-01-15 -o data/inference_features.parquet
+    crowdcent download-inference-data main-challenge 2025-01-15 -o data/inference_features.parquet
     ```
 
 ### Submissions
@@ -134,7 +134,7 @@ crowdcent submit --help
     
     Example:
     ```bash
-    crowdcent submit stock-prediction results/my_submission.parquet
+    crowdcent submit main-challenge results/my_submission.parquet
     ```
 
 ## Error Handling

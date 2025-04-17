@@ -18,11 +18,19 @@ logger = logging.getLogger(__name__)
 # --- Helper Functions ---
 
 
-def get_client():
-    """Instantiates and returns the ChallengeClient, handling API key loading."""
+def get_client(challenge_slug=None):
+    """
+    Instantiates and returns the ChallengeClient, handling API key loading.
+    
+    Args:
+        challenge_slug: The challenge slug for client initialization.
+                        If None, no client is created (for list_challenges).
+    """
     try:
         # Client handles loading API key from env/dotenv
-        return ChallengeClient()
+        if challenge_slug:
+            return ChallengeClient(challenge_slug=challenge_slug)
+        return None
     except AuthenticationError as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
@@ -70,9 +78,13 @@ def cli():
 @handle_api_error
 def list_challenges():
     """List all active challenges."""
-    client = get_client()
-    challenges = client.list_challenges()
-    click.echo(json.dumps(challenges, indent=2))
+    try:
+        # Use the class method directly - no client instance needed
+        challenges = ChallengeClient.list_all_challenges()
+        click.echo(json.dumps(challenges, indent=2))
+    except AuthenticationError as e:
+        click.echo(f"Error: Authentication failed. Check API key. {e}", err=True)
+        raise click.Abort()
 
 
 @cli.command("get-challenge")
@@ -80,8 +92,8 @@ def list_challenges():
 @handle_api_error
 def get_challenge(challenge_slug):
     """Get details for a specific challenge by slug."""
-    client = get_client()
-    challenge = client.get_challenge(challenge_slug)
+    client = get_client(challenge_slug)
+    challenge = client.get_challenge()
     click.echo(json.dumps(challenge, indent=2))
 
 
@@ -93,8 +105,8 @@ def get_challenge(challenge_slug):
 @handle_api_error
 def list_training_data(challenge_slug):
     """List all training datasets for a specific challenge."""
-    client = get_client()
-    datasets = client.list_training_datasets(challenge_slug)
+    client = get_client(challenge_slug)
+    datasets = client.list_training_datasets()
     click.echo(json.dumps(datasets, indent=2))
 
 
@@ -103,8 +115,8 @@ def list_training_data(challenge_slug):
 @handle_api_error
 def get_latest_training_data(challenge_slug):
     """Get the latest training dataset for a specific challenge."""
-    client = get_client()
-    dataset = client.get_latest_training_dataset(challenge_slug)
+    client = get_client(challenge_slug)
+    dataset = client.get_latest_training_dataset()
     click.echo(json.dumps(dataset, indent=2))
 
 
@@ -114,8 +126,8 @@ def get_latest_training_data(challenge_slug):
 @handle_api_error
 def get_training_data(challenge_slug, version):
     """Get details for a specific training dataset version."""
-    client = get_client()
-    dataset = client.get_training_dataset(challenge_slug, version)
+    client = get_client(challenge_slug)
+    dataset = client.get_training_dataset(version)
     click.echo(json.dumps(dataset, indent=2))
 
 
@@ -135,12 +147,12 @@ def download_training_data(challenge_slug, version, dest_path):
 
     VERSION can be a specific version string (e.g., '1.0') or 'latest' for the latest version.
     """
-    client = get_client()
+    client = get_client(challenge_slug)
     if dest_path is None:
         dest_path = f"{challenge_slug}_training_v{version}.parquet"
 
     try:
-        client.download_training_dataset(challenge_slug, version, dest_path)
+        client.download_training_dataset(version, dest_path)
         click.echo(f"Training data downloaded successfully to {dest_path}")
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
@@ -158,8 +170,8 @@ def download_training_data(challenge_slug, version, dest_path):
 @handle_api_error
 def list_inference_data(challenge_slug):
     """List all inference data periods for a specific challenge."""
-    client = get_client()
-    inference_data = client.list_inference_data(challenge_slug)
+    client = get_client(challenge_slug)
+    inference_data = client.list_inference_data()
     click.echo(json.dumps(inference_data, indent=2))
 
 
@@ -168,8 +180,8 @@ def list_inference_data(challenge_slug):
 @handle_api_error
 def get_current_inference_data(challenge_slug):
     """Get the currently active inference data period for a specific challenge."""
-    client = get_client()
-    inference_data = client.get_current_inference_data(challenge_slug)
+    client = get_client(challenge_slug)
+    inference_data = client.get_current_inference_data()
     click.echo(json.dumps(inference_data, indent=2))
 
 
@@ -182,8 +194,8 @@ def get_inference_data(challenge_slug, release_date):
 
     RELEASE_DATE should be in 'YYYY-MM-DD' format.
     """
-    client = get_client()
-    inference_data = client.get_inference_data(challenge_slug, release_date)
+    client = get_client(challenge_slug)
+    inference_data = client.get_inference_data(release_date)
     click.echo(json.dumps(inference_data, indent=2))
 
 
@@ -203,14 +215,14 @@ def download_inference_data(challenge_slug, release_date, dest_path):
 
     RELEASE_DATE should be in 'YYYY-MM-DD' format or 'current' for the current active period.
     """
-    client = get_client()
+    client = get_client(challenge_slug)
     if dest_path is None:
         # Format date part of the filename
         date_str = release_date if release_date != "current" else "current"
         dest_path = f"{challenge_slug}_inference_{date_str}.parquet"
 
     try:
-        client.download_inference_data(challenge_slug, release_date, dest_path)
+        client.download_inference_data(release_date, dest_path)
         click.echo(f"Inference data downloaded successfully to {dest_path}")
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
@@ -233,8 +245,8 @@ def download_inference_data(challenge_slug, release_date, dest_path):
 @handle_api_error
 def list_submissions(challenge_slug, period):
     """List submissions for a specific challenge with optional period filtering."""
-    client = get_client()
-    submissions = client.list_submissions(challenge_slug, period)
+    client = get_client(challenge_slug)
+    submissions = client.list_submissions(period)
     click.echo(json.dumps(submissions, indent=2))
 
 
@@ -244,8 +256,8 @@ def list_submissions(challenge_slug, period):
 @handle_api_error
 def get_submission(challenge_slug, submission_id):
     """Get details for a specific submission by ID within a challenge."""
-    client = get_client()
-    submission = client.get_submission(challenge_slug, submission_id)
+    client = get_client(challenge_slug)
+    submission = client.get_submission(submission_id)
     click.echo(json.dumps(submission, indent=2))
 
 
@@ -263,9 +275,9 @@ def submit(challenge_slug, file_path):
 
     The submission will be made to the currently active inference period.
     """
-    client = get_client()
+    client = get_client(challenge_slug)
     try:
-        submission = client.submit_predictions(challenge_slug, file_path)
+        submission = client.submit_predictions(file_path)
         click.echo("Submission successful!")
         click.echo(json.dumps(submission, indent=2))
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case

@@ -1,63 +1,66 @@
-# Client Library Quick Start
+# Quick Start
 
-The primary way to interact with the API programmatically is through the `ChallengeClient`.
+The primary way to interact with the CrowdCent Challenge API programmatically is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can read the [CLI documentation](cli.md).
 
 ## Initialization
 
-First, import and initialize the client. The API key is required for authentication.
+Initialize the client for a specific challenge by providing the challenge slug and your API key.
 
 ```python
 from crowdcent_challenge import ChallengeClient, CrowdcentAPIError
 
+# Choose a challenge slug from the list of available challenges
+challenge_slug = "main-challenge"  # Replace with an actual challenge slug
+
 # Option 1: Pass the key directly
 API_KEY = "your_api_key_here" # Replace with your actual key
-client = ChallengeClient(api_key=API_KEY)
+client = ChallengeClient(challenge_slug=challenge_slug, api_key=API_KEY)
 
 # Option 2: Set the CROWDCENT_API_KEY environment variable
 # or create a .env file in your project root:
 # CROWDCENT_API_KEY=your_api_key_here
-# Then initialize without arguments:
-# client = ChallengeClient()
+# Then initialize with just the challenge slug:
+# client = ChallengeClient(challenge_slug=challenge_slug)
 ```
 
 !!! note
     If the API key is not provided and cannot be found in the environment or `.env` file, an `AuthenticationError` will be raised.
 
-## Working with Challenges
+## Working with a Challenge
 
-List all active challenges:
-
-```python
-challenges = client.list_challenges()
-for challenge in challenges:
-    print(f"Challenge: {challenge['name']} (Slug: {challenge['slug']})")
-```
-
-Get details for a specific challenge:
+Get details for the current challenge:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
-challenge = client.get_challenge(challenge_slug)
+challenge = client.get_challenge()
 print(f"Challenge: {challenge['name']}")
 print(f"Description: {challenge['description']}")
 ```
 
-## Working with Training Data
-
-List all training datasets for a challenge:
+If you want to switch to a different challenge with the same client instance:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
-training_datasets = client.list_training_datasets(challenge_slug)
+new_challenge_slug = "another-challenge"  # Replace with another actual challenge slug
+client.switch_challenge(new_challenge_slug)
+
+# Now all operations will be for the new challenge
+new_challenge = client.get_challenge()
+print(f"Switched to: {new_challenge['name']}")
+```
+
+## Working with Training Data
+
+List all training datasets for the current challenge:
+
+```python
+training_datasets = client.list_training_datasets()
 for dataset in training_datasets:
     print(f"Version: {dataset['version']}, Is Latest: {dataset['is_latest']}")
 ```
 
-Get the latest training dataset for a challenge:
+Get the latest training dataset:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
-latest_dataset = client.get_latest_training_dataset(challenge_slug)
+latest_dataset = client.get_latest_training_dataset()
 print(f"Latest Version: {latest_dataset['version']}")
 print(f"Download URL: {latest_dataset['download_url']}")
 ```
@@ -65,30 +68,27 @@ print(f"Download URL: {latest_dataset['download_url']}")
 Download a training dataset file:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
 version = "1.0"  # or "latest" for the latest version
 output_path = "data/training_data.parquet"
-client.download_training_dataset(challenge_slug, version, output_path)
+client.download_training_dataset(version, output_path)
 print(f"Dataset downloaded to {output_path}")
 ```
 
 ## Working with Inference Data
 
-List all inference data periods for a challenge:
+List all inference data periods for the current challenge:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
-inference_periods = client.list_inference_data(challenge_slug)
+inference_periods = client.list_inference_data()
 for period in inference_periods:
     print(f"Release Date: {period['release_date']}, Deadline: {period['submission_deadline']}")
 ```
 
-Get the current inference period for a challenge:
+Get the current inference period:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
 try:
-    current_period = client.get_current_inference_data(challenge_slug)
+    current_period = client.get_current_inference_data()
     print(f"Current Period Release Date: {current_period['release_date']}")
     print(f"Submission Deadline: {current_period['submission_deadline']}")
     print(f"Time Remaining: {current_period['time_remaining']}")
@@ -99,10 +99,9 @@ except CrowdcentAPIError as e:
 Download inference features:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
 release_date = "2025-01-15"  # or "current" for the current period
 output_path = "data/inference_features.parquet"
-client.download_inference_data(challenge_slug, release_date, output_path)
+client.download_inference_data(release_date, output_path)
 print(f"Inference data downloaded to {output_path}")
 ```
 
@@ -128,10 +127,9 @@ predictions = pl.DataFrame({
 predictions_file = "my_predictions.parquet"
 predictions.write_parquet(predictions_file)
 
-# Submit to a specific challenge
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
+# Submit to the current challenge
 try:
-    submission = client.submit_predictions(challenge_slug, predictions_file)
+    submission = client.submit_predictions(predictions_file)
     print(f"Submission successful! ID: {submission['id']}")
     print(f"Status: {submission['status']}")
 except CrowdcentAPIError as e:
@@ -140,11 +138,10 @@ except CrowdcentAPIError as e:
 
 ## Retrieving Submissions
 
-List your submissions for a challenge:
+List your submissions for the current challenge:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
-submissions = client.list_submissions(challenge_slug)
+submissions = client.list_submissions()
 for submission in submissions:
     print(f"Submission ID: {submission['id']}, Status: {submission['status']}")
 ```
@@ -153,20 +150,52 @@ You can filter submissions by period:
 
 ```python
 # Get submissions for the current period only
-current_submissions = client.list_submissions(challenge_slug, period="current")
+current_submissions = client.list_submissions(period="current")
 
 # Or for a specific period
-date_submissions = client.list_submissions(challenge_slug, period="2025-01-15")
+date_submissions = client.list_submissions(period="2025-01-15")
 ```
 
 Get details for a specific submission:
 
 ```python
-challenge_slug = "stock-prediction"  # Replace with actual challenge slug
 submission_id = 123  # Replace with actual submission ID
-submission = client.get_submission(challenge_slug, submission_id)
+submission = client.get_submission(submission_id)
 print(f"Submitted at: {submission['submitted_at']}")
 print(f"Status: {submission['status']}")
 if submission['score_details']:
     print(f"Score Details: {submission['score_details']}")
+```
+
+## Listing Available Challenges
+
+Before initializing a client for a specific challenge, you may want to list all available challenges:
+
+```python
+from crowdcent_challenge import ChallengeClient, CrowdcentAPIError
+
+# List all challenges using the class method
+try:
+    challenges = ChallengeClient.list_all_challenges()
+    for challenge in challenges:
+        print(f"Challenge: {challenge['name']} (Slug: {challenge['slug']})")
+except CrowdcentAPIError as e:
+    print(f"Error listing challenges: {e}")
+```
+
+## Working with Multiple Challenges
+
+If you need to work with multiple challenges simultaneously, create separate clients:
+
+```python
+# Initialize clients for different challenges
+client_a = ChallengeClient(challenge_slug="challenge-a")
+client_b = ChallengeClient(challenge_slug="challenge-b")
+
+# Use each client for its respective challenge
+dataset_a = client_a.get_latest_training_dataset()
+dataset_b = client_b.get_latest_training_dataset()
+
+print(f"Challenge A latest dataset: {dataset_a['version']}")
+print(f"Challenge B latest dataset: {dataset_b['version']}")
 ```
