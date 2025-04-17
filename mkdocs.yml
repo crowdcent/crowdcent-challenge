@@ -1,7 +1,7 @@
 site_name: CrowdCent Challenge Docs
 site_description: Official Documentation for the CrowdCent Challenge. Including Python API Client and CLI for the Crowdcent Challenge API.
-repo_url: https://github.com/crowdcent/crowdcent-challenge-staging
-repo_name: crowdcent-challenge-staging
+repo_url: https://github.com/crowdcent/crowdcent-challenge
+repo_name: crowdcent-challenge
 copyright: Made by CrowdCent
 
 nav:
