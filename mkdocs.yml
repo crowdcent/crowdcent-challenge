@@ -1,0 +1,113 @@
+site_name: CrowdCent Challenge Docs
+site_description: Official Documentation for the CrowdCent Challenge. Including Python API Client and CLI for the Crowdcent Challenge API.
+repo_url: https://github.com/crowdcent/crowdcent-challenge-staging
+repo_name: crowdcent-challenge-staging
+copyright: Made by CrowdCent
+
+nav:
+  - Challenge Docs:
+      - Overview: index.md
+      - Data: data.md
+      - Rules: rules.md
+      - Scoring: scoring.md
+      - Python Client:
+          - Installation: installation.md
+          - Quick Start: quickstart.md
+          - Interactive Examples: examples.md
+          - CLI: cli.md
+      - More:
+          - About CrowdCent: about.md
+          - Contributing: contributing.md
+          - Disclaimer: disclaimer.md
+          - Changelog: changelog.md
+  - API Reference:
+      - Python: python_reference.md
+      - CLI: cli_reference.md
+      - OpenAPI: https://crowdcent.com/api/swagger-ui/
+  - Challenge App: https://crowdcent.com/challenge
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/images/cc_logo.png
+  favicon: assets/images/cc_logo.png
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  
+  features:
+    - navigation.tracking
+    - navigation.expand
+    - navigation.path
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tabs
+    - navigation.sections
+    - navigation.footer
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotation
+    - content.code.copy
+  language: en
+  font:
+    text: Poppins
+
+extra_css:
+  - overrides/assets/stylesheets/extra.css
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - mkdocs-click
+  - attr_list
+  - md_in_html
+  
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_source: true
+  - marimo:
+extra:
+  social:
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/v6ZSGuTbQS
+      name: crowdcent on discord
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/CrowdCent
+      name: crowdcent on X
+    - icon: fontawesome/brands/github
+      link: https://github.com/CrowdCent
+      name: crowdcent on github
+  generator: false

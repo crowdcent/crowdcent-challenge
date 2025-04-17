@@ -1,0 +1,32 @@
+[project]
+name = "crowdcent-challenge"
+version = "0.1.0"
+description = "Crowdcent Challenge Python Client"
+readme = "README.md"
+authors = [
+    { name = "Jason Rosenfeld", email = "jason@crowdcent.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1.8",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.3",
+]
+
+[project.scripts]
+crowdcent = "crowdcent_challenge.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "mkdocs-material>=9.6.11",
+    "mkdocs>=1.6.1",
+    "mkdocstrings[python]>=0.29.1",
+    "mkdocs-click>=0.9.0",
+    "ruff>=0.11.5",
+    "mkdocs-marimo>=0.2.1",
+    "pymdown-extensions>=10.14.3",
+]
