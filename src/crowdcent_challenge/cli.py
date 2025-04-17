@@ -1,7 +1,6 @@
 import click
 import logging
 import json
-import os
 
 from .client import (
     ChallengeClient,
@@ -133,7 +132,7 @@ def get_training_data(challenge_slug, version):
 @handle_api_error
 def download_training_data(challenge_slug, version, dest_path):
     """Download the training data file for a specific challenge and version.
-    
+
     VERSION can be a specific version string (e.g., '1.0') or 'latest' for the latest version.
     """
     client = get_client()
@@ -180,7 +179,7 @@ def get_current_inference_data(challenge_slug):
 @handle_api_error
 def get_inference_data(challenge_slug, release_date):
     """Get details for a specific inference data period by release date.
-    
+
     RELEASE_DATE should be in 'YYYY-MM-DD' format.
     """
     client = get_client()
@@ -201,13 +200,13 @@ def get_inference_data(challenge_slug, release_date):
 @handle_api_error
 def download_inference_data(challenge_slug, release_date, dest_path):
     """Download the inference features file for a specific period.
-    
+
     RELEASE_DATE should be in 'YYYY-MM-DD' format or 'current' for the current active period.
     """
     client = get_client()
     if dest_path is None:
-        # Format date part of the filename 
-        date_str = release_date if release_date != 'current' else 'current'
+        # Format date part of the filename
+        date_str = release_date if release_date != "current" else "current"
         dest_path = f"{challenge_slug}_inference_{date_str}.parquet"
 
     try:
@@ -258,10 +257,10 @@ def get_submission(challenge_slug, submission_id):
 @handle_api_error
 def submit(challenge_slug, file_path):
     """Submit a prediction file (Parquet) to a specific challenge.
-    
+
     The file must be a Parquet file with the required columns:
     id, pred_1M, pred_3M, pred_6M, pred_9M, pred_12M
-    
+
     The submission will be made to the currently active inference period.
     """
     client = get_client()

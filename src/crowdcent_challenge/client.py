@@ -122,13 +122,13 @@ class ChallengeClient:
             return response
         except requests.exceptions.HTTPError as e:
             status_code = e.response.status_code
-            
+
             # Try to parse standardized error format: {"error": {"code": "ERROR_CODE", "message": "Description"}}
             try:
                 error_data = e.response.json()
-                if 'error' in error_data and isinstance(error_data['error'], dict):
-                    error_code = error_data['error'].get('code', 'UNKNOWN_ERROR')
-                    error_message = error_data['error'].get('message', e.response.text)
+                if "error" in error_data and isinstance(error_data["error"], dict):
+                    error_code = error_data["error"].get("code", "UNKNOWN_ERROR")
+                    error_message = error_data["error"].get("message", e.response.text)
                 else:
                     error_code = "API_ERROR"
                     error_message = e.response.text
@@ -139,7 +139,7 @@ class ChallengeClient:
             logger.error(
                 f"API Error ({status_code}): {error_code} - {error_message} for {method} {url}"
             )
-            
+
             if status_code == 401:
                 raise AuthenticationError(
                     f"Authentication failed (401): {error_message} [{error_code}]"
@@ -219,7 +219,9 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge or its latest training dataset is not found.
         """
-        response = self._request("GET", f"/challenges/{challenge_slug}/training_data/latest/")
+        response = self._request(
+            "GET", f"/challenges/{challenge_slug}/training_data/latest/"
+        )
         return response.json()
 
     def get_training_dataset(self, challenge_slug: str, version: str) -> Dict[str, Any]:
@@ -235,10 +237,14 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge or the specified training dataset is not found.
         """
-        response = self._request("GET", f"/challenges/{challenge_slug}/training_data/{version}/")
+        response = self._request(
+            "GET", f"/challenges/{challenge_slug}/training_data/{version}/"
+        )
         return response.json()
 
-    def download_training_dataset(self, challenge_slug: str, version: str, dest_path: str):
+    def download_training_dataset(
+        self, challenge_slug: str, version: str, dest_path: str
+    ):
         """Downloads the training data file for a specific dataset version.
 
         Args:
@@ -250,14 +256,16 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge, dataset, or its file is not found.
         """
-        if version == 'latest':
+        if version == "latest":
             endpoint = f"/challenges/{challenge_slug}/training_data/latest/download/"
         else:
             endpoint = f"/challenges/{challenge_slug}/training_data/{version}/download/"
-            
-        logger.info(f"Downloading training data {challenge_slug} v{version} to {dest_path}")
+
+        logger.info(
+            f"Downloading training data {challenge_slug} v{version} to {dest_path}"
+        )
         response = self._request("GET", endpoint, stream=True)
-        
+
         try:
             with open(dest_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
@@ -296,10 +304,14 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge has no active inference period.
         """
-        response = self._request("GET", f"/challenges/{challenge_slug}/inference_data/current/")
+        response = self._request(
+            "GET", f"/challenges/{challenge_slug}/inference_data/current/"
+        )
         return response.json()
 
-    def get_inference_data(self, challenge_slug: str, release_date: str) -> Dict[str, Any]:
+    def get_inference_data(
+        self, challenge_slug: str, release_date: str
+    ) -> Dict[str, Any]:
         """Gets details for a specific inference data period by its release date.
 
         Args:
@@ -315,14 +327,20 @@ class ChallengeClient:
         """
         # Validate date format
         try:
-            datetime.strptime(release_date, '%Y-%m-%d')
+            datetime.strptime(release_date, "%Y-%m-%d")
         except ValueError:
-            raise ClientError(f"Invalid date format: {release_date}. Use 'YYYY-MM-DD' format.")
-            
-        response = self._request("GET", f"/challenges/{challenge_slug}/inference_data/{release_date}/")
+            raise ClientError(
+                f"Invalid date format: {release_date}. Use 'YYYY-MM-DD' format."
+            )
+
+        response = self._request(
+            "GET", f"/challenges/{challenge_slug}/inference_data/{release_date}/"
+        )
         return response.json()
 
-    def download_inference_data(self, challenge_slug: str, release_date: str, dest_path: str):
+    def download_inference_data(
+        self, challenge_slug: str, release_date: str, dest_path: str
+    ):
         """Downloads the inference features file for a specific period.
 
         Args:
@@ -335,20 +353,26 @@ class ChallengeClient:
             NotFoundError: If the challenge, inference data, or its file is not found.
             ClientError: If the date format is invalid.
         """
-        if release_date == 'current':
+        if release_date == "current":
             endpoint = f"/challenges/{challenge_slug}/inference_data/current/download/"
         else:
             # Validate date format
             try:
-                datetime.strptime(release_date, '%Y-%m-%d')
+                datetime.strptime(release_date, "%Y-%m-%d")
             except ValueError:
-                raise ClientError(f"Invalid date format: {release_date}. Use 'YYYY-MM-DD' format.")
-                
-            endpoint = f"/challenges/{challenge_slug}/inference_data/{release_date}/download/"
-            
-        logger.info(f"Downloading inference data {challenge_slug} {release_date} to {dest_path}")
+                raise ClientError(
+                    f"Invalid date format: {release_date}. Use 'YYYY-MM-DD' format."
+                )
+
+            endpoint = (
+                f"/challenges/{challenge_slug}/inference_data/{release_date}/download/"
+            )
+
+        logger.info(
+            f"Downloading inference data {challenge_slug} {release_date} to {dest_path}"
+        )
         response = self._request("GET", endpoint, stream=True)
-        
+
         try:
             with open(dest_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
@@ -360,7 +384,9 @@ class ChallengeClient:
 
     # --- Submission Methods ---
 
-    def list_submissions(self, challenge_slug: str, period: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_submissions(
+        self, challenge_slug: str, period: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Lists the authenticated user's submissions for a specific challenge.
 
         Args:
@@ -374,12 +400,10 @@ class ChallengeClient:
         """
         params = {}
         if period:
-            params['period'] = period
-            
+            params["period"] = period
+
         response = self._request(
-            "GET", 
-            f"/challenges/{challenge_slug}/submissions/", 
-            params=params
+            "GET", f"/challenges/{challenge_slug}/submissions/", params=params
         )
         return response.json()
 
@@ -397,7 +421,9 @@ class ChallengeClient:
             NotFoundError: If the submission with the given ID is not found
                            or doesn't belong to the user.
         """
-        response = self._request("GET", f"/challenges/{challenge_slug}/submissions/{submission_id}/")
+        response = self._request(
+            "GET", f"/challenges/{challenge_slug}/submissions/{submission_id}/"
+        )
         return response.json()
 
     def submit_predictions(self, challenge_slug: str, file_path: str) -> Dict[str, Any]:
@@ -418,22 +444,24 @@ class ChallengeClient:
             ClientError: If the submission is invalid (e.g., wrong format,
                          outside submission window, already submitted, etc).
         """
-        logger.info(f"Submitting predictions from {file_path} to challenge {challenge_slug}")
+        logger.info(
+            f"Submitting predictions from {file_path} to challenge {challenge_slug}"
+        )
         try:
             with open(file_path, "rb") as f:
                 files = {
                     "prediction_file": (
-                        os.path.basename(file_path), 
-                        f, 
-                        "application/octet-stream"
+                        os.path.basename(file_path),
+                        f,
+                        "application/octet-stream",
                     )
                 }
                 response = self._request(
-                    "POST", 
-                    f"/challenges/{challenge_slug}/submissions/", 
-                    files=files
+                    "POST", f"/challenges/{challenge_slug}/submissions/", files=files
                 )
-            logger.info(f"Successfully submitted predictions to challenge {challenge_slug}")
+            logger.info(
+                f"Successfully submitted predictions to challenge {challenge_slug}"
+            )
             return response.json()
         except FileNotFoundError as e:
             logger.error(f"Prediction file not found at {file_path}")
