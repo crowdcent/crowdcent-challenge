@@ -31,7 +31,7 @@ jobs:
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - name: Install dependencies
         run: |
-          uv pip install mkdocs-material mkdocs-click mkdocstrings[python] --system
+          uv pip install mkdocs-material mkdocs-click mkdocstrings[python] mkdocs-marimo --system
           # Install the package itself so CLI docs can be generated
           uv pip install -e . --system
       - run: mkdocs gh-deploy --force
