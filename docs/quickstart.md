@@ -1,6 +1,6 @@
 # Quick Start
 
-The primary way to interact with the CrowdCent Challenge API programmatically is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can read the [CLI documentation](cli.md).
+The primary way to programmatically interact with the CrowdCent Challenge API is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md).
 
 ## Initialization
 
@@ -9,21 +9,17 @@ Initialize the client for a specific challenge by providing the challenge slug a
 ```python
 from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
 
-# Choose a challenge slug from the list of available challenges
-challenge_slug = "main-challenge"  # Replace with an actual challenge slug
+challenge_slug = "crypto-ranking"  # Replace with an actual challenge slug
 
-# Option 1: Pass the key directly
 API_KEY = "your_api_key_here" # Replace with your actual key
 client = ChallengeClient(challenge_slug=challenge_slug, api_key=API_KEY)
-
-# Option 2: Set the CROWDCENT_API_KEY environment variable
-# or create a .env file in your project root:
-# CROWDCENT_API_KEY=your_api_key_here
-# Then initialize with just the challenge slug:
-# client = ChallengeClient(challenge_slug=challenge_slug)
 ```
 
 !!! note
+    You can alternatively set the `CROWDCENT_API_KEY` environment variable or create a `.env` file in your project root:
+    ```
+    CROWDCENT_API_KEY=your_api_key_here
+    ```
     If the API key is not provided and cannot be found in the environment or `.env` file, an `AuthenticationError` will be raised.
 
 ## Working with a Challenge
