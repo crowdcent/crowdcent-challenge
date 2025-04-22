@@ -102,7 +102,11 @@ markdown_extensions:
   - md_in_html
   
 plugins:
-  - search
+  - search:
+      prebuild_index: true
+  - git-revision-date-localized
+  - git-authors:
+     show_email_address: false
   - mkdocstrings:
       handlers:
         python:

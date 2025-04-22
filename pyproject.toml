@@ -29,4 +29,6 @@ dev-dependencies = [
     "ruff>=0.11.5",
     "mkdocs-marimo>=0.2.1",
     "pymdown-extensions>=10.14.3",
+    "mkdocs-git-revision-date-localized-plugin>=1.4.5",
+    "mkdocs-git-authors-plugin>=0.9.4",
 ]
