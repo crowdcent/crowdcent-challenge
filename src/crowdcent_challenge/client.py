@@ -13,31 +13,31 @@ logger = logging.getLogger(__name__)
 
 
 # Custom Exceptions
-class CrowdcentAPIError(Exception):
+class CrowdCentAPIError(Exception):
     """Base exception for API errors."""
 
     pass
 
 
-class AuthenticationError(CrowdcentAPIError):
+class AuthenticationError(CrowdCentAPIError):
     """Exception for authentication issues."""
 
     pass
 
 
-class NotFoundError(CrowdcentAPIError):
+class NotFoundError(CrowdCentAPIError):
     """Exception for 404 errors."""
 
     pass
 
 
-class ClientError(CrowdcentAPIError):
+class ClientError(CrowdCentAPIError):
     """Exception for 4xx client errors (excluding 401, 404)."""
 
     pass
 
 
-class ServerError(CrowdcentAPIError):
+class ServerError(CrowdCentAPIError):
     """Exception for 5xx server errors."""
 
     pass
@@ -45,7 +45,7 @@ class ServerError(CrowdcentAPIError):
 
 class ChallengeClient:
     """
-    Client for interacting with a specific Crowdcent Challenge.
+    Client for interacting with a specific CrowdCent Challenge.
 
     Handles authentication and provides methods for accessing challenge data,
     training datasets, inference data, and managing prediction submissions for
@@ -66,10 +66,10 @@ class ChallengeClient:
 
         Args:
             challenge_slug: The unique identifier (slug) for the challenge.
-            api_key: Your Crowdcent API key. If not provided, it will attempt
+            api_key: Your CrowdCent API key. If not provided, it will attempt
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
-            base_url: The base URL of the Crowdcent API. Defaults to
+            base_url: The base URL of the CrowdCent API. Defaults to
                       http://crowdcent.com/api.
         """
         load_dotenv()  # Load .env file if present
@@ -84,7 +84,7 @@ class ChallengeClient:
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Api-Key {self.api_key}"})
-        logger.info(f"ChallengeClient initialized for challenge '{challenge_slug}' at URL: {self.base_url}")
+        logger.info(f"ChallengeClient initialized for '{challenge_slug}' at URL: {self.base_url}")
 
     def _request(
         self,
@@ -114,7 +114,7 @@ class ChallengeClient:
             NotFoundError: If the resource is not found (404).
             ClientError: For other 4xx errors.
             ServerError: For 5xx errors.
-            CrowdcentAPIError: For other request exceptions.
+            CrowdCentAPIError: For other request exceptions.
         """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         logger.debug(
@@ -165,12 +165,12 @@ class ChallengeClient:
                     f"Server error ({status_code}): {error_message} [{error_code}]"
                 ) from e
             else:
-                raise CrowdcentAPIError(
+                raise CrowdCentAPIError(
                     f"HTTP error ({status_code}): {error_message} [{error_code}]"
                 ) from e
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed: {e} for {method} {url}")
-            raise CrowdcentAPIError(f"Request failed: {e}") from e
+            raise CrowdCentAPIError(f"Request failed: {e}") from e
 
     # --- Class Method for Listing All Challenges ---
 
@@ -182,10 +182,10 @@ class ChallengeClient:
         Use this to discover available challenges before initializing a ChallengeClient.
 
         Args:
-            api_key: Your Crowdcent API key. If not provided, it will attempt
+            api_key: Your CrowdCent API key. If not provided, it will attempt
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
-            base_url: The base URL of the Crowdcent API. Defaults to
+            base_url: The base URL of the CrowdCent API. Defaults to
                       http://crowdcent.com/api.
 
         Returns:
@@ -220,9 +220,9 @@ class ChallengeClient:
             elif 500 <= status_code < 600:
                 raise ServerError(f"Server error ({status_code})")
             else:
-                raise CrowdcentAPIError(f"HTTP error ({status_code})")
+                raise CrowdCentAPIError(f"HTTP error ({status_code})")
         except requests.exceptions.RequestException as e:
-            raise CrowdcentAPIError(f"Request failed: {e}")
+            raise CrowdCentAPIError(f"Request failed: {e}")
 
     # --- Challenge Methods ---
 
@@ -311,7 +311,7 @@ class ChallengeClient:
             logger.info(f"Successfully downloaded training data to {dest_path}")
         except IOError as e:
             logger.error(f"Failed to write dataset to {dest_path}: {e}")
-            raise CrowdcentAPIError(f"Failed to write dataset file: {e}") from e
+            raise CrowdCentAPIError(f"Failed to write dataset file: {e}") from e
 
     # --- Inference Data Methods ---
 
@@ -406,7 +406,7 @@ class ChallengeClient:
             logger.info(f"Successfully downloaded inference data to {dest_path}")
         except IOError as e:
             logger.error(f"Failed to write inference data to {dest_path}: {e}")
-            raise CrowdcentAPIError(f"Failed to write inference data file: {e}") from e
+            raise CrowdCentAPIError(f"Failed to write inference data file: {e}") from e
 
     # --- Submission Methods ---
 
@@ -489,7 +489,7 @@ class ChallengeClient:
             raise FileNotFoundError(f"Prediction file not found at {file_path}") from e
         except IOError as e:
             logger.error(f"Failed to read prediction file {file_path}: {e}")
-            raise CrowdcentAPIError(f"Failed to read prediction file: {e}") from e
+            raise CrowdCentAPIError(f"Failed to read prediction file: {e}") from e
 
     # --- Challenge Switching ---
     

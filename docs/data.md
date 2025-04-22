@@ -2,9 +2,9 @@
 
 ## Data Structure
 
-The CrowdCent Challenge platform organizes data into the following hierarchy:
+The CrowdCent Challenge organizes data into the following hierarchy:
 
-1. **Challenges** - The top-level competitions (e.g., "Stock Price Prediction Challenge")
+1. **Challenges** - The top-level competitions (e.g., "Preseason", "Equity NLP", "Crypto Ranking")
 2. **Training Datasets** - Versioned datasets used for training your models
 3. **Inference Data** - Periodic releases of new data for making predictions
 4. **Submissions** - Your predictions for inference data periods

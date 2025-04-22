@@ -7,7 +7,7 @@ The primary way to interact with the CrowdCent Challenge API programmatically is
 Initialize the client for a specific challenge by providing the challenge slug and your API key.
 
 ```python
-from crowdcent_challenge import ChallengeClient, CrowdcentAPIError
+from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
 
 # Choose a challenge slug from the list of available challenges
 challenge_slug = "main-challenge"  # Replace with an actual challenge slug
@@ -92,7 +92,7 @@ try:
     print(f"Current Period Release Date: {current_period['release_date']}")
     print(f"Submission Deadline: {current_period['submission_deadline']}")
     print(f"Time Remaining: {current_period['time_remaining']}")
-except CrowdcentAPIError as e:
+except CrowdCentAPIError as e:
     print(f"No active inference period found: {e}")
 ```
 
@@ -132,7 +132,7 @@ try:
     submission = client.submit_predictions(predictions_file)
     print(f"Submission successful! ID: {submission['id']}")
     print(f"Status: {submission['status']}")
-except CrowdcentAPIError as e:
+except CrowdCentAPIError as e:
     print(f"Submission failed: {e}")
 ```
 
@@ -172,14 +172,14 @@ if submission['score_details']:
 Before initializing a client for a specific challenge, you may want to list all available challenges:
 
 ```python
-from crowdcent_challenge import ChallengeClient, CrowdcentAPIError
+from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
 
 # List all challenges using the class method
 try:
     challenges = ChallengeClient.list_all_challenges()
     for challenge in challenges:
         print(f"Challenge: {challenge['name']} (Slug: {challenge['slug']})")
-except CrowdcentAPIError as e:
+except CrowdCentAPIError as e:
     print(f"Error listing challenges: {e}")
 ```
 

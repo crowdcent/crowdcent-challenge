@@ -4,7 +4,7 @@ import json
 
 from .client import (
     ChallengeClient,
-    CrowdcentAPIError,
+    CrowdCentAPIError,
     AuthenticationError,
     NotFoundError,
     ClientError,
@@ -50,7 +50,7 @@ def handle_api_error(func):
             click.echo(f"Error: Client error (e.g., bad request). {e}", err=True)
         except ServerError as e:
             click.echo(f"Error: Server error. Please try again later. {e}", err=True)
-        except CrowdcentAPIError as e:
+        except CrowdCentAPIError as e:
             click.echo(f"Error: API call failed. {e}", err=True)
         except Exception as e:
             click.echo(f"An unexpected error occurred: {e}", err=True)
@@ -67,7 +67,7 @@ def handle_api_error(func):
 
 @click.group()
 def cli():
-    """Command Line Interface for the Crowdcent Challenge."""
+    """Command Line Interface for the CrowdCent Challenge."""
     pass
 
 
@@ -157,7 +157,7 @@ def download_training_data(challenge_slug, version, dest_path):
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
-    except CrowdcentAPIError as e:
+    except CrowdCentAPIError as e:
         click.echo(f"Error downloading or writing file: {e}", err=True)
         raise click.Abort()
 
@@ -227,7 +227,7 @@ def download_inference_data(challenge_slug, release_date, dest_path):
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
-    except CrowdcentAPIError as e:
+    except CrowdCentAPIError as e:
         click.echo(f"Error downloading or writing file: {e}", err=True)
         raise click.Abort()
 
@@ -283,7 +283,7 @@ def submit(challenge_slug, file_path):
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case
         click.echo(f"Error: Prediction file not found at {file_path}", err=True)
         raise click.Abort()
-    except CrowdcentAPIError as e:
+    except CrowdCentAPIError as e:
         click.echo(f"Error during submission: {e}", err=True)
         raise click.Abort()
 

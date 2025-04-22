@@ -1,7 +1,7 @@
 [project]
 name = "crowdcent-challenge"
 version = "0.1.1"
-description = "Crowdcent Challenge Python Client"
+description = "CrowdCent Challenge Python Client"
 readme = "README.md"
 authors = [
     { name = "Jason Rosenfeld", email = "jason@crowdcent.com" }

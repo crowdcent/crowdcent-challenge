@@ -1,8 +1,6 @@
 # CrowdCent Challenge
 Welcome to the documentation for the `crowdcent-challenge`. Please check back soon for detailed information about the challenge rules and format.
 
-Anyone can submit to this documentation or improve the python client and CLI for the `crowdcent-challenge` API. Please see the [contributing guidelines](contributing.md) for more information.
-
 Explore the rules, understand the scoring, get started with the python client, or dive into the API reference.
 
 <div class="grid cards" markdown>
@@ -42,3 +40,6 @@ Explore the rules, understand the scoring, get started with the python client, o
 </div>
 ## Have Questions?
 If you need immediate assistance, please email us at info@crowdcent.com or join our [Discord server](https://discord.gg/v6ZSGuTbQS).
+
+## Want to Contribute?
+Anyone can submit to this documentation or improve the python client and CLI for the `crowdcent-challenge` API. Please see the [contributing guidelines](contributing.md) for more information. If you'd like to join the conversation, please join our [Discord server](https://discord.gg/v6ZSGuTbQS).

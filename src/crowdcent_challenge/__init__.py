@@ -1,6 +1,6 @@
 from .client import (
     ChallengeClient,
-    CrowdcentAPIError,
+    CrowdCentAPIError,
     AuthenticationError,
     NotFoundError,
     ClientError,
@@ -9,7 +9,7 @@ from .client import (
 
 __all__ = [
     "ChallengeClient",
-    "CrowdcentAPIError",
+    "CrowdCentAPIError",
     "AuthenticationError",
     "NotFoundError",
     "ClientError",

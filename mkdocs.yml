@@ -1,5 +1,5 @@
 site_name: CrowdCent Challenge Docs
-site_description: Official Documentation for the CrowdCent Challenge. Including Python API Client and CLI for the Crowdcent Challenge API.
+site_description: Official Documentation for the CrowdCent Challenge. Including Python API Client and CLI for the CrowdCent Challenge API.
 repo_url: https://github.com/crowdcent/crowdcent-challenge
 repo_name: crowdcent-challenge
 copyright: Made by CrowdCent
@@ -7,9 +7,13 @@ copyright: Made by CrowdCent
 nav:
   - Challenge Docs:
       - Overview: index.md
-      - Data: data.md
       - Rules: rules.md
-      - Scoring: scoring.md
+      - Data: data.md
+      - Scoring : scoring.md
+      - Challenges:
+        - Preseason &#129514;: preseason.md
+        - Equity NLP &#128683;: equity_nlp_challenge.md
+        - Crypto Ranking &#128683;: crypto_ranking_challenge.md
       - Python Client:
           - Installation: installation.md
           - Quick Start: quickstart.md
@@ -80,7 +84,11 @@ markdown_extensions:
   - pymdownx.snippets
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify
