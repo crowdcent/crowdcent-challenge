@@ -151,15 +151,8 @@ def download_training_data(challenge_slug, version, dest_path):
     if dest_path is None:
         dest_path = f"{challenge_slug}_training_v{version}.parquet"
 
-    try:
-        client.download_training_dataset(version, dest_path)
-        click.echo(f"Training data downloaded successfully to {dest_path}")
-    except FileNotFoundError as e:
-        click.echo(f"Error: {e}", err=True)
-        raise click.Abort()
-    except CrowdCentAPIError as e:
-        click.echo(f"Error downloading or writing file: {e}", err=True)
-        raise click.Abort()
+    client.download_training_dataset(version, dest_path)
+    click.echo(f"Training data downloaded successfully to {dest_path}")
 
 
 # --- Inference Data Commands ---
