@@ -56,10 +56,10 @@ class ChallengeClient:
     API_KEY_ENV_VAR = "CROWDCENT_API_KEY"
 
     def __init__(
-        self, 
-        challenge_slug: str, 
-        api_key: Optional[str] = None, 
-        base_url: Optional[str] = None
+        self,
+        challenge_slug: str,
+        api_key: Optional[str] = None,
+        base_url: Optional[str] = None,
     ):
         """
         Initializes the ChallengeClient for a specific challenge.
@@ -84,7 +84,9 @@ class ChallengeClient:
         self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Api-Key {self.api_key}"})
-        logger.info(f"ChallengeClient initialized for '{challenge_slug}' at URL: {self.base_url}")
+        logger.info(
+            f"ChallengeClient initialized for '{challenge_slug}' at URL: {self.base_url}"
+        )
 
     def _request(
         self,
@@ -175,7 +177,9 @@ class ChallengeClient:
     # --- Class Method for Listing All Challenges ---
 
     @classmethod
-    def list_all_challenges(cls, api_key: Optional[str] = None, base_url: Optional[str] = None) -> List[Dict[str, Any]]:
+    def list_all_challenges(
+        cls, api_key: Optional[str] = None, base_url: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Lists all active challenges.
 
         This is a class method that doesn't require a challenge_slug.
@@ -199,11 +203,11 @@ class ChallengeClient:
                 f"API key not provided and not found in environment variable "
                 f"'{cls.API_KEY_ENV_VAR}' or .env file."
             )
-        
+
         base_url = (base_url or cls.DEFAULT_BASE_URL).rstrip("/")
         session = requests.Session()
         session.headers.update({"Authorization": f"Api-Key {api_key}"})
-        
+
         url = f"{base_url}/challenges/"
         try:
             response = session.get(url)
@@ -249,7 +253,9 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge is not found.
         """
-        response = self._request("GET", f"/challenges/{self.challenge_slug}/training_data/")
+        response = self._request(
+            "GET", f"/challenges/{self.challenge_slug}/training_data/"
+        )
         return response.json()
 
     def get_latest_training_dataset(self) -> Dict[str, Any]:
@@ -295,9 +301,13 @@ class ChallengeClient:
             NotFoundError: If the challenge, dataset, or its file is not found.
         """
         if version == "latest":
-            endpoint = f"/challenges/{self.challenge_slug}/training_data/latest/download/"
+            endpoint = (
+                f"/challenges/{self.challenge_slug}/training_data/latest/download/"
+            )
         else:
-            endpoint = f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
+            endpoint = (
+                f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
+            )
 
         logger.info(
             f"Downloading training data for challenge '{self.challenge_slug}' v{version} to {dest_path}"
@@ -324,7 +334,9 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge is not found.
         """
-        response = self._request("GET", f"/challenges/{self.challenge_slug}/inference_data/")
+        response = self._request(
+            "GET", f"/challenges/{self.challenge_slug}/inference_data/"
+        )
         return response.json()
 
     def get_current_inference_data(self) -> Dict[str, Any]:
@@ -380,7 +392,9 @@ class ChallengeClient:
             ClientError: If the date format is invalid.
         """
         if release_date == "current":
-            endpoint = f"/challenges/{self.challenge_slug}/inference_data/current/download/"
+            endpoint = (
+                f"/challenges/{self.challenge_slug}/inference_data/current/download/"
+            )
         else:
             # Validate date format
             try:
@@ -390,9 +404,7 @@ class ChallengeClient:
                     f"Invalid date format: {release_date}. Use 'YYYY-MM-DD' format."
                 )
 
-            endpoint = (
-                f"/challenges/{self.challenge_slug}/inference_data/{release_date}/download/"
-            )
+            endpoint = f"/challenges/{self.challenge_slug}/inference_data/{release_date}/download/"
 
         logger.info(
             f"Downloading inference data for challenge '{self.challenge_slug}' {release_date} to {dest_path}"
@@ -478,7 +490,9 @@ class ChallengeClient:
                     )
                 }
                 response = self._request(
-                    "POST", f"/challenges/{self.challenge_slug}/submissions/", files=files
+                    "POST",
+                    f"/challenges/{self.challenge_slug}/submissions/",
+                    files=files,
                 )
             logger.info(
                 f"Successfully submitted predictions to challenge '{self.challenge_slug}'"
@@ -492,13 +506,13 @@ class ChallengeClient:
             raise CrowdCentAPIError(f"Failed to read prediction file: {e}") from e
 
     # --- Challenge Switching ---
-    
+
     def switch_challenge(self, new_challenge_slug: str):
         """Switch this client to interact with a different challenge.
-        
+
         Args:
             new_challenge_slug: The slug identifier for the new challenge.
-            
+
         Returns:
             None. The client is modified in-place.
         """

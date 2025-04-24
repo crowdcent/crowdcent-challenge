@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 def get_client(challenge_slug=None):
     """
     Instantiates and returns the ChallengeClient, handling API key loading.
-    
+
     Args:
         challenge_slug: The challenge slug for client initialization.
                         If None, no client is created (for list_challenges).
