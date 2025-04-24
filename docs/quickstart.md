@@ -2,6 +2,12 @@
 
 The primary way to programmatically interact with the CrowdCent Challenge API is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md).
 
+## API Key
+
+You need an API key to use the CrowdCent Challenge API. You can get your key by clicking "Generate New Key" on your profile page at [https://crowdcent.com/](https://crowdcent.com/). Write it down, as you won't be able to access it after you leave the page.
+
+[![API keys](/overrides/assets/images/api_keys.png)](https://crowdcent.com/challenge)
+
 ## Initialization
 
 Initialize the client for a specific challenge by providing the challenge slug and your API key.

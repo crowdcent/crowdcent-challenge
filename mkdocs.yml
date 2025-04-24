@@ -11,13 +11,12 @@ nav:
       - Data: data.md
       - Scoring : scoring.md
       - Challenges:
-        - Preseason &#129514;: preseason.md
-        - Equity NLP &#128683;: equity_nlp_challenge.md
-        - Crypto Ranking &#128683;: crypto_ranking_challenge.md
+          - Crypto Ranking &#128683;: crypto_ranking_challenge.md
+          - Equity NLP &#128683;: equity_nlp_challenge.md
       - Python Client:
           - Installation: installation.md
           - Quick Start: quickstart.md
-          - Interactive Examples: examples.md
+          - Examples: examples.md
           - CLI: cli.md
       - More:
           - About CrowdCent: about.md
