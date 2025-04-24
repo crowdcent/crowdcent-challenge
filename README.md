@@ -3,7 +3,7 @@
 ![](https://img.shields.io/github/contributors/crowdcent/crowdcent-challenge.png)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-![](https://img.shields.io/codecov/c/gh/crowdcent/crowdcent-challenge/master)
+![](https://img.shields.io/codecov/c/gh/crowdcent/crowdcent-challenge/main)
 ![](https://img.shields.io/pypi/dm/crowdcent-challenge)
 
 # CrowdCent Challenge
