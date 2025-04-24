@@ -27,7 +27,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          pytest --cov=src/crowdcent_challenge --cov-report=xml --cov-fail-under=70
+          uv run pytest --cov=src/crowdcent_challenge --cov-report=xml --cov-fail-under=70
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
