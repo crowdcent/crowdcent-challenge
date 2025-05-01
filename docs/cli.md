@@ -134,6 +134,22 @@ Submit a prediction file to the current inference period.
 crowdcent submit main-challenge ./predictions.parquet
 ```
 
+## Meta Model
+
+#### download-meta-model
+```bash
+crowdcent download-meta-model <challenge_slug> [OPTIONS]
+```
+Download the consolidated meta model for a challenge.
+
+**Options:**
+- `-o, --output <path>` - Output location (default: `<challenge_slug>_meta_model.parquet`)
+
+**Example:**
+```bash
+crowdcent download-meta-model main-challenge -o ./data/meta_model.parquet
+```
+
 ## Error Handling
 
 All errors are printed to stderr. Commands will abort on failure with a non-zero exit code. 

@@ -518,3 +518,39 @@ class ChallengeClient:
         """
         self.challenge_slug = new_challenge_slug
         logger.info(f"Client switched to challenge '{new_challenge_slug}'")
+
+    # --- Meta Model Download ---
+
+    def download_meta_model(self, dest_path: str):
+        """Downloads the consolidated meta model file for this challenge.
+
+        The meta model is typically an aggregation (e.g., average) of all valid
+        submissions for past inference periods.
+
+        Args:
+            dest_path: The local file path to save the downloaded meta model.
+
+        Raises:
+            NotFoundError: If the challenge or its meta model file is not found.
+            CrowdCentAPIError: For issues during download or file writing.
+            PermissionDenied: If the meta model is not public and user lacks permission.
+        """
+        endpoint = f"/challenges/{self.challenge_slug}/meta_model/download/"
+        logger.info(
+            f"Downloading consolidated meta model for challenge '{self.challenge_slug}' to {dest_path}"
+        )
+
+        # The API endpoint redirects to a signed URL, but requests handles the redirect automatically.
+        # We still stream the response from the final URL.
+        response = self._request("GET", endpoint, stream=True)
+
+        try:
+            with open(dest_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+            logger.info(
+                f"Successfully downloaded consolidated meta model to {dest_path}"
+            )
+        except IOError as e:
+            logger.error(f"Failed to write meta model to {dest_path}: {e}")
+            raise CrowdCentAPIError(f"Failed to write meta model file: {e}") from e

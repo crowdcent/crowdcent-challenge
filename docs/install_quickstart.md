@@ -19,15 +19,14 @@ You need an API key to use the CrowdCent Challenge API. You can get your key by 
 
 ## Initialization
 
-The primary way to interact with the CrowdCent Challenge API is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge by providing the challenge slug and your API key. 
+The primary way to interact with the API is through the `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge by providing the challenge slug and your API key.
 
 ```python
 from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
 
-challenge_slug = "crypto-ranking"  # Replace with an actual challenge slug
-
-API_KEY = "your_api_key_here" # Replace with your actual key
-client = ChallengeClient(challenge_slug=challenge_slug, api_key=API_KEY)
+challenge_slug = "crypto-ranking"  # Replace with the challenge slug you want to work on
+api_key = "your_api_key_here" # Replace with your actual key
+client = ChallengeClient(challenge_slug=challenge_slug, api_key=api_key)
 ```
 
 !!! note
@@ -98,13 +97,10 @@ for period in inference_periods:
 Get the current inference period:
 
 ```python
-try:
-    current_period = client.get_current_inference_data()
-    print(f"Current Period Release Date: {current_period['release_date']}")
-    print(f"Submission Deadline: {current_period['submission_deadline']}")
-    print(f"Time Remaining: {current_period['time_remaining']}")
-except CrowdCentAPIError as e:
-    print(f"No active inference period found: {e}")
+current_period = client.get_current_inference_data()
+print(f"Current Period Release Date: {current_period['release_date']}")
+print(f"Submission Deadline: {current_period['submission_deadline']}")
+print(f"Time Remaining: {current_period['time_remaining']}")
 ```
 
 Download inference features:
@@ -115,6 +111,15 @@ output_path = "data/inference_features.parquet"
 client.download_inference_data(release_date, output_path)
 print(f"Inference data downloaded to {output_path}")
 ```
+
+## Working with the Meta Model
+
+Download the consolidated meta model for the current challenge:
+
+```python
+output_path = "data/meta_model.parquet"
+client.download_meta_model(output_path)
+print(f"Meta model downloaded to {output_path}")
 
 ## Submitting Predictions
 
@@ -139,12 +144,10 @@ predictions_file = "my_predictions.parquet"
 predictions.write_parquet(predictions_file)
 
 # Submit to the current challenge
-try:
-    submission = client.submit_predictions(predictions_file)
-    print(f"Submission successful! ID: {submission['id']}")
-    print(f"Status: {submission['status']}")
-except CrowdCentAPIError as e:
-    print(f"Submission failed: {e}")
+submission = client.submit_predictions(predictions_file)
+print(f"Submission successful! ID: {submission['id']}")
+print(f"Status: {submission['status']}")
+
 ```
 
 ## Retrieving Submissions
