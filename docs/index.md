@@ -1,4 +1,4 @@
-# CrowdCent Challenge
+# CrowdCent Challenge Documentation
 Welcome to the documentation for the `crowdcent-challenge`. Please check back soon for detailed information about the challenge rules and format.
 
 Explore the rules, understand the scoring, get started with the python client, or dive into the API reference.
@@ -27,7 +27,7 @@ Explore the rules, understand the scoring, get started with the python client, o
 
     Install the client library and make your first submission quickly.
 
-    [:octicons-arrow-right-24: Quick Start Guide](quickstart.md)
+    [:octicons-arrow-right-24: Quick Start Guide](install_quickstart.md)
 
 -   :material-api:{ .lg .middle } API Reference
 

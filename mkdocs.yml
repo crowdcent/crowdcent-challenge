@@ -11,11 +11,10 @@ nav:
       - Data: data.md
       - Scoring : scoring.md
       - Challenges:
-          - Crypto Ranking &#128683;: crypto_ranking_challenge.md
-          - Equity NLP &#128683;: equity_nlp_challenge.md
+          - Hyperliquid Ranking: hyperliquid-ranking.md
+          - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
-          - Installation: installation.md
-          - Quick Start: quickstart.md
+          - Install & Quick Start: install_quickstart.md
           - Examples: examples.md
           - CLI: cli.md
       - More:

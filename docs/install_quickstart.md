@@ -1,16 +1,25 @@
-# Quick Start
+## Installation
+=== "Using uv (Recommended)"
 
-The primary way to programmatically interact with the CrowdCent Challenge API is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md).
+    ```bash
+    uv pip install crowdcent-challenge
+    ```
+
+=== "Using pip"
+
+    ```bash
+    pip install crowdcent-challenge
+    ```
 
 ## API Key
 
-You need an API key to use the CrowdCent Challenge API. You can get your key by clicking "Generate New Key" on your profile page at [https://crowdcent.com/](https://crowdcent.com/). Write it down, as you won't be able to access it after you leave the page.
+You need an API key to use the CrowdCent Challenge API. You can get your key by clicking "Generate New Key" on your [profile page](https://crowdcent.com/profile). Write it down, as you won't be able to access it after you leave the page.
 
-[![API keys](/overrides/assets/images/api_keys.png)](https://crowdcent.com/challenge)
+[![API keys](overrides/assets/images/api_keys.png)](https://crowdcent.com/challenge)
 
 ## Initialization
 
-Initialize the client for a specific challenge by providing the challenge slug and your API key.
+The primary way to interact with the CrowdCent Challenge API is through the python client `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge by providing the challenge slug and your API key. 
 
 ```python
 from crowdcent_challenge import ChallengeClient, CrowdCentAPIError

@@ -4,9 +4,9 @@
 
 The CrowdCent Challenge organizes data into the following hierarchy:
 
-1. **Challenges** - The top-level competitions (e.g., "Preseason", "Equity NLP", "Crypto Ranking")
+1. **Challenges** - The top-level competitions (e.g., "Crypto Ranking")
 2. **Training Datasets** - Versioned datasets used for training your models
-3. **Inference Data** - Periodic releases of new data for making predictions
+3. **Inference Data** - Periodic releases of new data or universe for making predictions
 4. **Submissions** - Your predictions for inference data periods
 
 ### Challenge Data
