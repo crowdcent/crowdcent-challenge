@@ -101,8 +101,7 @@ markdown_extensions:
   - md_in_html
   
 plugins:
-  - search:
-      prebuild_index: true
+  - search
   - git-revision-date-localized
   - git-authors:
      show_email_address: false

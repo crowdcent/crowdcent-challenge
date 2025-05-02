@@ -507,7 +507,7 @@ class ChallengeClient:
 
     # --- Challenge Switching ---
 
-    def switch_challenge(self, new_challenge_slug: str):
+    def switch_challenge(self, new_challenge_slug: str) -> None:
         """Switch this client to interact with a different challenge.
 
         Args:
