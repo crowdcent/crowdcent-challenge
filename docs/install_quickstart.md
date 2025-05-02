@@ -15,7 +15,7 @@
 
 You need an API key to use the CrowdCent Challenge API. You can get your key by clicking "Generate New Key" on your [profile page](https://crowdcent.com/profile). Write it down, as you won't be able to access it after you leave the page.
 
-[![API keys](overrides/assets/images/api_keys.png)](https://crowdcent.com/profile)
+[![API keys](overrides/assets/images/api_keys.png)](https://crowdcent.com/profile){:target="_blank"}
 
 ## Initialization
 

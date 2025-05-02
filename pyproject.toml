@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.10"
 dependencies = [
     "click>=8.1.8",
+    "numpy>=2.2.5",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
 ]
@@ -27,7 +28,6 @@ dev-dependencies = [
     "mkdocstrings[python]>=0.29.1",
     "mkdocs-click>=0.9.0",
     "ruff>=0.11.5",
-    "mkdocs-marimo>=0.2.1",
     "pymdown-extensions>=10.14.3",
     "mkdocs-git-revision-date-localized-plugin>=1.4.5",
     "mkdocs-git-authors-plugin>=0.9.4",

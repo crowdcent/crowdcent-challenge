@@ -10,12 +10,13 @@ nav:
       - Rules: rules.md
       - Data: data.md
       - Scoring : scoring.md
+      - FAQ: faq.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md
           - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
           - Install & Quick Start: install_quickstart.md
-          - Examples: examples.md
+          - Examples: examples.ipynb
           - CLI: cli.md
       - More:
           - About CrowdCent: about.md
@@ -111,7 +112,8 @@ plugins:
           options:
             show_root_heading: true
             show_source: true
-  - marimo:
+  - mkdocs-jupyter:
+
 extra:
   social:
     - icon: fontawesome/brands/discord
