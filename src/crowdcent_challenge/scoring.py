@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def dcg_at_k(relevance_scores: np.ndarray, k: int) -> float:
     """
     Calculates Discounted Cumulative Gain at rank k.
@@ -15,8 +16,9 @@ def dcg_at_k(relevance_scores: np.ndarray, k: int) -> float:
     k = min(len(relevance_scores), k)
     if k == 0:
         return 0.0
-    discounts = np.log2(np.arange(k) + 2) # ranks 1..k -> log2(rank+1)
+    discounts = np.log2(np.arange(k) + 2)  # ranks 1..k -> log2(rank+1)
     return np.sum(relevance_scores[:k] / discounts)
+
 
 def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float:
     """
@@ -44,7 +46,7 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     if k <= 0:
         raise ValueError("k must be a positive integer.")
     if len(y_true) == 0:
-        return 0.0 # Or NaN, depending on desired behavior for empty input
+        return 0.0  # Or NaN, depending on desired behavior for empty input
 
     # --- Top-k NDCG Calculation ---
     # Order by prediction (highest first)
@@ -67,13 +69,13 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     y_true_neg_relevance = -y_true
 
     # Order by prediction (lowest first)
-    pred_order_asc = np.argsort(y_pred) # Ascending is default
+    pred_order_asc = np.argsort(y_pred)  # Ascending is default
     # Get negative true values in the predicted bottom order
     true_relevance_in_pred_order_bottom = y_true_neg_relevance[pred_order_asc]
 
     # Order by true value (lowest first) for ideal bottom ranking,
     # which means ordering by negative relevance (highest first)
-    ideal_order_asc = np.argsort(y_true) # lowest y_true first
+    ideal_order_asc = np.argsort(y_true)  # lowest y_true first
     ideal_relevance_bottom = y_true_neg_relevance[ideal_order_asc]
 
     # Calculate DCG and IDCG for the bottom (using negative relevance)

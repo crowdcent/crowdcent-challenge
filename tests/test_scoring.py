@@ -6,6 +6,7 @@ from crowdcent_challenge.scoring import dcg_at_k, symmetric_ndcg_at_k
 
 # --- Tests for dcg_at_k -----------------------------------------------------
 
+
 def test_dcg_at_k_basic():
     """Validate DCG against a hand-computed example."""
     relevance = np.array([3, 2, 3, 0, 1, 2])
@@ -34,6 +35,7 @@ def test_dcg_at_k_k_zero_returns_zero():
 
 
 # --- Tests for symmetric_ndcg_at_k ------------------------------------------
+
 
 def test_symmetric_ndcg_perfect_ranking_returns_one():
     """Perfect prediction should yield a score of exactly 1.0."""
@@ -64,4 +66,4 @@ def test_symmetric_ndcg_empty_input_returns_zero():
     """Empty inputs should return 0.0 as specified in docstring."""
     y_true = np.array([])
     y_pred = np.array([])
-    assert symmetric_ndcg_at_k(y_true, y_pred, k=1) == 0.0 
+    assert symmetric_ndcg_at_k(y_true, y_pred, k=1) == 0.0
