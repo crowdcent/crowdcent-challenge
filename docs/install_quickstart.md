@@ -1,4 +1,4 @@
-## Installation
+## Install the client
 === "Using uv (Recommended)"
 
     ```bash
@@ -11,13 +11,13 @@
     pip install crowdcent-challenge
     ```
 
-## API Key
+## Get an API Key
 
 You need an API key to use the CrowdCent Challenge API. You can get your key by clicking "Generate New Key" on your [profile page](https://crowdcent.com/profile). Write it down, as you won't be able to access it after you leave the page.
 
 [![API keys](overrides/assets/images/api_keys.png)](https://crowdcent.com/profile){:target="_blank"}
 
-## Initialization
+## Initialize the ChallengeClient
 
 The primary way to interact with the API is through the `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge by providing the challenge slug and your API key.
 
