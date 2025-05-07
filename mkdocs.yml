@@ -112,7 +112,6 @@ plugins:
             show_root_heading: true
             show_source: true
   - mkdocs-jupyter:
-        theme: dark
         include_source: True
 
 extra:
