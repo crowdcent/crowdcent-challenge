@@ -7,7 +7,7 @@ copyright: Made by CrowdCent
 nav:
   - Challenge Docs:
       - Overview: index.md
-      - Rules: rules.md
+      - Getting Started: getting_started.md
       - Data: data.md
       - Scoring : scoring.md
       - FAQ: faq.md
@@ -16,7 +16,7 @@ nav:
           - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
           - Install & Quick Start: install_quickstart.md
-          - Tutorial: tutorial.ipynb
+          - Tutorial Notebook: tutorial.ipynb
           - CLI: cli.md
       - More:
           - About CrowdCent: about.md
@@ -112,6 +112,8 @@ plugins:
             show_root_heading: true
             show_source: true
   - mkdocs-jupyter:
+        theme: dark
+        include_source: True
 
 extra:
   social:

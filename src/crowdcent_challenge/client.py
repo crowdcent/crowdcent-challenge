@@ -96,6 +96,7 @@ class ChallengeClient:
         json_data: Optional[Dict] = None,
         files: Optional[Dict[str, IO]] = None,
         stream: bool = False,
+        data: Optional[Dict] = None,
     ) -> requests.Response:
         """
         Internal helper method to make authenticated API requests.
@@ -107,6 +108,7 @@ class ChallengeClient:
             json_data: JSON data for the request body.
             files: Files to upload (for multipart/form-data).
             stream: Whether to stream the response (for downloads).
+            data: Dictionary of form data to send with multipart requests.
 
         Returns:
             The requests.Response object.
@@ -120,12 +122,19 @@ class ChallengeClient:
         """
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
         logger.debug(
-            f"Request: {method} {url} Params: {params} JSON: {json_data is not None} Files: {files is not None}"
+            f"Request: {method} {url} Params: {params} JSON: {json_data is not None} "
+            f"Data: {data is not None} Files: {files is not None}"
         )
 
         try:
             response = self.session.request(
-                method, url, params=params, json=json_data, files=files, stream=stream
+                method,
+                url,
+                params=params,
+                json=json_data,
+                files=files,
+                stream=stream,
+                data=data,
             )
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
             logger.debug(f"Response: {response.status_code}")
@@ -460,17 +469,20 @@ class ChallengeClient:
         )
         return response.json()
 
-    def submit_predictions(self, file_path: str) -> Dict[str, Any]:
+    def submit_predictions(
+        self, file_path: str, slot: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Submits a prediction file for the current active inference period of this challenge.
 
-        The file must be a Parquet file with the required prediction columns:
-        id, pred_1M, pred_3M, pred_6M, pred_9M, pred_12M
+        The file must be a Parquet file with the required prediction columns
+        specified by the challenge (e.g., id, pred_10d, pred_30d).
 
         Args:
             file_path: The path to the prediction Parquet file.
+            slot: Optional submission slot number (1-based).
 
         Returns:
-            A dictionary representing the newly created submission.
+            A dictionary representing the newly created or updated submission.
 
         Raises:
             FileNotFoundError: If the specified file_path does not exist.
@@ -478,7 +490,7 @@ class ChallengeClient:
                          outside submission window, already submitted, etc).
         """
         logger.info(
-            f"Submitting predictions from {file_path} to challenge '{self.challenge_slug}'"
+            f"Submitting predictions from {file_path} to challenge '{self.challenge_slug}' (Slot: {slot or 'default'})"
         )
         try:
             with open(file_path, "rb") as f:
@@ -489,10 +501,16 @@ class ChallengeClient:
                         "application/octet-stream",
                     )
                 }
+                # Prepare data payload if slot is provided
+                data_payload = None
+                if slot is not None:
+                    data_payload = {"slot": str(slot)}
+
                 response = self._request(
                     "POST",
                     f"/challenges/{self.challenge_slug}/submissions/",
                     files=files,
+                    data=data_payload,  # Pass slot in data
                 )
             logger.info(
                 f"Successfully submitted predictions to challenge '{self.challenge_slug}'"

@@ -42,4 +42,4 @@ Explore the rules, understand the scoring, get started with the python client, o
 If you need immediate assistance, please email us at info@crowdcent.com or join our [Discord server](https://discord.gg/v6ZSGuTbQS).
 
 ## Want to Contribute?
-Anyone can submit to this documentation or improve the python client and CLI for the `crowdcent-challenge` API. Please see the [contributing guidelines](contributing.md) for more information. If you'd like to join the conversation, please join our [Discord server](https://discord.gg/v6ZSGuTbQS).
+These docs and the python client are [open source](https://github.com/crowdcent/crowdcent-challenge)! Anyone can submit to this documentation or improve the python client and CLI for the `crowdcent-challenge` API. Please see the [contributing guidelines](contributing.md) for more information. If you'd like to join the conversation, please join our [Discord server](https://discord.gg/v6ZSGuTbQS).

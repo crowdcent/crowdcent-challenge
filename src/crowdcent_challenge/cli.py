@@ -259,18 +259,20 @@ def get_submission(challenge_slug, submission_id):
 @click.argument(
     "file_path", type=click.Path(exists=True, dir_okay=False, readable=True)
 )
+@click.option("--slot", type=int, help="Submission slot number (1-based).")
 @handle_api_error
-def submit(challenge_slug, file_path):
+def submit(challenge_slug, file_path, slot):
     """Submit a prediction file (Parquet) to a specific challenge.
 
-    The file must be a Parquet file with the required columns:
-    id, pred_1M, pred_3M, pred_6M, pred_9M, pred_12M
+    The file must be a Parquet file with the required columns specified by the challenge
+    (e.g., id, pred_10d, pred_30d).
 
     The submission will be made to the currently active inference period.
+    Use --slot to specify a submission slot (1-based).
     """
     client = get_client(challenge_slug)
     try:
-        submission = client.submit_predictions(file_path)
+        submission = client.submit_predictions(file_path, slot=slot)
         click.echo("Submission successful!")
         click.echo(json.dumps(submission, indent=2))
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case
