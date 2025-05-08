@@ -127,7 +127,7 @@ Submit a prediction file to the current inference period.
 
 **Requirements:**
 - File must be Parquet format
-- Required columns: `id`, `pred_1M`, `pred_3M`, `pred_6M`, `pred_9M`, `pred_12M`
+- Required columns: `id`, and the prediction columns specific to the challenge (e.g., `pred_1M`, `pred_3M` OR `pred_10d`, `pred_30d`). **Always check the target challenge details for the exact required prediction column names.**
 
 **Example:**
 ```bash

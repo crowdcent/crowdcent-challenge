@@ -19,12 +19,12 @@ You need an API key to use the CrowdCent Challenge API. You can get your key by 
 
 ## Initialize the ChallengeClient
 
-The primary way to interact with the API is through the `ChallengeClient`, which is designed to work with a specific challenge. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge by providing the challenge slug and your API key.
+The primary way to interact with the API is through the `ChallengeClient` in Python. If you prefer to use the CLI, you can refer to the [CLI documentation](cli.md). Initialize the client for a specific challenge (e.g. `hyperliquid-ranking`) by providing the challenge slug and your API key.
 
 ```python
 from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
 
-challenge_slug = "crypto-ranking"  # Replace with the challenge slug you want to work on
+challenge_slug = "hyperliquid-ranking"  # Replace with 
 api_key = "your_api_key_here" # Replace with your actual key
 client = ChallengeClient(challenge_slug=challenge_slug, api_key=api_key)
 ```
@@ -129,14 +129,16 @@ Submit predictions for the current inference period:
 import polars as pl
 
 # Create or load your predictions
-# The file must include columns: id, pred_1M, pred_3M, pred_6M, pred_9M, pred_12M
+# The file must include an 'id' column and the specific prediction columns
+# required by the challenge (e.g., pred_10d, pred_30d for some challenges,
+# or pred_1M, pred_3M, etc., for others).
+# Always check the specific challenge documentation for the exact column names.
+
+# Example for a challenge expecting 'pred_10d' and 'pred_30d':
 predictions = pl.DataFrame({
     "id": [1, 2, 3],
-    "pred_1M": [0.5, -0.3, 0.1],
-    "pred_3M": [0.7, -0.2, 0.2],
-    "pred_6M": [0.8, -0.1, 0.3],
-    "pred_9M": [0.9, 0.0, 0.4],
-    "pred_12M": [1.0, 0.1, 0.5]
+    "pred_10d": [0.5, -0.3, 0.1], # Example column
+    "pred_30d": [0.7, -0.2, 0.2], # Example column
 })
 
 # Save predictions to a Parquet file

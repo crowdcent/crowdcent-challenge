@@ -1,44 +1,4 @@
-# End-to-end examples
-
-## Downloading data, training a model, and uploading predictions
-
-This example demonstrates how to use the `ChallengeClient` to download data, train a model, and upload predictions.
-
-/// marimo-embed
-    height: 750px
-    mode: edit
-    app_width: full
-
-```python
-@app.cell
-def _():
-    import marimo as mo
-    import crowdcent_challenge as cc
-    
-    api_key = mo.ui.text(
-        value="WTwooX7w.KyfcmBuUyUQUEb7l9CdhHajAXFM11Dck",
-        label="API Key (Optional)",
-        kind="password",
-    )
-
-    api_key
-    return api_key, mo
-
-@app.cell
-def _(api_key, cc):
-    client = cc.ChallengeClient(
-        challenge_slug="main-challenge", 
-        api_key=api_key.value
-    )
-    return (client,)
-
-```
-
-///
-
-## Submission automation
-
-### Scheduling a Kaggle notebook
+## Scheduling a Kaggle notebook
 If you're just starting out, we recommend using Kaggle Notebooks to schedule your submissions.
 
 1. **Settings (⚙) → Schedule a notebook run → On**  
@@ -49,7 +9,8 @@ If you're just starting out, we recommend using Kaggle Notebooks to schedule you
 
 <sub>Need GPUs? Trigger notebook commits with the Kaggle API from cron/GitHub Actions.</sub>
 
-### Scheduling a Google Colab (Vertex AI) notebook
+## Scheduling a Google Colab (Vertex AI) notebook
+https://www.youtube.com/watch?v=ypGah2gRYck
 
 1. **Create a Google Cloud account** if you don't have one already
 2. **Go to [Google Colab Notebooks in Vertex AI](https://console.cloud.google.com/vertex-ai/colab/notebooks)**
@@ -65,4 +26,3 @@ If you're just starting out, we recommend using Kaggle Notebooks to schedule you
    - Use Google Cloud's Secret Manager for API keys
 
 <sub>Note: Scheduled Colab notebooks run on Google Cloud and may incur charges based on your usage.</sub>
-

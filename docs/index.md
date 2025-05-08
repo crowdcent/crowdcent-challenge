@@ -1,41 +1,43 @@
 # CrowdCent Challenge Documentation
-Welcome to the documentation for the `crowdcent-challenge`. Please check back soon for detailed information about the challenge rules and format.
 
-Explore the rules, understand the scoring, get started with the python client, or dive into the API reference.
+Welcome to the documentation for the `crowdcent-challenge`. The CrowdCent Challenge is a data science competition designed for machine learning engineers, data scientists, and other technical professionals to hone their skills in a real-world setting.
+
+Get started, understand the scoring, understand the python client, or dive into the API reference.
 
 <div class="grid cards" markdown>
 
--   :material-scale-balance:{ .lg .middle } Challenge Rules
+-   :material-rocket:{ .lg .middle } Getting Started
 
     ---
 
-    Understand the official rules and guidelines for participating in the CrowdCent Challenge.
+    Make your first submission to the CrowdCent Challenge.
 
-    [:octicons-arrow-right-24: Read the Rules](rules.md)
+    [:octicons-arrow-right-24: Get Started](getting_started.md)
 
 -   :material-scoreboard:{ .lg .middle } Scoring System
 
     ---
 
-    Learn how submissions are evaluated and how the leaderboard rankings work.
+    Learn how submissions are evaluated and how leaderboard rankings work.
 
     [:octicons-arrow-right-24: View Scoring Details](scoring.md)
 
--   :material-language-python:{ .lg .middle } Python Client
+-   :material-language-python:{ .lg .middle } Python Client Quick Start
 
     ---
 
-    Install the client library and make your first submission quickly.
+    Install the client library and make your first submission programmatically.
 
     [:octicons-arrow-right-24: Quick Start Guide](install_quickstart.md)
 
--   :material-api:{ .lg .middle } API Reference
+
+-   :material-help:{ .lg .middle } FAQ
 
     ---
 
-    Detailed reference for the Python client and the command-line interface.
+    Frequently asked questions about the challenge, API Key, and more.
 
-    [:octicons-arrow-right-24: Explore the API](python_reference.md)
+    [:octicons-arrow-right-24: View FAQ](faq.md)
 
 </div>
 ## Have Questions?

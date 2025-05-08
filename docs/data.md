@@ -40,6 +40,11 @@ Inference data represents periodic releases of new data for which you will make 
 
 All data is provided in Parquet format, a columnar storage file format optimized for analytical processing.
 
+!!! warning "Challenge-Specific Columns"
+    The exact feature names, target column names (e.g., `target_1M`, `target_10d`), and required prediction column names (e.g., `pred_1M`, `pred_10d`) can vary significantly from one challenge to another. 
+    **Always refer to the specific rules and data description for the challenge you are participating in.** 
+    The examples provided in this documentation are illustrative and may not apply to all challenges.
+
 ### Dataset Components
 
 #### Identifier (`id`)

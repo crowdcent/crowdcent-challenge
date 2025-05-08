@@ -1,4 +1,4 @@
-All scoring functions used in the CrowdCent Challenge code directly from this repository.
+All scoring functions used in the CrowdCent Challenge can be found in the `crowdcent_challenge.scoring` module.
 
 ```python
 from crowdcent_challenge.scoring import *

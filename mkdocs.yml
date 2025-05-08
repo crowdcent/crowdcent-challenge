@@ -16,16 +16,18 @@ nav:
           - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
           - Install & Quick Start: install_quickstart.md
-          - Tutorial Notebook: tutorial.ipynb
           - CLI: cli.md
       - More:
           - About CrowdCent: about.md
           - Contributing: contributing.md
           - Disclaimer: disclaimer.md
           - Changelog: changelog.md
+  - Tutorials:
+      - Python Client Example: tutorials/client_example.ipynb
+      - Submission Automation: tutorials/submission_automation.md
   - API Reference:
-      - Python: python_reference.md
-      - CLI: cli_reference.md
+      - Python: api_ref/python_reference.md
+      - CLI: api_ref/cli_reference.md
       - OpenAPI: https://crowdcent.com/api/swagger-ui/
   - Challenge App: https://crowdcent.com/challenge
 
