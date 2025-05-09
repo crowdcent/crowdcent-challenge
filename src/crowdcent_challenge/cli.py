@@ -1,6 +1,8 @@
 import click
 import logging
 import json
+import os
+from pathlib import Path
 
 from .client import (
     ChallengeClient,
@@ -15,6 +17,45 @@ from .client import (
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+# --- Config Functions ---
+
+def get_config_dir():
+    """Return the directory for storing crowdcent-challenge configuration."""
+    if os.name == 'nt':  # Windows
+        config_dir = Path(os.environ.get('APPDATA', '')) / 'crowdcent-challenge'
+    else:  # Unix/Linux/Mac
+        config_dir = Path.home() / '.config' / 'crowdcent-challenge'
+    
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir
+
+def get_config_file():
+    """Return the path to the configuration file."""
+    return get_config_dir() / 'config.json'
+
+def load_config():
+    """Load configuration from file."""
+    config_file = get_config_file()
+    if config_file.exists():
+        try:
+            with open(config_file, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.warning(f"Error parsing config file {config_file}. Using default configuration.")
+    
+    return {}
+
+def save_config(config):
+    """Save configuration to file."""
+    config_file = get_config_file()
+    with open(config_file, 'w') as f:
+        json.dump(config, f, indent=2)
+
+def get_default_challenge_slug():
+    """Get the default challenge slug from the configuration."""
+    config = load_config()
+    return config.get('default_challenge_slug')
+
 # --- Helper Functions ---
 
 
@@ -24,13 +65,20 @@ def get_client(challenge_slug=None):
 
     Args:
         challenge_slug: The challenge slug for client initialization.
-                        If None, no client is created (for list_challenges).
+                        If None, tries to use the default challenge.
     """
     try:
+        # If no challenge slug provided, try to use default
+        if challenge_slug is None:
+            challenge_slug = get_default_challenge_slug()
+            if challenge_slug is None:
+                raise click.UsageError(
+                    "No challenge slug provided and no default challenge set. "
+                    "Use --challenge option or set a default with 'crowdcent set-default-challenge'."
+                )
+        
         # Client handles loading API key from env/dotenv
-        if challenge_slug:
-            return ChallengeClient(challenge_slug=challenge_slug)
-        return None
+        return ChallengeClient(challenge_slug=challenge_slug)
     except AuthenticationError as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
@@ -73,6 +121,33 @@ def cli():
 
 # --- Challenge Commands ---
 
+@cli.command("set-default-challenge")
+@click.argument("challenge_slug", type=str)
+@handle_api_error
+def set_default_challenge(challenge_slug):
+    """Set the default challenge slug for future commands."""
+    # Verify the challenge exists
+    try:
+        client = get_client(challenge_slug)
+        client.get_challenge()  # Check if challenge exists
+        
+        config = load_config()
+        config['default_challenge_slug'] = challenge_slug
+        save_config(config)
+        
+        click.echo(f"Default challenge set to '{challenge_slug}'")
+    except Exception as e:
+        click.echo(f"Error setting default challenge: {e}", err=True)
+        raise click.Abort()
+
+@cli.command("get-default-challenge")
+def get_default_challenge():
+    """Show the current default challenge slug."""
+    challenge_slug = get_default_challenge_slug()
+    if challenge_slug:
+        click.echo(f"Current default challenge: {challenge_slug}")
+    else:
+        click.echo("No default challenge set. Use 'crowdcent set-default-challenge' to set one.")
 
 @cli.command("list-challenges")
 @handle_api_error
@@ -88,7 +163,7 @@ def list_challenges():
 
 
 @cli.command("get-challenge")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @handle_api_error
 def get_challenge(challenge_slug):
     """Get details for a specific challenge by slug."""
@@ -101,7 +176,7 @@ def get_challenge(challenge_slug):
 
 
 @cli.command("list-training-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @handle_api_error
 def list_training_data(challenge_slug):
     """List all training datasets for a specific challenge."""
@@ -111,7 +186,7 @@ def list_training_data(challenge_slug):
 
 
 @cli.command("get-latest-training-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @handle_api_error
 def get_latest_training_data(challenge_slug):
     """Get the latest training dataset for a specific challenge."""
@@ -121,7 +196,7 @@ def get_latest_training_data(challenge_slug):
 
 
 @cli.command("get-training-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument("version", type=str)
 @handle_api_error
 def get_training_data(challenge_slug, version):
@@ -132,7 +207,7 @@ def get_training_data(challenge_slug, version):
 
 
 @cli.command("download-training-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument("version", type=str)
 @click.option(
     "-o",
@@ -149,7 +224,7 @@ def download_training_data(challenge_slug, version, dest_path):
     """
     client = get_client(challenge_slug)
     if dest_path is None:
-        dest_path = f"{challenge_slug}_training_v{version}.parquet"
+        dest_path = f"{client.challenge_slug}_training_v{version}.parquet"
 
     client.download_training_dataset(version, dest_path)
     click.echo(f"Training data downloaded successfully to {dest_path}")
@@ -159,7 +234,7 @@ def download_training_data(challenge_slug, version, dest_path):
 
 
 @cli.command("list-inference-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @handle_api_error
 def list_inference_data(challenge_slug):
     """List all inference data periods for a specific challenge."""
@@ -169,7 +244,7 @@ def list_inference_data(challenge_slug):
 
 
 @cli.command("get-current-inference-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @handle_api_error
 def get_current_inference_data(challenge_slug):
     """Get the currently active inference data period for a specific challenge."""
@@ -179,7 +254,7 @@ def get_current_inference_data(challenge_slug):
 
 
 @cli.command("get-inference-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument("release_date", type=str)
 @handle_api_error
 def get_inference_data(challenge_slug, release_date):
@@ -193,7 +268,7 @@ def get_inference_data(challenge_slug, release_date):
 
 
 @cli.command("download-inference-data")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument("release_date", type=str)
 @click.option(
     "-o",
@@ -212,7 +287,7 @@ def download_inference_data(challenge_slug, release_date, dest_path):
     if dest_path is None:
         # Format date part of the filename
         date_str = release_date if release_date != "current" else "current"
-        dest_path = f"{challenge_slug}_inference_{date_str}.parquet"
+        dest_path = f"{client.challenge_slug}_inference_{date_str}.parquet"
 
     try:
         client.download_inference_data(release_date, dest_path)
@@ -229,7 +304,7 @@ def download_inference_data(challenge_slug, release_date, dest_path):
 
 
 @cli.command("list-submissions")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.option(
     "--period",
     type=str,
@@ -244,7 +319,7 @@ def list_submissions(challenge_slug, period):
 
 
 @cli.command("get-submission")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument("submission_id", type=int)
 @handle_api_error
 def get_submission(challenge_slug, submission_id):
@@ -255,7 +330,7 @@ def get_submission(challenge_slug, submission_id):
 
 
 @cli.command("submit")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.argument(
     "file_path", type=click.Path(exists=True, dir_okay=False, readable=True)
 )
@@ -287,7 +362,7 @@ def submit(challenge_slug, file_path, slot):
 
 
 @cli.command("download-meta-model")
-@click.argument("challenge_slug", type=str)
+@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
 @click.option(
     "-o",
     "--output",
@@ -304,7 +379,7 @@ def download_meta_model(challenge_slug, dest_path):
     """
     client = get_client(challenge_slug)
     if dest_path is None:
-        dest_path = f"{challenge_slug}_meta_model.parquet"
+        dest_path = f"{client.challenge_slug}_meta_model.parquet"
 
     try:
         client.download_meta_model(dest_path)
