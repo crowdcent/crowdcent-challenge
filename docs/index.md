@@ -12,7 +12,7 @@ Get started, understand the scoring, understand the python client, or dive into 
 
     Make your first submission to the CrowdCent Challenge.
 
-    [:octicons-arrow-right-24: Get Started](getting_started.md)
+    [:octicons-arrow-right-24: Get Started](getting-started.md)
 
 -   :material-scoreboard:{ .lg .middle } Scoring System
 
@@ -28,7 +28,7 @@ Get started, understand the scoring, understand the python client, or dive into 
 
     Install the client library and make your first submission programmatically.
 
-    [:octicons-arrow-right-24: Quick Start Guide](install_quickstart.md)
+    [:octicons-arrow-right-24: Quick Start Guide](install-quickstart.md)
 
 
 -   :material-help:{ .lg .middle } FAQ

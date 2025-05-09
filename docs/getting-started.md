@@ -35,7 +35,7 @@ There are two main ways to submit your predictions:
 ### 2. Programmatically (via API)
 - Go to your **User Profile** page (accessible from the top navigation bar when logged in).
 - In the "API Keys" section, you can generate a new API key. Give it a descriptive name. **Store this key securely as it will not be shown again.**
-- Use this API key with the `crowdcent-challenge` Python package to submit your predictions. See our [Python client quickstart guide](install_quickstart.md) for more details.
+- Use this API key with the `crowdcent-challenge` Python package to submit your predictions. See our [Python client quickstart guide](install-quickstart.md) for more details.
 
 ## Wait for Scores
 After an inference period's submission deadline passes, predictions will be evaluated. Your submission status and scores will be updated on your profile and the challenge leaderboard.

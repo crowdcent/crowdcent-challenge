@@ -7,7 +7,7 @@ copyright: Made by CrowdCent
 nav:
   - Challenge Docs:
       - Overview: index.md
-      - Getting Started: getting_started.md
+      - Getting Started: getting-started.md
       - Data: data.md
       - Scoring : scoring.md
       - FAQ: faq.md
@@ -15,7 +15,7 @@ nav:
           - Hyperliquid Ranking: hyperliquid-ranking.md
           - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
-          - Install & Quick Start: install_quickstart.md
+          - Install & Quick Start: install-quickstart.md
       - More:
           - About CrowdCent: about.md
           - Contributing: contributing.md
@@ -23,7 +23,7 @@ nav:
           - Changelog: changelog.md
   - Tutorials:
       - Python Client Example: tutorials/client_example.ipynb
-      - Submission Automation: tutorials/submission_automation.md
+      - Submission Automation: tutorials/submission-automation.md
   - API Reference:
       - Python: api_ref/python_reference.md
       - CLI: api_ref/cli_reference.md

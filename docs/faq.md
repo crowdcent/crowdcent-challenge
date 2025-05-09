@@ -8,8 +8,7 @@ The CrowdCent Challenge is a series of open data science competitions (challenge
 
 ### How do I get started?
 
-
-Refer to the [Installation & Quick Start Guide](install_quickstart.md) or the [CLI Walkthrough](cli.md) for detailed steps.
+Refer to the [Installation & Quick Start Guide](install-quickstart.md) for detailed steps.
 
 1.  **Install the client library:** We recommend using uv: `uv pip install crowdcent-challenge`. Alternatively, use `pip install crowdcent-challenge`.
 2.  **Get an API Key:** Visit your [CrowdCent profile page](https://crowdcent.com/profile) and generate a new key. Save it securely.
