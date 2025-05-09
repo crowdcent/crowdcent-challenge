@@ -8,9 +8,9 @@ nav:
   - Challenge Docs:
       - Overview: index.md
       - Getting Started: getting-started.md
-      - Data: data.md
       - Scoring : scoring.md
       - FAQ: faq.md
+      # - Glossary: glossary.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md
           - Equity NLP &#128683;: equity-nlp.md
@@ -25,8 +25,8 @@ nav:
       - Python Client Example: tutorials/client_example.ipynb
       - Submission Automation: tutorials/submission-automation.md
   - API Reference:
-      - Python: api_ref/python_reference.md
-      - CLI: api_ref/cli_reference.md
+      - Python: api-reference/python.md
+      - CLI: api-reference/cli.md
       - OpenAPI: https://crowdcent.com/api/swagger-ui/
   - Challenge App: https://crowdcent.com/challenge
 
@@ -114,6 +114,7 @@ plugins:
             show_source: true
   - mkdocs-jupyter:
         include_source: True
+  - open-in-new-tab
 
 extra:
   social:

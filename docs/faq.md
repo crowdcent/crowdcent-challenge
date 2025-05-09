@@ -65,7 +65,7 @@ All datasets (training data, inference features, meta models) and submission fil
 
 
 *   **Important Note:** Some challenges or training datasets might only provide target labels and identifiers (`id`, `date`, `target_10d`, `target_30d`). In these cases, participants are expected to source or engineer their own relevant features.
-*   Features are often obfuscated. Refer to the [Data](data.md) page and specific challenge rules for details on the data provided for each competition.
+*   Features are often obfuscated. Refer to the [Data](glossary.md) page and specific challenge rules for details on the data provided for each competition.
 
 ### What am I predicting?
 
