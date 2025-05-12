@@ -2,7 +2,7 @@
 === "Using uv (Recommended)"
 
     ```bash
-    uv pip install crowdcent-challenge
+    uv add crowdcent-challenge
     ```
 
 === "Using pip"
