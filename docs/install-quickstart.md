@@ -19,7 +19,7 @@ You need an API key to use the CrowdCent Challenge API. You can get your key by 
 
 ## Authenticate and Initialize the Client
 
-The API client requires authentication using your API key. This can be provided directly or via environment variables.
+The API client requires authentication using your API key. This can be provided directly or via environment variables. You can interact with the API using the Python client or the CLI.
 
 === "Python"
 
