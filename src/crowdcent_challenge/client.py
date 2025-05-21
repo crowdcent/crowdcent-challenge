@@ -1,5 +1,6 @@
 import os
 import requests
+from requests import exceptions as requests_exceptions
 from dotenv import load_dotenv
 from typing import Optional, Dict, Any, IO, List
 import logging
@@ -139,7 +140,7 @@ class ChallengeClient:
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
             logger.debug(f"Response: {response.status_code}")
             return response
-        except requests.exceptions.HTTPError as e:
+        except requests_exceptions.HTTPError as e:
             status_code = e.response.status_code
 
             # Try to parse standardized error format: {"error": {"code": "ERROR_CODE", "message": "Description"}}
@@ -151,7 +152,7 @@ class ChallengeClient:
                 else:
                     error_code = "API_ERROR"
                     error_message = e.response.text
-            except requests.exceptions.JSONDecodeError:
+            except requests_exceptions.JSONDecodeError:
                 error_code = "API_ERROR"
                 error_message = e.response.text
 
@@ -179,7 +180,7 @@ class ChallengeClient:
                 raise CrowdCentAPIError(
                     f"HTTP error ({status_code}): {error_message} [{error_code}]"
                 ) from e
-        except requests.exceptions.RequestException as e:
+        except requests_exceptions.RequestException as e:
             logger.error(f"Request failed: {e} for {method} {url}")
             raise CrowdCentAPIError(f"Request failed: {e}") from e
 
@@ -222,7 +223,7 @@ class ChallengeClient:
             response = session.get(url)
             response.raise_for_status()
             return response.json()
-        except requests.exceptions.HTTPError as e:
+        except requests_exceptions.HTTPError as e:
             status_code = e.response.status_code
             if status_code == 401:
                 raise AuthenticationError("Authentication failed (401)")
@@ -234,7 +235,7 @@ class ChallengeClient:
                 raise ServerError(f"Server error ({status_code})")
             else:
                 raise CrowdCentAPIError(f"HTTP error ({status_code})")
-        except requests.exceptions.RequestException as e:
+        except requests_exceptions.RequestException as e:
             raise CrowdCentAPIError(f"Request failed: {e}")
 
     # --- Challenge Methods ---

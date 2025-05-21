@@ -10,12 +10,13 @@ One of the key metrics used in some challenges is `symmetric_ndcg_at_k`.
 
 **Concept:**
 
-Standard **Normalized Discounted Cumulative Gain (NDCG@k)** is a common metric used to evaluate how well a model ranks items. It assesses the quality of the top *k* predictions by:
+**Normalized Discounted Cumulative Gain (NDCG@k)** is a common metric used to evaluate how well a model ranks items. It assesses the quality of the top *k* predictions by:
+
 1.  Giving higher scores for ranking truly relevant items higher.
 2.  Applying a logarithmic discount to items ranked lower (meaning relevance at rank 1 is more important than relevance at rank 10).
 3.  Normalizing the score by the best possible ranking (IDCG) to get a value between 0 and 1.
 
-However, standard NDCG@k only focuses on the *top* performers. In finance, identifying the *worst* performers (lowest true values) can be just as important as identifying the best.
+However, standard NDCG@k only focuses on the *top* items in a list. In finance, identifying the *worst* performers (lowest true values) can be just as important as identifying the best.
 
 **Symmetric NDCG@k** addresses this by evaluating ranking performance at *both ends* of the spectrum:
 

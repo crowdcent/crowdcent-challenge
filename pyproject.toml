@@ -12,6 +12,7 @@ dependencies = [
     "numpy>=2.2.5",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
+    "tqdm>=4.66.0",
 ]
 
 [project.scripts]
@@ -38,4 +39,15 @@ dev-dependencies = [
     "pytest-cov>=5.0.0",
     "requests-mock>=1.12.1",
     "mkdocs-open-in-new-tab>=1.0.8",
+    "centimators>=0.1.2",
+    "numerblox>=1.4.0",
+    "pandas>=2.2.3",
+    "eod>=0.2.1",
+    "catboost>=1.2.8",
+    "altair>=5.5.0",
+]
+
+[tool.hatch.build]
+exclude = [
+  "docs/**",
 ]
