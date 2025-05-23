@@ -11,7 +11,11 @@ document.addEventListener("DOMContentLoaded", function () {
     script.setAttribute("runllm-name", "CrowdCent Challenge Docs");
     script.setAttribute("runllm-position", "BOTTOM_RIGHT");
     script.setAttribute("runllm-assistant-id", "990");
-  
+    script.setAttribute("runllm-theme-color", "#62e4fb");
+    script.setAttribute("runllm-support-email", "info@crowdcent.com");
+    script.setAttribute("runllm-join-community-text", "Join our Discord");
+    script.setAttribute("runllm-community-url", "https://discord.gg/v6ZSGuTbQS");
+
     script.async = true;
     document.head.appendChild(script);
   });
