@@ -116,6 +116,9 @@ plugins:
         include_source: True
   - open-in-new-tab
 
+extra_javascript:
+    - "overrides/assets/js/runllm-widget.js"
+
 extra:
   social:
     - icon: fontawesome/brands/discord
