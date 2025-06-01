@@ -65,7 +65,7 @@ All datasets (training data, inference features, meta models) and submission fil
 
 
 *   **Important Note:** Some challenges or training datasets might only provide target labels and identifiers (`id`, `date`, `target_10d`, `target_30d`). In these cases, participants are expected to source or engineer their own relevant features.
-*   Features are often obfuscated. Refer to the [Data](glossary.md) page and specific challenge rules for details on the data provided for each competition.
+*   Features are often renamed to simple names like `feature_1`, `feature_2`, etc. Refer to the specific challenge rules for details on the data provided for each competition.
 
 ### What am I predicting?
 
@@ -73,7 +73,7 @@ Your goal is to to predict relative performance metrics (e.g., returns) for diff
 
 ### What's the difference between Training and Inference data?
 
-*   **Training Data:** Contains historical data, including target variables (e.g., `target_1M`, `target_3M`, ...) and identifiers (`id`, dates). It *may* also contain pre-computed features, but sometimes you will need to generate your own features based on the provided IDs and timestamps. Used to train your models. Training datasets are versioned.
+*   **Training Data:** Used to train your models. Contains historical data, including target variables (e.g., `target_10d`, `target_30d`, ...) and identifiers (`id`, dates). It *may* also contain pre-computed features, but sometimes you will need to generate your own features based on the provided IDs and timestamps. Training datasets are versioned (e.g. v1.0, v1.1, etc.).
 *   **Inference Data:** Contains features (if provided by the challenge) and identifiers (`id`) for a *new* period but *without* the target labels. This is the data you use (along with any features you generate) to make predictions for submission. Inference data is released periodically.
 
 ### What is the 'Meta Model'?

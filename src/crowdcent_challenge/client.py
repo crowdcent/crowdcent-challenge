@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from typing import Optional, Dict, Any, IO, List
 import logging
 from datetime import datetime
+import narwhals as nw
+from narwhals.typing import IntoFrameT
 
 # Configure logging
 logging.basicConfig(
@@ -470,29 +472,53 @@ class ChallengeClient:
         )
         return response.json()
 
+    @nw.narwhalify
     def submit_predictions(
-        self, file_path: str, slot: Optional[int] = None
+        self,
+        file_path: str = "submission.parquet",
+        df: Optional[IntoFrameT] = None,
+        slot: int = 1,
+        temp: bool = True,
     ) -> Dict[str, Any]:
-        """Submits a prediction file for the current active inference period of this challenge.
+        """Submits predictions for the current active inference period of this challenge.
 
-        The file must be a Parquet file with the required prediction columns
-        specified by the challenge (e.g., id, pred_10d, pred_30d).
+        You can provide either a file path to an existing Parquet file or a DataFrame
+        that will be temporarily saved as Parquet for submission.
+
+        The data must contain the required prediction columns specified by the challenge
+        (e.g., id, pred_10d, pred_30d).
 
         Args:
-            file_path: The path to the prediction Parquet file.
-            slot: Optional submission slot number (1-based).
+            file_path: Optional path to an existing prediction Parquet file.
+            df: Optional DataFrame with the prediction columns. If provided,
+                it will be temporarily saved as Parquet for submission.
+            slot: Submission slot number (1-based).
+            temp: Whether to save the DataFrame to a temporary file.
 
         Returns:
             A dictionary representing the newly created or updated submission.
 
         Raises:
+            ValueError: If neither file_path nor df is provided, or if both are provided.
             FileNotFoundError: If the specified file_path does not exist.
             ClientError: If the submission is invalid (e.g., wrong format,
                          outside submission window, already submitted, etc).
+
+        Examples:
+            # Submit from a DataFrame
+            client.submit_predictions(df=predictions_df)
+
+            # Submit from a file
+            client.submit_predictions(file_path="predictions.parquet")
         """
+        if df is not None:
+            df.write_parquet(file_path)
+            logger.info(f"Wrote DataFrame to temporary file: {file_path}")
+
         logger.info(
-            f"Submitting predictions from {file_path} to challenge '{self.challenge_slug}' (Slot: {slot or 'default'})"
+            f"Submitting predictions from {file_path} to challenge '{self.challenge_slug}' (Slot: {slot or '1'})"
         )
+
         try:
             with open(file_path, "rb") as f:
                 files = {
@@ -502,11 +528,7 @@ class ChallengeClient:
                         "application/octet-stream",
                     )
                 }
-                # Prepare data payload if slot is provided
-                data_payload = None
-                if slot is not None:
-                    data_payload = {"slot": str(slot)}
-
+                data_payload = {"slot": str(slot)}
                 response = self._request(
                     "POST",
                     f"/challenges/{self.challenge_slug}/submissions/",
@@ -523,6 +545,16 @@ class ChallengeClient:
         except IOError as e:
             logger.error(f"Failed to read prediction file {file_path}: {e}")
             raise CrowdCentAPIError(f"Failed to read prediction file: {e}") from e
+        finally:
+            # Clean up the temporary file if we created one
+            if df is not None and temp:
+                try:
+                    os.unlink(file_path)
+                    logger.debug(f"Cleaned up temporary file: {file_path}")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to clean up temporary file {file_path}: {e}"
+                    )
 
     # --- Challenge Switching ---
 

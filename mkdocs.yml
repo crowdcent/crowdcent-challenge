@@ -22,7 +22,8 @@ nav:
           - Disclaimer: disclaimer.md
           - Changelog: changelog.md
   - Tutorials:
-      - Python Client Example: tutorials/client_example.ipynb
+      - Python Client Cheatsheet: tutorials/client-cheatsheet.ipynb
+      - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
       - Submission Automation: tutorials/submission-automation.md
   - API Reference:
       - Python: api-reference/python.md
