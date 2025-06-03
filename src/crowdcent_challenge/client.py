@@ -55,7 +55,7 @@ class ChallengeClient:
     a specific challenge identified by its slug.
     """
 
-    DEFAULT_BASE_URL = "http://crowdcent.com/api"
+    DEFAULT_BASE_URL = "https://crowdcent.com/api"
     API_KEY_ENV_VAR = "CROWDCENT_API_KEY"
 
     def __init__(
@@ -73,7 +73,7 @@ class ChallengeClient:
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
             base_url: The base URL of the CrowdCent API. Defaults to
-                      http://crowdcent.com/api.
+                      https://crowdcent.com/api.
         """
         load_dotenv()  # Load .env file if present
         self.api_key = api_key or os.getenv(self.API_KEY_ENV_VAR)

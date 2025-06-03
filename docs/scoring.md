@@ -48,3 +48,50 @@ print(f"Symmetric NDCG@{k}: {score:.4f}")
 ```
 
 This metric provides a more holistic view of ranking performance when both high and low extremes are important.
+
+## Spearman Correlation
+
+Spearman's rank correlation coefficient is a non-parametric measure of rank correlation that assesses how well the relationship between two variables can be described using a monotonic function.
+
+**Concept:**
+
+In the context of ranking challenges, **Spearman correlation** measures how well your predicted rankings align with the true rankings. Unlike Pearson correlation (which measures linear relationships), Spearman correlation:
+
+1. **Works with ranks**: It converts both predicted and true values to ranks before computing correlation
+2. **Captures monotonic relationships**: Perfect Spearman correlation (±1) means perfect monotonic relationship, even if not linear
+3. **Robust to outliers**: Since it uses ranks rather than raw values, extreme values have less influence
+
+**Calculation:**
+
+The Spearman correlation coefficient (ρ) is calculated as:
+- First, convert both `y_true` and `y_pred` to ranks
+- Then calculate the Pearson correlation coefficient on these ranks
+- Formula: ρ = 1 - (6 × Σd²) / (n × (n² - 1)), where d is the difference between paired ranks
+
+**Interpretation:**
+
+- **ρ = 1**: Perfect positive correlation (your rankings perfectly match the true rankings)
+- **ρ = 0**: No correlation (your rankings are unrelated to the true rankings)  
+- **ρ = -1**: Perfect negative correlation (your rankings are exactly reversed)
+
+**Usage:**
+
+```python
+from scipy.stats import spearmanr
+import numpy as np
+
+# Example data
+y_true = np.array([1.0, 0.5, 0.3, 0.2, 0.1])  # True values (will be ranked)
+y_pred = np.array([0.9, 0.6, 0.25, 0.22, 0.05])    # Predicted values (will be ranked)
+
+# Calculate Spearman correlation
+correlation, p_value = spearmanr(y_true, y_pred)
+print(f"Spearman Correlation: {correlation:.4f}")
+```
+
+**Why Spearman for Ranking Tasks?**
+
+Spearman correlation is particularly suited for ranking challenges because:
+
+1. **Focuses on order**: In ranking tasks, we care about getting the order right, not exact values
+3. **Complements NDCG**: While NDCG focuses on top/bottom performance, Spearman evaluates the entire ranking
