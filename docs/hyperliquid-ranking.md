@@ -1,12 +1,14 @@
 ## Objective
 The Hyperliquid Ranking Challenge requires participants to rank crypto assets on the Hyperliquid decentralized derivatives exchange by their expected relative returns over the next 10 and 30 days. The challenge universe comprises approximately 180 liquid tokens on the Hyperliquid protocol. This universe may change periodically, with tokens added or removed to ensure it remains as actionable as possible. If a token does not have enough volume or liquidity, it will likely be removed from the universe.
 
-## Data
-### Inference data
+## Inference data
 - Inference Period Open: Approximately 14:00 UTC
 - Inference Period Close: Approximately 18:00 UTC
 
-Each day, an inference dataset is released containing the universe of tokens for which predictions are required. The tickers are generally the same as you would find in the training data, but new additions or removals are possible. The inference data contains features but has no targets as they do not exist at the time of your submission. Your predictions will be scored against resolving targets from real market data in the future.
+Each day, an inference dataset is released containing the universe of tokens for which predictions are required. The inference data contains features but has no targets as they do not exist at the time of your submission. Your predictions will be scored against resolving targets from real market data in the future.
+
+!!! tip
+    You do *not* need to use the features included in the inference data. You can use and are encouraged to use your own features. It may still be helpful to use our inference data and id mappings to use the same universe of assets.
 
 To download inference data for the current period:
 ```python
@@ -16,20 +18,23 @@ client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
 client.download_inference_data()
 ```
 
-| id      | eodhd_id              | feature_1, feature_2, ... |
-|---------|----------------------|---------------------------|
-| BABY    | BABY32198-USD.CC     | 0.1, 0.2, 0.3             |
-| OM      | OM-USD.CC            | 0.4, 0.5, 0.6             |
-| IOTA    | IOTA-USD.CC          | 0.7, 0.8, 0.9             |
-| MOODENG | MOODENG33093-USD.CC  | 1.0, 1.1, 1.2             |
-| ENS     | ENS-USD.CC           | 1.3, 1.4, 1.5             |
+| id      | eodhd_id              | feature_1_lag15 | feature_1_lag10 | feature_1_lag5 | feature_1_lag0 | ... |
+|---------|----------------------|----------------|----------------|-----------------|-----------------|-----|
+| BABY    | BABY32198-USD.CC     | 0.123          | 0.145          | 0.112           | 0.156           | ... |
+| OM      | OM-USD.CC            | 0.456          | 0.423          | 0.467           | 0.401           | ... |
+| IOTA    | IOTA-USD.CC          | 0.789          | 0.812          | 0.798           | 0.823           | ... |
+| MOODENG | MOODENG33093-USD.CC  | 0.234          | 0.267          | 0.223           | 0.289           | ... |
+| ENS     | ENS-USD.CC           | 0.567          | 0.534          | 0.578           | 0.512           | ... |
 
-We currently provide id (the hyperliquid id) and eodhd_id (the eodhd id) for each asset. You can request for additional id mappings from other data vendors to be added to the inference data if data licenses allow.
+### Asset IDs
+We currently provide `id` (the hyperliquid id) and `eodhd_id` (the id to download via EODHD) for each asset. You can request we include additional id mappings from other data vendors in the inference data if data licenses allow.
 
-If you're using CrowdCent's training data to build your models, the inference data version and its features will always match that of the *latest* training data version.
+If you're using CrowdCent's training data to build your models, the inference data features will always match that of the *latest* training dataset version. The assets are generally the same as you would find in the training data, but new additions or removals are possible. For the inference data, we aim to track the listed and tradeable perps on Hyperliquid.
 
-### Training data
-You can download our training data from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
+## Training data
+The training dataset is created just to get you started. Simple models can be built with just the features and targets, but don't expect to win the challenge with them. We recommend building your own training datasets with sources like ccxt, eodhd, coingecko, or yfinance.
+
+You can download our training data, including features and targets from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
 ```python
 from crowdcent_challenge.client import CrowdCentClient
 
@@ -37,30 +42,36 @@ client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
 client.download_training_data()
 ```
 
-| id      | eodhd_id              | feature_1, feature_2, ... | target_10d, target_30d |
-|---------|----------------------|---------------------------|------------------------|
-| BABY    | BABY32198-USD.CC     | 0.1, 0.2, 0.3             | 0.15, 0.25             |
-| OM      | OM-USD.CC            | 0.4, 0.5, 0.6             | 0.35, 0.45             |
-| IOTA    | IOTA-USD.CC          | 0.7, 0.8, 0.9             | 0.55, 0.65             |
-| MOODENG | MOODENG33093-USD.CC  | 1.0, 1.1, 1.2             | 0.75, 0.85             |
-| ENS     | ENS-USD.CC           | 1.3, 1.4, 1.5             | 0.95, 1.05             |
+| id      | eodhd_id             | date       | feature_1_lag15 | feature_1_lag10 | ... | feature_1_lag0 | target_10d | target_30d |
+|---------|----------------------|------------|----------------|----------------|-----|------------------|------------|------------|
+| BABY    | BABY32198-USD.CC     | 2024-03-20 | 0.123          | 0.145          | ... | 0.823            | 0.15       | 0.25       |
+| OM      | OM-USD.CC            | 2024-03-20 | 0.456          | 0.423          | ... | 0.756            | 0.35       | 0.45       | 
+| IOTA    | IOTA-USD.CC          | 2024-03-20 | 0.789          | 0.812          | ... | 0.923            | 0.55       | 0.65       |
+| MOODENG | MOODENG33093-USD.CC  | 2024-03-20 | 0.234          | 0.267          | ... | 0.445            | 0.75       | 0.85       |
+| ENS     | ENS-USD.CC           | 2024-03-20 | 0.567          | 0.534          | ... | 0.678            | 0.95       | 0.88       |
 
-You can also make your own data using sources like ccxt, coingecko, coinmarketcap, eodhd, or yfinance.
+### Features
+The training data contains 80 total features following the pattern `feature_{n}_lag{lag}`:
 
-Targets are the rankings of an asset's 10d and 30d forward relative returns (with a 1d lag) and Daily Close Price Time is: 24:00 UTC 
+- 20 unique features (n = 1 to 20)
+- 4 lag values per feature (0, 5, 10, 15 days)
 
-#### Target Timing and Trading Implications
+Features with the same number represent the same metric at different time points. For example, `feature_1_lag0` through `feature_1_lag15` track the same underlying metric over time. This structure preserves temporal relationships, allowing you to build sequence models (LSTM, GRU, Transformer), identify trends/patterns across different time horizons, and engineer additional features based on temporal changes.
+
+### Targets
+
+Targets are the rankings of an asset's 10d and 30d forward relative returns (with a 1d lag). Targets do not currently take funding rate or any other factors (e.g. market cap, volume, etc.) into account. It's possible that the targets will be updated in the future to include such factors.
 
 **Why the 1-day lag?**
-At 14:00 UTC when predictions are made, only data through the previous day's 24:00 UTC close is available. The lag ensures predictions use only historical data while forecasting returns starting from tonight's close.
+For our purposes, the crypto universe has a close time of 24:00 UTC. At 14:00 UTC when predictions are made, only data through the previous day's 24:00 UTC close is available. The lag ensures predictions use only historical data while forecasting returns starting from tonight's close.
 
 **Timeline:**
 ```
 Day D-1: 24:00 UTC → Close price finalized (latest available data)
 Day D:   14:00 UTC → Inference data released
          14:00-18:00 UTC → Inference period
-         24:00 UTC → Prediction period starts (Day D close)
-Day D+10/30: 24:00 UTC → Prediction period ends
+         24:00 UTC → Prediction/Scoring period starts (Day D close)
+Day D+10/30: 24:00 UTC → Prediction/Scoring period ends
 ```
 
 - Predictions rank assets by expected performance over the next 10/30 days starting from tonight's close

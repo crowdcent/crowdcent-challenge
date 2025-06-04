@@ -313,13 +313,10 @@ class ChallengeClient:
             NotFoundError: If the challenge, dataset, or its file is not found.
         """
         if version == "latest":
-            endpoint = (
-                f"/challenges/{self.challenge_slug}/training_data/latest/download/"
-            )
-        else:
-            endpoint = (
-                f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
-            )
+            latest_info = self.get_latest_training_dataset()
+            version = latest_info["version"]
+
+        endpoint = f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
 
         logger.info(
             f"Downloading training data for challenge '{self.challenge_slug}' v{version} to {dest_path}"
