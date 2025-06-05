@@ -75,8 +75,12 @@ def test_client_init_with_dotenv(mock_load_dotenv, monkeypatch):
     mock_load_dotenv.assert_called_once()  # Verify load_dotenv was actually called
 
 
-def test_client_init_no_key():
+@patch("crowdcent_challenge.client.load_dotenv")
+def test_client_init_no_key(mock_load_dotenv):
     """Test client initialization fails when no API key is found."""
+    # Mock load_dotenv to do nothing (no .env file)
+    mock_load_dotenv.return_value = None
+    
     with pytest.raises(AuthenticationError, match="API key not provided"):
         ChallengeClient(challenge_slug=TEST_SLUG, base_url=BASE_URL)
 
@@ -175,8 +179,12 @@ def test_list_all_challenges_success(requests_mock, monkeypatch):
     )
 
 
-def test_list_all_challenges_no_key():
+@patch("crowdcent_challenge.client.load_dotenv")
+def test_list_all_challenges_no_key(mock_load_dotenv):
     """Test class method fails if no API key is found."""
+    # Mock load_dotenv to do nothing (no .env file)
+    mock_load_dotenv.return_value = None
+    
     with pytest.raises(AuthenticationError, match="API key not provided"):
         ChallengeClient.list_all_challenges(base_url=BASE_URL)
 
@@ -251,10 +259,11 @@ def test_request_connection_error(client, requests_mock):
 
 
 class _DummyStreamResponse:
-    """Very small stub of `requests.Response` that only exposes iter_content."""
+    """Very small stub of `requests.Response` that only exposes iter_content and headers."""
 
     def __init__(self, content: bytes = b"dummy-data"):
         self._content = content
+        self.headers = {'content-length': str(len(content))}
 
     def iter_content(self, chunk_size: int = 8192):  # noqa: D401 – simple generator
         yield self._content
