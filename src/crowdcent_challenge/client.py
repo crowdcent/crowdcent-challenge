@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 import narwhals as nw
 from narwhals.typing import IntoFrameT
+import time
 
 # Configure logging
 logging.basicConfig(
@@ -100,6 +101,8 @@ class ChallengeClient:
         files: Optional[Dict[str, IO]] = None,
         stream: bool = False,
         data: Optional[Dict] = None,
+        max_retries: int = 3,
+        retry_delay: float = 1.0,
     ) -> requests.Response:
         """
         Internal helper method to make authenticated API requests.
@@ -112,6 +115,8 @@ class ChallengeClient:
             files: Files to upload (for multipart/form-data).
             stream: Whether to stream the response (for downloads).
             data: Dictionary of form data to send with multipart requests.
+            max_retries: Maximum number of retry attempts for connection errors.
+            retry_delay: Initial delay between retries (seconds). Will use exponential backoff.
 
         Returns:
             The requests.Response object.
@@ -129,62 +134,75 @@ class ChallengeClient:
             f"Data: {data is not None} Files: {files is not None}"
         )
 
-        try:
-            response = self.session.request(
-                method,
-                url,
-                params=params,
-                json=json_data,
-                files=files,
-                stream=stream,
-                data=data,
-            )
-            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-            logger.debug(f"Response: {response.status_code}")
-            return response
-        except requests_exceptions.HTTPError as e:
-            status_code = e.response.status_code
-
-            # Try to parse standardized error format: {"error": {"code": "ERROR_CODE", "message": "Description"}}
+        for attempt in range(max_retries + 1):
             try:
-                error_data = e.response.json()
-                if "error" in error_data and isinstance(error_data["error"], dict):
-                    error_code = error_data["error"].get("code", "UNKNOWN_ERROR")
-                    error_message = error_data["error"].get("message", e.response.text)
-                else:
+                response = self.session.request(
+                    method,
+                    url,
+                    params=params,
+                    json=json_data,
+                    files=files,
+                    stream=stream,
+                    data=data,
+                )
+                response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+                logger.debug(f"Response: {response.status_code}")
+                return response
+            except requests_exceptions.HTTPError as e:
+                status_code = e.response.status_code
+
+                # Try to parse standardized error format: {"error": {"code": "ERROR_CODE", "message": "Description"}}
+                try:
+                    error_data = e.response.json()
+                    if "error" in error_data and isinstance(error_data["error"], dict):
+                        error_code = error_data["error"].get("code", "UNKNOWN_ERROR")
+                        error_message = error_data["error"].get("message", e.response.text)
+                    else:
+                        error_code = "API_ERROR"
+                        error_message = e.response.text
+                except requests_exceptions.JSONDecodeError:
                     error_code = "API_ERROR"
                     error_message = e.response.text
-            except requests_exceptions.JSONDecodeError:
-                error_code = "API_ERROR"
-                error_message = e.response.text
 
-            logger.error(
-                f"API Error ({status_code}): {error_code} - {error_message} for {method} {url}"
-            )
+                logger.error(
+                    f"API Error ({status_code}): {error_code} - {error_message} for {method} {url}"
+                )
 
-            if status_code == 401:
-                raise AuthenticationError(
-                    f"Authentication failed (401): {error_message} [{error_code}]"
-                ) from e
-            elif status_code == 404:
-                raise NotFoundError(
-                    f"Resource not found (404): {error_message} [{error_code}]"
-                ) from e
-            elif 400 <= status_code < 500:
-                raise ClientError(
-                    f"Client error ({status_code}): {error_message} [{error_code}]"
-                ) from e
-            elif 500 <= status_code < 600:
-                raise ServerError(
-                    f"Server error ({status_code}): {error_message} [{error_code}]"
-                ) from e
-            else:
-                raise CrowdCentAPIError(
-                    f"HTTP error ({status_code}): {error_message} [{error_code}]"
-                ) from e
-        except requests_exceptions.RequestException as e:
-            logger.error(f"Request failed: {e} for {method} {url}")
-            raise CrowdCentAPIError(f"Request failed: {e}") from e
+                if status_code == 401:
+                    raise AuthenticationError(
+                        f"Authentication failed (401): {error_message} [{error_code}]"
+                    ) from e
+                elif status_code == 404:
+                    raise NotFoundError(
+                        f"Resource not found (404): {error_message} [{error_code}]"
+                    ) from e
+                elif 400 <= status_code < 500:
+                    raise ClientError(
+                        f"Client error ({status_code}): {error_message} [{error_code}]"
+                    ) from e
+                elif 500 <= status_code < 600:
+                    raise ServerError(
+                        f"Server error ({status_code}): {error_message} [{error_code}]"
+                    ) from e
+                else:
+                    raise CrowdCentAPIError(
+                        f"HTTP error ({status_code}): {error_message} [{error_code}]"
+                    ) from e
+            except (requests_exceptions.ConnectionError, requests_exceptions.Timeout) as e:
+                # Connection errors and timeouts are retryable
+                if attempt < max_retries:
+                    delay = retry_delay * (2 ** attempt)  # Exponential backoff
+                    logger.warning(
+                        f"Connection error: {e}. Retrying in {delay:.1f}s... "
+                        f"(attempt {attempt + 1}/{max_retries})"
+                    )
+                    time.sleep(delay)
+                    continue
+                logger.error(f"Request failed after {max_retries} retries: {e} for {method} {url}")
+                raise CrowdCentAPIError(f"Request failed after {max_retries} retries: {e}") from e
+            except requests_exceptions.RequestException as e:
+                logger.error(f"Request failed: {e} for {method} {url}")
+                raise CrowdCentAPIError(f"Request failed: {e}") from e
 
     # --- Class Method for Listing All Challenges ---
 
@@ -270,25 +288,12 @@ class ChallengeClient:
         )
         return response.json()
 
-    def get_latest_training_dataset(self) -> Dict[str, Any]:
-        """Gets the latest training dataset for this challenge.
-
-        Returns:
-            A dictionary representing the latest training dataset.
-
-        Raises:
-            NotFoundError: If the challenge or its latest training dataset is not found.
-        """
-        response = self._request(
-            "GET", f"/challenges/{self.challenge_slug}/training_data/latest/"
-        )
-        return response.json()
-
     def get_training_dataset(self, version: str) -> Dict[str, Any]:
         """Gets details for a specific training dataset version.
 
         Args:
-            version: The version string of the training dataset (e.g., '1.0', '2.1').
+            version: The version string of the training dataset (e.g., '1.0', '2.1')
+                     or the special value ``"latest"`` to get the latest version.
 
         Returns:
             A dictionary representing the specified training dataset.
@@ -296,6 +301,12 @@ class ChallengeClient:
         Raises:
             NotFoundError: If the challenge or the specified training dataset is not found.
         """
+        if version == "latest":
+            response = self._request(
+                "GET", f"/challenges/{self.challenge_slug}/training_data/latest/"
+            )
+            return response.json()
+            
         response = self._request(
             "GET", f"/challenges/{self.challenge_slug}/training_data/{version}/"
         )
@@ -313,7 +324,7 @@ class ChallengeClient:
             NotFoundError: If the challenge, dataset, or its file is not found.
         """
         if version == "latest":
-            latest_info = self.get_latest_training_dataset()
+            latest_info = self.get_training_dataset("latest")
             version = latest_info["version"]
 
         endpoint = f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
@@ -323,10 +334,17 @@ class ChallengeClient:
         )
         response = self._request("GET", endpoint, stream=True)
 
+        # Get total file size from headers
+        total_size = int(response.headers.get('content-length', 0))
+        
         try:
+            from tqdm import tqdm
+            
             with open(dest_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        pbar.update(len(chunk))
             logger.info(f"Successfully downloaded training data to {dest_path}")
         except IOError as e:
             logger.error(f"Failed to write dataset to {dest_path}: {e}")
@@ -348,25 +366,14 @@ class ChallengeClient:
         )
         return response.json()
 
-    def get_current_inference_data(self) -> Dict[str, Any]:
-        """Gets the current inference data period for this challenge.
-
-        Returns:
-            A dictionary representing the current inference data period.
-
-        Raises:
-            NotFoundError: If the challenge has no active inference period.
-        """
-        response = self._request(
-            "GET", f"/challenges/{self.challenge_slug}/inference_data/current/"
-        )
-        return response.json()
-
     def get_inference_data(self, release_date: str) -> Dict[str, Any]:
         """Gets details for a specific inference data period by its release date.
 
         Args:
             release_date: The release date of the inference data in 'YYYY-MM-DD' format.
+                          You can also pass the special values:
+                          - ``"current"`` to fetch the current active inference period
+                          - ``"latest"`` to fetch the most recently *available* inference period
 
         Returns:
             A dictionary representing the specified inference data period.
@@ -375,7 +382,23 @@ class ChallengeClient:
             NotFoundError: If the challenge or the specified inference data is not found.
             ClientError: If the date format is invalid.
         """
-        # Validate date format
+        if release_date == "current":
+            response = self._request(
+                "GET", f"/challenges/{self.challenge_slug}/inference_data/current/"
+            )
+            return response.json()
+        
+        if release_date == "latest":
+            # Simply resolve via list_inference_data(); avoid noisy probe.
+            periods = self.list_inference_data()
+            if not periods:
+                raise NotFoundError("No inference data periods found for this challenge.")
+
+            latest_period = max(periods, key=lambda p: p["release_date"])
+            release_date_iso = latest_period["release_date"]
+            release_date = release_date_iso.split("T")[0]
+
+        # Validate date format for explicit dates
         try:
             datetime.strptime(release_date, "%Y-%m-%d")
         except ValueError:
@@ -393,7 +416,7 @@ class ChallengeClient:
 
         Args:
             release_date: The release date of the inference data in 'YYYY-MM-DD' format
-                         or 'current' to get the current period's data.
+                          or the special values ``"current"`` or ``"latest"``.
             dest_path: The local file path to save the downloaded features file.
 
         Raises:
@@ -405,7 +428,17 @@ class ChallengeClient:
                 f"/challenges/{self.challenge_slug}/inference_data/current/download/"
             )
         else:
-            # Validate date format
+            if release_date == "latest":
+                # Resolve "latest" to the actual date string via helper.
+                latest_info = self.get_inference_data("latest")
+                release_date_iso = latest_info.get("release_date")
+                release_date = release_date_iso.split("T")[0] if release_date_iso else None
+                if not release_date:
+                    raise CrowdCentAPIError(
+                        "Malformed response when resolving latest inference period."
+                    )
+
+            # Validate date format after any resolution.
             try:
                 datetime.strptime(release_date, "%Y-%m-%d")
             except ValueError:
@@ -420,10 +453,17 @@ class ChallengeClient:
         )
         response = self._request("GET", endpoint, stream=True)
 
+        # Get total file size from headers
+        total_size = int(response.headers.get('content-length', 0))
+        
         try:
+            from tqdm import tqdm
+            
             with open(dest_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        pbar.update(len(chunk))
             logger.info(f"Successfully downloaded inference data to {dest_path}")
         except IOError as e:
             logger.error(f"Failed to write inference data to {dest_path}: {e}")
@@ -476,6 +516,8 @@ class ChallengeClient:
         df: Optional[IntoFrameT] = None,
         slot: int = 1,
         temp: bool = True,
+        max_retries: int = 3,
+        retry_delay: float = 1.0,
     ) -> Dict[str, Any]:
         """Submits predictions for the current active inference period of this challenge.
 
@@ -491,6 +533,8 @@ class ChallengeClient:
                 it will be temporarily saved as Parquet for submission.
             slot: Submission slot number (1-based).
             temp: Whether to save the DataFrame to a temporary file.
+            max_retries: Maximum number of retry attempts for connection errors (default: 3).
+            retry_delay: Initial delay between retries in seconds (default: 1.0).
 
         Returns:
             A dictionary representing the newly created or updated submission.
@@ -507,6 +551,9 @@ class ChallengeClient:
 
             # Submit from a file
             client.submit_predictions(file_path="predictions.parquet")
+            
+            # Submit with custom retry settings
+            client.submit_predictions(df=predictions_df, max_retries=5, retry_delay=2.0)
         """
         if df is not None:
             df.write_parquet(file_path)
@@ -531,6 +578,8 @@ class ChallengeClient:
                     f"/challenges/{self.challenge_slug}/submissions/",
                     files=files,
                     data=data_payload,  # Pass slot in data
+                    max_retries=max_retries,
+                    retry_delay=retry_delay,
                 )
             logger.info(
                 f"Successfully submitted predictions to challenge '{self.challenge_slug}'"
@@ -592,10 +641,17 @@ class ChallengeClient:
         # We still stream the response from the final URL.
         response = self._request("GET", endpoint, stream=True)
 
+        # Get total file size from headers
+        total_size = int(response.headers.get('content-length', 0))
+        
         try:
+            from tqdm import tqdm
+            
             with open(dest_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
+                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        pbar.update(len(chunk))
             logger.info(
                 f"Successfully downloaded consolidated meta model to {dest_path}"
             )

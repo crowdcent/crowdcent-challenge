@@ -32,10 +32,8 @@ def mock_client():
     # Set default return values for methods that return dicts/lists
     mock.get_challenge.return_value = {"name": "Mock Challenge", "slug": TEST_SLUG}
     mock.list_training_datasets.return_value = []
-    mock.get_latest_training_dataset.return_value = {}
     mock.get_training_dataset.return_value = {}
     mock.list_inference_data.return_value = []
-    mock.get_current_inference_data.return_value = {}
     mock.get_inference_data.return_value = {}
     mock.list_submissions.return_value = []
     mock.get_submission.return_value = {}

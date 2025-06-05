@@ -240,9 +240,9 @@ def test_request_connection_error(client, requests_mock):
 
 
 # --- Add tests for Training Data, Inference Data, Submissions, Downloads, Uploads below ---
-# TODO: Add tests for list_training_datasets, get_latest_training_dataset, get_training_dataset
+# TODO: Add tests for list_training_datasets, get_training_dataset
 # TODO: Add tests for download_training_dataset (success, errors, file writing)
-# TODO: Add tests for list_inference_data, get_current_inference_data, get_inference_data
+# TODO: Add tests for list_inference_data, get_inference_data
 # TODO: Add tests for download_inference_data (success, errors, file writing, 'current' date)
 # TODO: Add tests for list_submissions, get_submission
 # TODO: Add tests for submit_predictions (success, errors, file reading, format validation - mocked)

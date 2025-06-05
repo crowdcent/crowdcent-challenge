@@ -19,42 +19,50 @@ logger = logging.getLogger(__name__)
 
 # --- Config Functions ---
 
+
 def get_config_dir():
     """Return the directory for storing crowdcent-challenge configuration."""
-    if os.name == 'nt':  # Windows
-        config_dir = Path(os.environ.get('APPDATA', '')) / 'crowdcent-challenge'
+    if os.name == "nt":  # Windows
+        config_dir = Path(os.environ.get("APPDATA", "")) / "crowdcent-challenge"
     else:  # Unix/Linux/Mac
-        config_dir = Path.home() / '.config' / 'crowdcent-challenge'
-    
+        config_dir = Path.home() / ".config" / "crowdcent-challenge"
+
     config_dir.mkdir(parents=True, exist_ok=True)
     return config_dir
 
+
 def get_config_file():
     """Return the path to the configuration file."""
-    return get_config_dir() / 'config.json'
+    return get_config_dir() / "config.json"
+
 
 def load_config():
     """Load configuration from file."""
     config_file = get_config_file()
     if config_file.exists():
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 return json.load(f)
         except json.JSONDecodeError:
-            logger.warning(f"Error parsing config file {config_file}. Using default configuration.")
-    
+            logger.warning(
+                f"Error parsing config file {config_file}. Using default configuration."
+            )
+
     return {}
+
 
 def save_config(config):
     """Save configuration to file."""
     config_file = get_config_file()
-    with open(config_file, 'w') as f:
+    with open(config_file, "w") as f:
         json.dump(config, f, indent=2)
+
 
 def get_default_challenge_slug():
     """Get the default challenge slug from the configuration."""
     config = load_config()
-    return config.get('default_challenge_slug')
+    return config.get("default_challenge_slug")
+
 
 # --- Helper Functions ---
 
@@ -72,11 +80,30 @@ def get_client(challenge_slug=None):
         if challenge_slug is None:
             challenge_slug = get_default_challenge_slug()
             if challenge_slug is None:
-                raise click.UsageError(
-                    "No challenge slug provided and no default challenge set. "
-                    "Use --challenge option or set a default with 'crowdcent set-default-challenge'."
-                )
-        
+                # Try to auto-select if only one challenge exists
+                try:
+                    challenges = ChallengeClient.list_all_challenges()
+                    if len(challenges) == 1:
+                        challenge_slug = challenges[0]["slug"]
+                        click.echo(
+                            f"Auto-selected challenge: {challenge_slug}", err=True
+                        )
+                    elif len(challenges) > 1:
+                        click.echo(
+                            "Multiple challenges available. Please specify one:", err=True
+                        )
+                        for c in challenges:
+                            click.echo(f"  - {c['slug']}: {c['name']}", err=True)
+                        raise click.UsageError(
+                            "Use --challenge option or set a default with 'crowdcent set-default-challenge'."
+                        )
+                    else:
+                        raise click.UsageError("No challenges available.")
+                except AuthenticationError:
+                    raise click.UsageError(
+                        "Cannot list challenges. Check your API key configuration."
+                    )
+
         # Client handles loading API key from env/dotenv
         return ChallengeClient(challenge_slug=challenge_slug)
     except AuthenticationError as e:
@@ -121,24 +148,30 @@ def cli():
 
 # --- Challenge Commands ---
 
+
 @cli.command("set-default-challenge")
 @click.argument("challenge_slug", type=str)
 @handle_api_error
 def set_default_challenge(challenge_slug):
-    """Set the default challenge slug for future commands."""
+    """Set the default challenge slug for future commands.
+    
+    This is optional - if you only have one challenge, it will be auto-selected.
+    Setting a default is useful when working with multiple challenges.
+    """
     # Verify the challenge exists
     try:
         client = get_client(challenge_slug)
         client.get_challenge()  # Check if challenge exists
-        
+
         config = load_config()
-        config['default_challenge_slug'] = challenge_slug
+        config["default_challenge_slug"] = challenge_slug
         save_config(config)
-        
+
         click.echo(f"Default challenge set to '{challenge_slug}'")
     except Exception as e:
         click.echo(f"Error setting default challenge: {e}", err=True)
         raise click.Abort()
+
 
 @cli.command("get-default-challenge")
 def get_default_challenge():
@@ -147,7 +180,10 @@ def get_default_challenge():
     if challenge_slug:
         click.echo(f"Current default challenge: {challenge_slug}")
     else:
-        click.echo("No default challenge set. Use 'crowdcent set-default-challenge' to set one.")
+        click.echo(
+            "No default challenge set. Use 'crowdcent set-default-challenge' to set one."
+        )
+
 
 @cli.command("list-challenges")
 @handle_api_error
@@ -163,7 +199,13 @@ def list_challenges():
 
 
 @cli.command("get-challenge")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @handle_api_error
 def get_challenge(challenge_slug):
     """Get details for a specific challenge by slug."""
@@ -176,7 +218,13 @@ def get_challenge(challenge_slug):
 
 
 @cli.command("list-training-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @handle_api_error
 def list_training_data(challenge_slug):
     """List all training datasets for a specific challenge."""
@@ -184,20 +232,15 @@ def list_training_data(challenge_slug):
     datasets = client.list_training_datasets()
     click.echo(json.dumps(datasets, indent=2))
 
-
-@cli.command("get-latest-training-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
-@handle_api_error
-def get_latest_training_data(challenge_slug):
-    """Get the latest training dataset for a specific challenge."""
-    client = get_client(challenge_slug)
-    dataset = client.get_latest_training_dataset()
-    click.echo(json.dumps(dataset, indent=2))
-
-
 @cli.command("get-training-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
-@click.argument("version", type=str)
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
+@click.argument("version", type=str, default="latest")
 @handle_api_error
 def get_training_data(challenge_slug, version):
     """Get details for a specific training dataset version."""
@@ -207,8 +250,14 @@ def get_training_data(challenge_slug, version):
 
 
 @cli.command("download-training-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
-@click.argument("version", type=str)
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
+@click.argument("version", type=str, default="latest")
 @click.option(
     "-o",
     "--output",
@@ -234,7 +283,13 @@ def download_training_data(challenge_slug, version, dest_path):
 
 
 @cli.command("list-inference-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @handle_api_error
 def list_inference_data(challenge_slug):
     """List all inference data periods for a specific challenge."""
@@ -243,24 +298,20 @@ def list_inference_data(challenge_slug):
     click.echo(json.dumps(inference_data, indent=2))
 
 
-@cli.command("get-current-inference-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
-@handle_api_error
-def get_current_inference_data(challenge_slug):
-    """Get the currently active inference data period for a specific challenge."""
-    client = get_client(challenge_slug)
-    inference_data = client.get_current_inference_data()
-    click.echo(json.dumps(inference_data, indent=2))
-
-
 @cli.command("get-inference-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @click.argument("release_date", type=str)
 @handle_api_error
 def get_inference_data(challenge_slug, release_date):
     """Get details for a specific inference data period by release date.
 
-    RELEASE_DATE should be in 'YYYY-MM-DD' format.
+    RELEASE_DATE should be in 'YYYY-MM-DD' format or can be 'current' for the current active period or 'latest' for the latest available period.
     """
     client = get_client(challenge_slug)
     inference_data = client.get_inference_data(release_date)
@@ -268,8 +319,14 @@ def get_inference_data(challenge_slug, release_date):
 
 
 @cli.command("download-inference-data")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
-@click.argument("release_date", type=str)
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
+@click.argument("release_date", default="latest", type=str)
 @click.option(
     "-o",
     "--output",
@@ -304,7 +361,13 @@ def download_inference_data(challenge_slug, release_date, dest_path):
 
 
 @cli.command("list-submissions")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @click.option(
     "--period",
     type=str,
@@ -319,7 +382,13 @@ def list_submissions(challenge_slug, period):
 
 
 @cli.command("get-submission")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @click.argument("submission_id", type=int)
 @handle_api_error
 def get_submission(challenge_slug, submission_id):
@@ -330,11 +399,22 @@ def get_submission(challenge_slug, submission_id):
 
 
 @cli.command("submit")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @click.argument(
     "file_path", type=click.Path(exists=True, dir_okay=False, readable=True)
 )
-@click.option("--slot", type=int, help="Submission slot number (1-based).")
+@click.option(
+    "--slot",
+    type=int,
+    default=1,
+    help="Submission slot number (1-based). Defaults to 1.",
+)
 @handle_api_error
 def submit(challenge_slug, file_path, slot):
     """Submit a prediction file (Parquet) to a specific challenge.
@@ -362,7 +442,13 @@ def submit(challenge_slug, file_path, slot):
 
 
 @cli.command("download-meta-model")
-@click.option("--challenge", "-c", "challenge_slug", type=str, help="Challenge slug (uses default if not specified)")
+@click.option(
+    "--challenge",
+    "-c",
+    "challenge_slug",
+    type=str,
+    help="Challenge slug (uses default if not specified)",
+)
 @click.option(
     "-o",
     "--output",

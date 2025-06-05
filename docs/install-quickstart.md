@@ -76,8 +76,11 @@ Get details for a challenge or switch between different challenges.
     # Get details for the default challenge
     crowdcent get-challenge
     
-    # Or specify a challenge
+    # Or specify a challenge explicitly
     crowdcent get-challenge --challenge hyperliquid-ranking
+    
+    # Switch to a different default challenge
+    crowdcent set-default-challenge another-challenge
     ```
 
 ## Working with Training Data
@@ -93,7 +96,7 @@ Access training datasets for a challenge, including listing available versions, 
         print(f"Version: {dataset['version']}, Is Latest: {dataset['is_latest']}")
 
     # Get the latest training dataset
-    latest_dataset = client.get_latest_training_dataset()
+    latest_dataset = client.get_training_dataset("latest")
     print(f"Latest Version: {latest_dataset['version']}")
     print(f"Download URL: {latest_dataset['download_url']}")
 
@@ -109,9 +112,6 @@ Access training datasets for a challenge, including listing available versions, 
     ```bash
     # List all training datasets
     crowdcent list-training-data
-
-    # Get details about the latest training dataset
-    crowdcent get-latest-training-data
 
     # Get details about a specific training dataset version
     crowdcent get-training-data 1.0
@@ -136,7 +136,7 @@ Manage inference data periods, including listing available periods, getting deta
         print(f"Release Date: {period['release_date']}, Deadline: {period['submission_deadline']}")
 
     # Get the current inference period
-    current_period = client.get_current_inference_data()
+    current_period = client.get_inference_data("current")
     print(f"Current Period Release Date: {current_period['release_date']}")
     print(f"Submission Deadline: {current_period['submission_deadline']}")
     print(f"Time Remaining: {current_period['time_remaining']}")
@@ -153,9 +153,6 @@ Manage inference data periods, including listing available periods, getting deta
     ```bash
     # List all inference data periods
     crowdcent list-inference-data
-
-    # Get details about the current inference period
-    crowdcent get-current-inference-data
 
     # Get details about a specific inference period
     crowdcent get-inference-data 2025-01-15
@@ -213,19 +210,22 @@ Submit your model's predictions for the current inference period. The file must 
 
     # You can specify a submission slot (1-5)
     submission = client.submit_predictions(predictions_file, slot=2)
+    
+    # Or submit a DataFrame directly (without saving to file first)
+    submission = client.submit_predictions(df=predictions)
     ```
 
 === "CLI"
 
     ```bash
-    # Submit predictions to the default challenge
+    # Submit predictions to the default challenge (uses slot 1)
     crowdcent submit my_predictions.parquet
     
-    # Submit to a specific slot
+    # Submit to a specific slot (1-5)
     crowdcent submit my_predictions.parquet --slot 2
     
     # Submit to a specific challenge (overriding default)
-    crowdcent submit my_predictions.parquet --challenge hyperliquid-ranking
+    crowdcent submit my_predictions.parquet --challenge hyperliquid-ranking --slot 3
     ```
 
 ## Retrieving Submissions
@@ -306,8 +306,8 @@ If you need to work with multiple challenges simultaneously, you can use either 
     client_b = ChallengeClient(challenge_slug="challenge-b")
 
     # Use each client for its respective challenge
-    dataset_a = client_a.get_latest_training_dataset()
-    dataset_b = client_b.get_latest_training_dataset()
+    dataset_a = client_a.get_training_dataset("latest")
+    dataset_b = client_b.get_training_dataset("latest")
 
     print(f"Challenge A latest dataset: {dataset_a['version']}")
     print(f"Challenge B latest dataset: {dataset_b['version']}")
@@ -318,10 +318,12 @@ If you need to work with multiple challenges simultaneously, you can use either 
     ```bash
     # Set default challenge
     crowdcent set-default-challenge challenge-a
+    crowdcent get-training-data
     
-    # Work with default challenge
-    crowdcent get-latest-training-data
-    
-    # Override for a specific command
-    crowdcent get-latest-training-data --challenge challenge-b
+    # Switch to a different challenge
+    crowdcent set-default-challenge challenge-b
+    crowdcent get-training-data
     ```
+    
+    !!! note "CLI vs Python Approach"
+        The CLI doesn't have a direct equivalent to `client.switch_challenge()` because each CLI command is independent. Instead, use `set-default-challenge` to change your default, or use `--challenge` to override the default for specific commands. This approach is often more convenient for CLI usage.
