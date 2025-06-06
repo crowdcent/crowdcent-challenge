@@ -46,44 +46,7 @@ The API client requires authentication using your API key. This can be provided 
     !!! note
         With a default challenge set, you can run most commands without explicitly specifying the challenge. If you need to override the default for a specific command, use the `--challenge` or `-c` option.
 
-## Working with Challenges
-
-Get details for a challenge or switch between different challenges.
-
-=== "Python"
-
-    ```python
-    # Get details for the current challenge
-    challenge = client.get_challenge()
-    print(f"Challenge: {challenge['name']}")
-    print(f"Description: {challenge['description']}")
-
-    # Switch to a different challenge
-    new_challenge_slug = "another-challenge"  # Replace with another actual challenge slug
-    client.switch_challenge(new_challenge_slug)
-
-    # Now all operations will be for the new challenge
-    new_challenge = client.get_challenge()
-    print(f"Switched to: {new_challenge['name']}")
-    ```
-
-=== "CLI"
-
-    ```bash
-    # List all available challenges
-    crowdcent list-challenges
-
-    # Get details for the default challenge
-    crowdcent get-challenge
-    
-    # Or specify a challenge explicitly
-    crowdcent get-challenge --challenge hyperliquid-ranking
-    
-    # Switch to a different default challenge
-    crowdcent set-default-challenge another-challenge
-    ```
-
-## Working with Training Data
+## Training Data
 
 Access training datasets for a challenge, including listing available versions, getting the latest version, and downloading datasets.
 
@@ -91,20 +54,15 @@ Access training datasets for a challenge, including listing available versions, 
 
     ```python
     # List all training datasets for the current challenge
-    training_datasets = client.list_training_datasets()
-    for dataset in training_datasets:
-        print(f"Version: {dataset['version']}, Is Latest: {dataset['is_latest']}")
+    client.list_training_datasets()
 
-    # Get the latest training dataset
-    latest_dataset = client.get_training_dataset("latest")
-    print(f"Latest Version: {latest_dataset['version']}")
-    print(f"Download URL: {latest_dataset['download_url']}")
+    # Get details about the latest training dataset
+    client.get_training_dataset("latest")
 
-    # Download a training dataset file
-    version = "1.0"  # or "latest" for the latest version
+    # Download the training dataset file
+    version = "latest" # or specify a version like `1.0`
     output_path = "data/training_data.parquet"
     client.download_training_dataset(version, output_path)
-    print(f"Dataset downloaded to {output_path}")
     ```
 
 === "CLI"
@@ -123,7 +81,7 @@ Access training datasets for a challenge, including listing available versions, 
     crowdcent download-training-data 1.0 -o ./data/training_data.parquet
     ```
 
-## Working with Inference Data
+## Inference Data
 
 Manage inference data periods, including listing available periods, getting details for the current period, and downloading inference features.
 
@@ -131,21 +89,12 @@ Manage inference data periods, including listing available periods, getting deta
 
     ```python
     # List all inference data periods for the current challenge
-    inference_periods = client.list_inference_data()
-    for period in inference_periods:
-        print(f"Release Date: {period['release_date']}, Deadline: {period['submission_deadline']}")
-
-    # Get the current inference period
     current_period = client.get_inference_data("current")
-    print(f"Current Period Release Date: {current_period['release_date']}")
-    print(f"Submission Deadline: {current_period['submission_deadline']}")
-    print(f"Time Remaining: {current_period['time_remaining']}")
 
     # Download inference features
-    release_date = "2025-01-15"  # or "current" for the current period
+    release_date = "latest"  # or "YYYY-MM-DD" for a specific period or "current" for the current period
     output_path = "data/inference_features.parquet"
     client.download_inference_data(release_date, output_path)
-    print(f"Inference data downloaded to {output_path}")
     ```
 
 === "CLI"
@@ -164,7 +113,7 @@ Manage inference data periods, including listing available periods, getting deta
     crowdcent download-inference-data 2025-01-15 -o ./data/inference_features.parquet
     ```
 
-## Working with the Meta Model
+## Meta Model
 
 Download the consolidated meta model for a challenge. The meta model typically represents an aggregation of all valid user submissions for past inference periods.
 
@@ -173,7 +122,6 @@ Download the consolidated meta model for a challenge. The meta model typically r
     ```python
     output_path = "data/meta_model.parquet"
     client.download_meta_model(output_path)
-    print(f"Meta model downloaded to {output_path}")
     ```
 
 === "CLI"
@@ -191,41 +139,37 @@ Submit your model's predictions for the current inference period. The file must 
     ```python
     import polars as pl
     import numpy as np
+    from joblib import load
 
     # Create or load your predictions
     inference_data = pl.read_parquet("inference_data.parquet")
-    predictions = inference_data.with_columns([
-        pl.Series("pred_10d", np.random.random(len(inference_data))).cast(pl.Float64),
-        pl.Series("pred_30d", np.random.random(len(inference_data))).cast(pl.Float64),
-    ])
+    model = load("model.joblib")
+    predictions = model.predict(inference_data)
+    pred_df = pl.from_numpy(predictions, ["pred_10d", "pred_30d"])
+    inference_data = inference_data.with_columns(pred_df)
 
     # Save predictions to a Parquet file
-    predictions_file = "my_predictions.parquet"
-    predictions.write_parquet(predictions_file)
+    submission_file = "submission.parquet"
+    predictions.write_parquet(submission_file)
 
-    # Submit to the current challenge
-    submission = client.submit_predictions(predictions_file)
-    print(f"Submission successful! ID: {submission['id']}")
-    print(f"Status: {submission['status']}")
-
-    # You can specify a submission slot (1-5)
-    submission = client.submit_predictions(predictions_file, slot=2)
+    # You can specify a submission slot (1-5), default is 1
+    client.submit_predictions(file_path=submission_file, slot=2)
     
     # Or submit a DataFrame directly (without saving to file first)
-    submission = client.submit_predictions(df=predictions)
+    client.submit_predictions(df=pred_df)
     ```
 
 === "CLI"
 
     ```bash
     # Submit predictions to the default challenge (uses slot 1)
-    crowdcent submit my_predictions.parquet
+    crowdcent submit submission.parquet
     
     # Submit to a specific slot (1-5)
-    crowdcent submit my_predictions.parquet --slot 2
+    crowdcent submit submission.parquet --slot 2
     
     # Submit to a specific challenge (overriding default)
-    crowdcent submit my_predictions.parquet --challenge hyperliquid-ranking --slot 3
+    crowdcent submit submission.parquet --challenge hyperliquid-ranking --slot 3
     ```
 
 ## Retrieving Submissions
@@ -236,22 +180,18 @@ Manage and review your submissions for a challenge, including listing all submis
 
     ```python
     # List your submissions for the current challenge
-    submissions = client.list_submissions()
-    for submission in submissions:
-        print(f"Submission ID: {submission['id']}, Status: {submission['status']}")
+    client.list_submissions()
 
     # Filter submissions by period
     # Get submissions for the current period only
-    current_submissions = client.list_submissions(period="current")
+    client.list_submissions(period="current")
 
     # Or for a specific period
-    date_submissions = client.list_submissions(period="2025-01-15")
+    client.list_submissions(period="2025-01-15")
 
     # Get details for a specific submission
     submission_id = 123  # Replace with actual submission ID
     submission = client.get_submission(submission_id)
-    print(f"Submitted at: {submission['submitted_at']}")
-    print(f"Status: {submission['status']}")
     if submission['score_details']:
         print(f"Score Details: {submission['score_details']}")
     ```
@@ -270,33 +210,41 @@ Manage and review your submissions for a challenge, including listing all submis
     crowdcent get-submission 123
     ```
 
-## Listing Available Challenges
+## Challenges
 
-Before working with a specific challenge, you may want to list all available challenges.
+Get details for a challenge or switch between different challenges.
 
 === "Python"
 
     ```python
-    from crowdcent_challenge import ChallengeClient, CrowdCentAPIError
+    challenges = ChallengeClient.list_all_challenges()
 
-    # List all challenges using the class method
-    try:
-        challenges = ChallengeClient.list_all_challenges()
-        for challenge in challenges:
-            print(f"Challenge: {challenge['name']} (Slug: {challenge['slug']})")
-    except CrowdCentAPIError as e:
-        print(f"Error listing challenges: {e}")
+    # Get details for the current challenge
+    challenge = client.get_challenge()
+
+    # Switch to a different challenge
+    new_challenge_slug = "another-challenge"  # Replace with another actual challenge slug
+    client.switch_challenge(new_challenge_slug) # Now all operations will be for the new challenge
     ```
 
 === "CLI"
 
     ```bash
+    # List all available challenges
     crowdcent list-challenges
+
+    # Get details for the default challenge
+    crowdcent get-challenge
+    
+    # Or specify a challenge explicitly
+    crowdcent get-challenge --challenge hyperliquid-ranking
+    
+    # Switch to a different default challenge
+    crowdcent set-default-challenge another-challenge
     ```
 
-## Working with Multiple Challenges
 
-If you need to work with multiple challenges simultaneously, you can use either multiple client instances or override the default challenge.
+If you need to work with multiple challenges simultaneously, we recommend using multiple client instances.
 
 === "Python"
 
@@ -308,21 +256,17 @@ If you need to work with multiple challenges simultaneously, you can use either 
     # Use each client for its respective challenge
     dataset_a = client_a.get_training_dataset("latest")
     dataset_b = client_b.get_training_dataset("latest")
-
-    print(f"Challenge A latest dataset: {dataset_a['version']}")
-    print(f"Challenge B latest dataset: {dataset_b['version']}")
     ```
 
 === "CLI"
 
     ```bash
-    # Set default challenge
-    crowdcent set-default-challenge challenge-a
+    # Set default challenge training data
     crowdcent get-training-data
     
     # Switch to a different challenge
-    crowdcent set-default-challenge challenge-b
-    crowdcent get-training-data
+    crowdcent get-training-data --challenge challenge-a
+    crowdcent get-training-data --challenge challenge-b
     ```
     
     !!! note "CLI vs Python Approach"
