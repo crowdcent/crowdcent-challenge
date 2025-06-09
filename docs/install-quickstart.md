@@ -83,35 +83,40 @@ Access training datasets for a challenge, including listing available versions, 
 
 ## Inference Data
 
-Manage inference data periods, including listing available periods, getting details for the current period, and downloading inference features.
+Manage inference periods and download inference features.
 
 === "Python"
 
     ```python
-    # List all inference data periods for the current challenge
-    current_period = client.get_inference_data("current")
-
-    # Download inference features
-    release_date = "latest"  # or "YYYY-MM-DD" for a specific period or "current" for the current period
+    # Get today's inference data (will wait/poll until published)
     output_path = "data/inference_features.parquet"
-    client.download_inference_data(release_date, output_path)
+    client.download_inference_data("current", output_path)  # polls every 30s by default
+
+    # Get the most recent available data (no waiting)
+    client.download_inference_data("latest", output_path)
+    
+    # Get data for a specific date
+    client.download_inference_data("2025-01-15", output_path)
     ```
 
 === "CLI"
 
     ```bash
     # List all inference data periods
-    crowdcent list-inference-data
-
-    # Get details about a specific inference period
-    crowdcent get-inference-data 2025-01-15
-
-    # Download current inference data
+    # Download today's inference data (will poll until available)
     crowdcent download-inference-data current -o ./data/inference_features.parquet
     
-    # Or specific date
+    # Download most recent available data (no waiting)
+    crowdcent download-inference-data latest -o ./data/inference_features.parquet
+    
+    # Download specific date
     crowdcent download-inference-data 2025-01-15 -o ./data/inference_features.parquet
     ```
+
+!!! tip "Choosing the Right Option"
+    - **Use `"current"`** in your daily prediction workflow when you need today's features
+    - **Use `"latest"`** for when you need immediate access to the most recent inference period even if it's closed
+    - **Use `YYYY-MM-DD`** when working with historical periods or debugging
 
 ## Meta Model
 

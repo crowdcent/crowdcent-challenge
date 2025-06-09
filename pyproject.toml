@@ -1,6 +1,6 @@
 [project]
 name = "crowdcent-challenge"
-version = "0.1.8"
+version = "0.1.9"
 description = "CrowdCent Challenge Python Client"
 readme = "README.md"
 authors = [
@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 dependencies = [
     "click>=8.1.8",
     "narwhals>=1.41.0",
-    "numpy>=2.2.5",
+    "numpy>=2.1.0",
     "python-dotenv>=1.1.0",
     "requests>=2.32.3",
     "tqdm>=4.66.0",

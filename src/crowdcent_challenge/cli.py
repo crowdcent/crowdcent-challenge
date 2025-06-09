@@ -334,20 +334,62 @@ def get_inference_data(challenge_slug, release_date):
     default=None,
     help="Output file path. Defaults to [challenge_slug]_inference_[release_date].parquet in current directory.",
 )
+# Polling controls
+@click.option(
+    "--no-poll",
+    is_flag=True,
+    help="Disable polling when waiting for the current inference data to be published.",
+)
+@click.option(
+    "--poll-interval",
+    type=int,
+    default=30,
+    show_default=True,
+    help="Seconds to wait between polling attempts when release_date='current'.",
+)
+@click.option(
+    "--timeout",
+    type=int,
+    default=900,
+    show_default=True,
+    help="Maximum seconds to wait when polling for current data (0 = wait indefinitely).",
+)
 @handle_api_error
-def download_inference_data(challenge_slug, release_date, dest_path):
+def download_inference_data(
+    challenge_slug,
+    release_date,
+    dest_path,
+    no_poll,
+    poll_interval,
+    timeout,
+):
     """Download the inference features file for a specific period.
 
-    RELEASE_DATE should be in 'YYYY-MM-DD' format or 'current' for the current active period.
+    RELEASE_DATE may be:
+    • An explicit date in 'YYYY-MM-DD' format
+    • 'current' – the ongoing inference period (will poll by default)
+    • 'latest' – most recent published period
     """
+
     client = get_client(challenge_slug)
+
+    # Default output path
     if dest_path is None:
-        # Format date part of the filename
         date_str = release_date if release_date != "current" else "current"
         dest_path = f"{client.challenge_slug}_inference_{date_str}.parquet"
 
+    # Translate CLI options → client arguments
+    poll = not no_poll
+    timeout_val = None if timeout == 0 else timeout
+
     try:
-        client.download_inference_data(release_date, dest_path)
+        client.download_inference_data(
+            release_date,
+            dest_path,
+            poll=poll,
+            poll_interval=poll_interval,
+            timeout=timeout_val,
+        )
         click.echo(f"Inference data downloaded successfully to {dest_path}")
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)

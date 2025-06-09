@@ -411,25 +411,43 @@ class ChallengeClient:
         )
         return response.json()
 
-    def download_inference_data(self, release_date: str, dest_path: str):
+    def download_inference_data(
+        self,
+        release_date: str,
+        dest_path: str,
+        poll: bool = True,
+        poll_interval: int = 30,
+        timeout: Optional[int] = 900,
+    ):
         """Downloads the inference features file for a specific period.
 
         Args:
             release_date: The release date of the inference data in 'YYYY-MM-DD' format
                           or the special values ``"current"`` or ``"latest"``.
             dest_path: The local file path to save the downloaded features file.
+            poll: Whether to wait for the inference data to be available before downloading.
+            poll_interval: Seconds to wait between retries when polling.
+            timeout: Maximum seconds to wait before raising :class:`TimeoutError`.
+                ``None`` waits indefinitely.
 
         Raises:
             NotFoundError: If the challenge, inference data, or its file is not found.
             ClientError: If the date format is invalid.
         """
         if release_date == "current":
+            # If polling is enabled, delegate to wait_for_inference_data which wraps
+            # this method and adds retry logic. Otherwise attempt a single direct
+            # download request.
+            if poll:
+                self.wait_for_inference_data(dest_path, poll_interval, timeout)
+                return
+
+            # Polling disabled → attempt once and propagate NotFoundError on 404.
             endpoint = (
                 f"/challenges/{self.challenge_slug}/inference_data/current/download/"
             )
         else:
             if release_date == "latest":
-                # Resolve "latest" to the actual date string via helper.
                 latest_info = self.get_inference_data("latest")
                 release_date_iso = latest_info.get("release_date")
                 release_date = release_date_iso.split("T")[0] if release_date_iso else None
@@ -468,6 +486,58 @@ class ChallengeClient:
         except IOError as e:
             logger.error(f"Failed to write inference data to {dest_path}: {e}")
             raise CrowdCentAPIError(f"Failed to write inference data file: {e}") from e
+
+    def wait_for_inference_data(
+        self,
+        dest_path: str,
+        poll_interval: int = 30,
+        timeout: Optional[int] = 900,
+    ) -> None:
+        """Waits for the *current* inference data release to appear and downloads it.
+
+        The internal data-generation pipeline begins around 14:00 UTC, but the
+        public inference file becomes available only after it passes data-quality
+        checks. This helper repeatedly calls
+        :py:meth:`download_inference_data` with ``release_date="current"`` until
+        the file is ready (HTTP 404s are silently retried).
+
+        Args:
+            dest_path: Local path where the parquet file will be saved once available.
+            poll_interval: Seconds to wait between retries.
+            timeout: Maximum seconds to wait before raising :class:`TimeoutError`.
+                ``None`` waits indefinitely.
+
+        Raises:
+            TimeoutError: If *timeout* seconds pass without a successful download.
+            CrowdCentAPIError: For unrecoverable errors returned by the API.
+        """
+        start_time = time.time()
+        attempts = 0
+
+        while True:
+            attempts += 1
+            try:
+                # Try to download the *current* period *once*. Pass poll=False to avoid
+                # the mutual recursion between `wait_for_inference_data` and
+                # `download_inference_data` which would otherwise trigger an infinite
+                # loop when the file is not yet available.
+                self.download_inference_data("current", dest_path, poll=False)
+                logger.info(
+                    f"Successfully downloaded inference data after {attempts} attempt(s) to {dest_path}"
+                )
+                return  # Success – exit the loop
+            except NotFoundError:
+                # File not published yet – check timeout and sleep before retrying.
+                elapsed = time.time() - start_time
+                if timeout is not None and elapsed >= timeout:
+                    raise TimeoutError(
+                        f"Inference data was not available after waiting {timeout} seconds."
+                    )
+                logger.debug(
+                    f"Inference data not yet available (attempt {attempts}). "
+                    f"Sleeping {poll_interval}s before retrying."
+                )
+                time.sleep(poll_interval)
 
     # --- Submission Methods ---
 

@@ -1,9 +1,15 @@
 ## Objective
-The Hyperliquid Ranking Challenge requires participants to rank crypto assets on the Hyperliquid decentralized derivatives exchange by their expected relative returns over the next 10 and 30 days. The challenge universe comprises approximately 180 liquid tokens on the Hyperliquid protocol. This universe may change periodically, with tokens added or removed to ensure it remains as actionable as possible. If a token does not have enough volume or liquidity, it will likely be removed from the universe.
+The Hyperliquid Ranking Challenge requires participants to rank crypto assets on the Hyperliquid decentralized derivatives exchange by their expected relative returns over the next 10 and 30 days. The challenge universe comprises approximately 165-175 (and likely more in the future) liquid tokens on the Hyperliquid protocol. This universe may change periodically, with tokens added or removed to ensure it remains as actionable as possible. If a token does not have enough volume or liquidity, it will likely be removed from the universe.
+
+```python
+from crowdcent_challenge.client import CrowdCentClient
+client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
+client.get_challenge() # Get more challenge details
+```
 
 ## Inference data
-- Inference Period Open: Approximately 14:00 UTC
-- Inference Period Close: Approximately 18:00 UTC
+- Inference Period Open: The internal pipeline *starts* at **~14:00&nbsp;UTC**. The file usually becomes available a few seconds to a few minutes later, once data quality checks pass.
+- Inference Period Close: **4 hours after the actual release timestamp** (typically around 18:00&nbsp;UTC).
 
 Each day, an inference dataset is released containing the universe of tokens for which predictions are required. The inference data contains features but has no targets as they do not exist at the time of your submission. Your predictions will be scored against resolving targets from real market data in the future.
 
@@ -12,10 +18,7 @@ Each day, an inference dataset is released containing the universe of tokens for
 
 To download inference data for the current period:
 ```python
-from crowdcent_challenge.client import CrowdCentClient
-
-client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
-client.download_inference_data()
+client.download_inference_data("current")
 ```
 
 | id      | eodhd_id              | feature_1_lag15 | feature_1_lag10 | feature_1_lag5 | feature_1_lag0 | ... |
@@ -25,6 +28,9 @@ client.download_inference_data()
 | IOTA    | IOTA-USD.CC          | 0.789          | 0.812          | 0.798           | 0.823           | ... |
 | MOODENG | MOODENG33093-USD.CC  | 0.234          | 0.267          | 0.223           | 0.289           | ... |
 | ENS     | ENS-USD.CC           | 0.567          | 0.534          | 0.578           | 0.512           | ... |
+
+!!! note "Polling recommended"
+    The inference file may not exist the very instant the clock strikes 14:00&nbsp;UTC. If you use the `download_inference_data` method with `release_date="current"` and default parameters, this is handled for you automatically. If you are interested in the details, or would like to poll/retry manually, you can use `client.wait_for_inference_data("inference_data.parquet")` from the Python client, which implements the retrying logic. If you are building your own client, you can gently poll the API until `GET /current` stops returning `404`. 
 
 ### Asset IDs
 We currently provide `id` (the hyperliquid id) and `eodhd_id` (the id to download via EODHD) for each asset. You can request we include additional id mappings from other data vendors in the inference data if data licenses allow.
@@ -36,10 +42,7 @@ The training dataset is created just to get you started. Simple models can be bu
 
 You can download our training data, including features and targets from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
 ```python
-from crowdcent_challenge.client import CrowdCentClient
-
-client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
-client.download_training_data()
+client.download_training_data("latest")
 ```
 
 | id      | eodhd_id             | date       | feature_1_lag15 | feature_1_lag10 | ... | feature_1_lag0 | target_10d | target_30d |
@@ -68,8 +71,8 @@ For our purposes, the crypto universe has a close time of 24:00 UTC. At 14:00 UT
 **Timeline:**
 ```
 Day D-1: 24:00 UTC → Close price finalized (latest available data)
-Day D:   14:00 UTC → Inference data released
-         14:00-18:00 UTC → Inference period
+Day D:   14:00 UTC → Inference pipeline starts
+         14:00-18:00 UTC → Inference period lasts 4 hours
          24:00 UTC → Prediction/Scoring period starts (Day D close)
 Day D+10/30: 24:00 UTC → Prediction/Scoring period ends
 ```
@@ -78,17 +81,17 @@ Day D+10/30: 24:00 UTC → Prediction/Scoring period ends
 - Rankings are relative. They say nothing about the expected absolute performance of an asset.
 
 ## Submitting predictions
-Minimum of 80 ids from the inference data are required for a valid submission. 
+Minimum of 80 ids from the inference data are required for a valid submission. The following columns are also required (no index):
 
 - `id`: The id of the asset on Hyperliquid.
 - `pred_10d`: A float between 0 and 1 representing the predicted rank for the 10-day horizon.
 - `pred_30d`: A float between 0 and 1 representing the predicted rank for the 30-day horizon.
 
 
-To submit predictions:
+To submit predictions, you have 5 submission slots available. These can be used to submit multiple predictions for the same day and are defined by the `slot` parameter:
 ```python
-client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
-client.submit_predictions(df=predictions_df)
+client.submit_predictions(df=predictions_df, slot=1) # Submit a dataframe
+client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet file
 ```
 
 
@@ -101,10 +104,30 @@ client.submit_predictions(df=predictions_df)
 | ENS     | 0.3      | 0.4      |
 
 !!! Note
-    All data and predictions must be in parquet format.
+    If you are submitting a dataframe, `id` must be a column in the dataframe, *not* the index.
+    If you are submitting a file, all submissions must be in parquet format.
 
 ## Scoring and Evaluation
 Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], and any missing ids are filled with 0.5.
+
+### Composite Score (Warm-up Phase)
+
+During the initial *warm-up* phase of the challenge, the **overall daily score** is simply the average of four raw metrics: two horizons × two metric types:
+
+Each metric is first converted into a **percentile rank** (0 → worst, 1 → best) relative to all submissions for the same day. The composite is then the simple average of those four percentiles:
+
+$$\text{Overall Score} 
+= \tfrac14\bigl( p\bigl(\text{NDCG@40}_{10\,d}\bigr)
+            + p\bigl(\text{NDCG@40}_{30\,d}\bigr)
+            + p\bigl(\rho_{\text{Spearman},\;10\,d}\bigr)
+            + p\bigl(\rho_{\text{Spearman},\;30\,d}\bigr)\bigr)$$
+
+where $p(\cdot)$ denotes your percentile across **all other submissions** on that day.
+
+!!! warning "Minimum submissions for percentiles"
+    Percentile ranks are **only calculated when five (5) or more valid submissions** are received for a given day. If fewer than five submissions are present, percentile-based metrics will be omitted for that day and the daily percentile will not contribute to any official scoring.
+
+---
 
 **Metrics:**
 
@@ -131,13 +154,9 @@ Financial markets are characterized by extremely high noise-to-signal ratios. Se
 
 **Percentile Rankings: Your Most Reliable Metric**
 
-Because absolute scores vary with market conditions, CrowdCent calculates **percentile rankings** that show where you stand relative to other participants. These percentiles are recalculated daily.
+CrowdCent calculates **percentile rankings** that show where you stand relative to other participants. These percentiles are recalculated daily.
 
-Tracking your percentile rank over time is often more informative than focusing on absolute scores, as it accounts for:
-
-- Changing market difficulty
-- Evolving competition
-- Regime shifts that affect all participants
+Tracking your percentile rank over time is often more informative than focusing on absolute scores, as it accounts for evolving competition and regime shifts that affect all participants.
 
 !!! tip "Focus on Consistency"
     A model that consistently ranks in the 75th percentile across different market conditions is often more valuable than one that occasionally achieves top scores but performs poorly in other regimes.
