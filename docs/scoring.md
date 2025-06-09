@@ -88,10 +88,3 @@ y_pred = np.array([0.9, 0.6, 0.25, 0.22, 0.05])    # Predicted values (will be r
 correlation, p_value = spearmanr(y_true, y_pred)
 print(f"Spearman Correlation: {correlation:.4f}")
 ```
-
-**Why Spearman for Ranking Tasks?**
-
-Spearman correlation is particularly suited for ranking challenges because:
-
-1. **Focuses on order**: In ranking tasks, we care about getting the order right, not exact values
-3. **Complements NDCG**: While NDCG focuses on top/bottom performance, Spearman evaluates the entire ranking

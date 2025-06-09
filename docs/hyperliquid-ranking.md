@@ -110,43 +110,28 @@ client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet
 ## Scoring and Evaluation
 Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], and any missing ids are filled with 0.5.
 
-### Composite Score (Warm-up Phase)
 
-During the initial *warm-up* phase of the challenge, the **overall daily score** is simply the average of four raw metrics: two horizons × two metric types:
+### Metrics
+1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](https://docs.crowdcent.com/scoring/#symmetric-normalized-discounted-cumulative-gain-symmetric-NDCGk)
 
-Each metric is first converted into a **percentile rank** (0 → worst, 1 → best) relative to all submissions for the same day. The composite is then the simple average of those four percentiles:
 
-$$\text{Overall Score} 
-= \tfrac14\bigl( p\bigl(\text{NDCG@40}_{10\,d}\bigr)
-            + p\bigl(\text{NDCG@40}_{30\,d}\bigr)
-            + p\bigl(\rho_{\text{Spearman},\;10\,d}\bigr)
-            + p\bigl(\rho_{\text{Spearman},\;30\,d}\bigr)\bigr)$$
+When you see NDCG@40, think: "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~180 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric equally rewards both:
 
-where $p(\cdot)$ denotes your percentile across **all other submissions** on that day.
-
-!!! warning "Minimum submissions for percentiles"
-    Percentile ranks are **only calculated when five (5) or more valid submissions** are received for a given day. If fewer than five submissions are present, percentile-based metrics will be omitted for that day and the daily percentile will not contribute to any official scoring.
-
----
-
-**Metrics:**
-
-- [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](https://docs.crowdcent.com/scoring/#symmetric-normalized-discounted-cumulative-gain-symmetric-ndcgk)
-When you read NDCG@40, think "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~180 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric is symmetric, meaning it equally rewards:
   - **Top 40 identification**: Finding the tokens that will have the highest returns (for long positions)
   - **Bottom 40 identification**: Finding the tokens that will have the lowest returns (for short positions or avoidance)
   
   The logarithmic discount means getting the #1 ranked token correct is much more valuable than getting the #40 ranked token correct. A perfect NDCG@40 score of 1.0 means you perfectly ranked both tails of the distribution. This metric is particularly valuable for portfolio construction where you want to maximize exposure to the best performers while avoiding or shorting the worst.
 
-- [Spearman Correlation](https://docs.crowdcent.com/scoring/#spearman-correlation)
-Spearman correlation measures how well your predicted ranks align with the true ranks across the entire universe of ~180 tokens. Unlike NDCG which focuses on the extremes, Spearman treats all rank positions equally.
+2) [Spearman Correlation](https://docs.crowdcent.com/scoring/#spearman-correlation)
+
+Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.
 
 ### Score Ranges and Percentile Rankings
 
 **Score Ranges:**
 
 - **NDCG@40**: Ranges from 0.0 (worst possible) to 1.0 (perfect ranking of top and bottom 40 assets)
-- **Spearman Correlation**: Ranges from -1.0 (perfect inverse ranking) to 1.0 (perfect ranking), with 0.0 indicating random performance
+- **ρ (Spearman's Rank Correlation)**: Ranges from -1.0 (perfect inverse ranking) to 1.0 (perfect ranking), with 0.0 indicating random performance
 
 **Why Are Scores Typically Low?**
 
@@ -160,3 +145,21 @@ Tracking your percentile rank over time is often more informative than focusing 
 
 !!! tip "Focus on Consistency"
     A model that consistently ranks in the 75th percentile across different market conditions is often more valuable than one that occasionally achieves top scores but performs poorly in other regimes.
+
+
+### Composite Score (Warm-up Phase)
+
+During the initial *warm-up* phase of the challenge, all metrics across all timeframes are equally as valuable. The **composite** daily score is simply the average of four raw metrics: two horizons × two metric types:
+
+Each metric is first converted into a **percentile rank** (0 → worst, 1 → best) relative to all submissions for the same day. The composite is then the simple average of those four percentiles:
+
+$$\text{Overall Score} 
+= \tfrac14\bigl( p\bigl(\text{NDCG@40}_{10\,d}\bigr)
+            + p\bigl(\text{NDCG@40}_{30\,d}\bigr)
+            + p\bigl(\rho_{10\,d}\bigr)
+            + p\bigl(\rho_{30\,d}\bigr)\bigr)$$
+
+where $p(\cdot)$ denotes your percentile across **all other submissions** on that day.
+
+!!! warning "Minimum submissions for percentiles"
+    Percentile ranks are **only calculated when five (5) or more valid submissions** are received for a given day. If fewer than five submissions are present, percentile-based metrics will be omitted for that day and the daily percentile will not contribute to any official scoring.
