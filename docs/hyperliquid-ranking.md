@@ -2,8 +2,8 @@
 The Hyperliquid Ranking Challenge requires participants to rank crypto assets on the Hyperliquid decentralized derivatives exchange by their expected relative returns over the next 10 and 30 days. The challenge universe comprises approximately 165-175 (and likely more in the future) liquid tokens on the Hyperliquid protocol. This universe may change periodically, with tokens added or removed to ensure it remains as actionable as possible. If a token does not have enough volume or liquidity, it will likely be removed from the universe.
 
 ```python
-from crowdcent_challenge.client import CrowdCentClient
-client = CrowdCentClient(challenge_slug="hyperliquid-ranking")
+from crowdcent_challenge import ChallengeClient
+client = ChallengeClient(challenge_slug="hyperliquid-ranking")
 client.get_challenge() # Get more challenge details
 ```
 
@@ -13,12 +13,23 @@ client.get_challenge() # Get more challenge details
 
 Each day, an inference dataset is released containing the universe of tokens for which predictions are required. The inference data contains features but has no targets as they do not exist at the time of your submission. Your predictions will be scored against resolving targets from real market data in the future.
 
-!!! tip
-    You do *not* need to use the features included in the inference data. You can use and are encouraged to use your own features. It may still be helpful to use our inference data and id mappings to use the same universe of assets.
+!!! note "Polling and parameter options"
+    **Current vs Latest**: Use `"current"` to download today's active inference period (for making submissions). Use `"latest"` to download the most recently published period (which may be from a previous day if today's isn't ready yet).
+    
+    **Polling**: The inference file may not exist the very instant the clock strikes 14:00&nbsp;UTC. If you use `release_date="current"` with default parameters, polling is handled automatically. For `release_date="latest"`, no polling is needed since it always fetches the most recent available period.
+    
+    For manual polling, use `client.wait_for_inference_data("inference_data.parquet")` or gently poll the API until `GET /current` stops returning `404`. 
 
-To download inference data for the current period:
+To download inference data:
 ```python
-client.download_inference_data("current")
+# Download the current active inference period (for today's submissions)
+client.download_inference_data("current") # THIS WILL FAIL IF THERE IS NOT AN OPEN INFERENCE PERIOD
+
+# Download the most recently available inference period
+client.download_inference_data("latest")
+
+# Download a specific date's inference data
+client.download_inference_data("2024-12-15")
 ```
 
 | id      | eodhd_id              | feature_1_lag15 | feature_1_lag10 | feature_1_lag5 | feature_1_lag0 | ... |
@@ -29,8 +40,8 @@ client.download_inference_data("current")
 | MOODENG | MOODENG33093-USD.CC  | 0.234          | 0.267          | 0.223           | 0.289           | ... |
 | ENS     | ENS-USD.CC           | 0.567          | 0.534          | 0.578           | 0.512           | ... |
 
-!!! note "Polling recommended"
-    The inference file may not exist the very instant the clock strikes 14:00&nbsp;UTC. If you use the `download_inference_data` method with `release_date="current"` and default parameters, this is handled for you automatically. If you are interested in the details, or would like to poll/retry manually, you can use `client.wait_for_inference_data("inference_data.parquet")` from the Python client, which implements the retrying logic. If you are building your own client, you can gently poll the API until `GET /current` stops returning `404`. 
+!!! tip
+    You do *not* need to use the features included in the inference data. You can use and are encouraged to use your own features. It may still be helpful to use our inference data and id mappings to use the same universe of assets.
 
 ### Asset IDs
 We currently provide `id` (the hyperliquid id) and `eodhd_id` (the id to download via EODHD) for each asset. You can request we include additional id mappings from other data vendors in the inference data if data licenses allow.
@@ -42,7 +53,7 @@ The training dataset is created just to get you started. Simple models can be bu
 
 You can download our training data, including features and targets from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
 ```python
-client.download_training_data("latest")
+client.download_training_dataset("latest")
 ```
 
 | id      | eodhd_id             | date       | feature_1_lag15 | feature_1_lag10 | ... | feature_1_lag0 | target_10d | target_30d |
