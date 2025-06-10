@@ -1,3 +1,6 @@
+!!! example "Zero to Submission in 20 Seconds"
+    Go from setup to your first prediction submission with our [end-to-end tutorial notebook](tutorials/hyperliquid-end-to-end.ipynb).
+
 ## Objective
 The Hyperliquid Ranking Challenge requires participants to rank crypto assets on the Hyperliquid decentralized derivatives exchange by their expected relative returns over the next 10 and 30 days. The challenge universe comprises approximately 165-175 (and likely more in the future) liquid tokens on the Hyperliquid protocol. This universe may change periodically, with tokens added or removed to ensure it remains as actionable as possible. If a token does not have enough volume or liquidity, it will likely be removed from the universe.
 
@@ -7,10 +10,8 @@ client = ChallengeClient(challenge_slug="hyperliquid-ranking")
 client.get_challenge() # Get more challenge details
 ```
 
-For a complete example notebook that you can run yourself, see the [Hyperliquid End-to-End Tutorial](tutorials/hyperliquid-end-to-end.ipynb).
-
 ## Inference data
-- Inference Period Open: The internal pipeline *starts* at **~14:00&nbsp;UTC**. The file usually becomes available a few seconds to a few minutes later, once data quality checks pass.
+- Inference Period Open: The internal pipeline *starts* at **14:00&nbsp;UTC**. The file usually becomes available a few seconds to a few minutes later, once data quality checks pass.
 - Inference Period Close: **4 hours after the actual release timestamp** (typically around 18:00&nbsp;UTC).
 
 Each day, an inference dataset is released containing the universe of tokens for which predictions are required. The inference data contains features but has no targets as they do not exist at the time of your submission. Your predictions will be scored against resolving targets from real market data in the future.
