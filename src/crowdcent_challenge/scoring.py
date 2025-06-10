@@ -230,3 +230,71 @@ def ndcg_score(
             f"sample_weight has shape {sample_weight.shape} but there are {ndcg.shape[0]} samples."
         )
     return float(np.average(ndcg, weights=sample_weight))
+
+
+def spearman_correlation(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Calculate Spearman rank correlation coefficient.
+    
+    Args:
+        y_true: Array of true target values
+        y_pred: Array of predicted scores
+        
+    Returns:
+        Spearman correlation coefficient, or 0.0 if calculation fails
+    """
+    from scipy.stats import spearmanr
+    
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    
+    if len(y_true) != len(y_pred):
+        raise ValueError("y_true and y_pred must have the same length")
+    if len(y_true) == 0:
+        return 0.0
+        
+    try:
+        corr, _ = spearmanr(y_pred, y_true)
+        return float(corr) if not np.isnan(corr) else 0.0
+    except Exception:
+        return 0.0
+
+
+def evaluate_hyperliquid_submission(
+    y_true_10d: np.ndarray, y_pred_10d: np.ndarray,
+    y_true_30d: np.ndarray, y_pred_30d: np.ndarray
+) -> dict[str, float]:
+    """
+    Evaluate a Hyperliquid ranking submission with correct metrics.
+    
+    Calculates:
+    - Spearman correlation for 10d and 30d horizons (NOT Pearson)
+    - Symmetric NDCG@40 for 10d and 30d horizons (NOT @20)
+    - Composite score: simple average of all 4 metrics
+    
+    Args:
+        y_true_10d: True target values for 10-day horizon
+        y_pred_10d: Predicted scores for 10-day horizon
+        y_true_30d: True target values for 30-day horizon
+        y_pred_30d: Predicted scores for 30-day horizon
+        
+    Returns:
+        Dict containing all individual metrics plus composite_score
+    """
+    scores = {}
+    
+    # Spearman correlations (NOT Pearson)
+    scores["spearman_10d"] = spearman_correlation(y_true_10d, y_pred_10d)
+    scores["spearman_30d"] = spearman_correlation(y_true_30d, y_pred_30d)
+    
+    # Symmetric NDCG@40 (NOT @20)
+    scores["ndcg@40_10d"] = symmetric_ndcg_at_k(y_true_10d, y_pred_10d, k=40)
+    scores["ndcg@40_30d"] = symmetric_ndcg_at_k(y_true_30d, y_pred_30d, k=40)
+    
+    # Composite score: simple average of the 4 metrics
+    # This matches the documentation specification
+    composite = (scores["spearman_10d"] + scores["spearman_30d"] + 
+                scores["ndcg@40_10d"] + scores["ndcg@40_30d"]) / 4
+    scores["composite_score"] = composite
+    
+    return scores
