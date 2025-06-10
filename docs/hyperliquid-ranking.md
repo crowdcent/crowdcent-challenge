@@ -115,7 +115,7 @@ Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], an
 1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](https://docs.crowdcent.com/scoring/#symmetric-normalized-discounted-cumulative-gain-symmetric-NDCGk)
 
 
-When you see NDCG@40, think: "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~180 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric equally rewards both:
+When you see NDCG@40, think: "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~170 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric equally rewards both:
 
   - **Top 40 identification**: Finding the tokens that will have the highest returns (for long positions)
   - **Bottom 40 identification**: Finding the tokens that will have the lowest returns (for short positions or avoidance)
