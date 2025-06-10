@@ -7,6 +7,8 @@ client = ChallengeClient(challenge_slug="hyperliquid-ranking")
 client.get_challenge() # Get more challenge details
 ```
 
+For a complete example notebook that you can run yourself, see the [Hyperliquid End-to-End Tutorial](tutorials/hyperliquid-end-to-end.ipynb).
+
 ## Inference data
 - Inference Period Open: The internal pipeline *starts* at **~14:00&nbsp;UTC**. The file usually becomes available a few seconds to a few minutes later, once data quality checks pass.
 - Inference Period Close: **4 hours after the actual release timestamp** (typically around 18:00&nbsp;UTC).
