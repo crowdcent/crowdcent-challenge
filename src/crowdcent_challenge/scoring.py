@@ -269,9 +269,8 @@ def evaluate_hyperliquid_submission(
     
     Calculates:
     - Spearman correlation for 10d and 30d horizons (NOT Pearson)
-    - Symmetric NDCG@40 for 10d and 30d horizons (NOT @20)
-    - Composite score: simple average of all 4 metrics
-    
+    - Symmetric NDCG@40 for 10d and 30d horizons
+
     Args:
         y_true_10d: True target values for 10-day horizon
         y_pred_10d: Predicted scores for 10-day horizon
@@ -279,7 +278,7 @@ def evaluate_hyperliquid_submission(
         y_pred_30d: Predicted scores for 30-day horizon
         
     Returns:
-        Dict containing all individual metrics plus composite_score
+        Dict containing all individual metrics (no composite_score)
     """
     scores = {}
     
@@ -290,11 +289,5 @@ def evaluate_hyperliquid_submission(
     # Symmetric NDCG@40 (NOT @20)
     scores["ndcg@40_10d"] = symmetric_ndcg_at_k(y_true_10d, y_pred_10d, k=40)
     scores["ndcg@40_30d"] = symmetric_ndcg_at_k(y_true_30d, y_pred_30d, k=40)
-    
-    # Composite score: simple average of the 4 metrics
-    # This matches the documentation specification
-    composite = (scores["spearman_10d"] + scores["spearman_30d"] + 
-                scores["ndcg@40_10d"] + scores["ndcg@40_30d"]) / 4
-    scores["composite_score"] = composite
     
     return scores

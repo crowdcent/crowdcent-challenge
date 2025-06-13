@@ -10,7 +10,55 @@ client = ChallengeClient(challenge_slug="hyperliquid-ranking")
 client.get_challenge() # Get more challenge details
 ```
 
+## Training data
+The training dataset is created just to get you started. Simple models can be built with just the features and targets, but don't expect to win the challenge with them. We recommend building your own training datasets with sources like ccxt, eodhd, coingecko, or yfinance.
+
+You can download our training data, including features and targets from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
+```python
+client.download_training_dataset("latest")
+```
+
+| id      | eodhd_id             | date       | feature_1_lag15 | feature_1_lag10 | ... | feature_1_lag0 | target_10d | target_30d |
+|---------|----------------------|------------|----------------|----------------|-----|------------------|------------|------------|
+| BABY    | BABY32198-USD.CC     | 2024-03-20 | 0.123          | 0.145          | ... | 0.823            | 0.15       | 0.25       |
+| OM      | OM-USD.CC            | 2024-03-20 | 0.456          | 0.423          | ... | 0.756            | 0.35       | 0.45       | 
+| IOTA    | IOTA-USD.CC          | 2024-03-20 | 0.789          | 0.812          | ... | 0.923            | 0.55       | 0.65       |
+| MOODENG | MOODENG33093-USD.CC  | 2024-03-20 | 0.234          | 0.267          | ... | 0.445            | 0.75       | 0.85       |
+| ENS     | ENS-USD.CC           | 2024-03-20 | 0.567          | 0.534          | ... | 0.678            | 0.95       | 0.88       |
+
+### Asset IDs
+We currently provide `id` (the hyperliquid id) and `eodhd_id` (the id to download via EODHD) for each asset. You can request we include additional id mappings from other data vendors in the inference data if data licenses allow.
+
+If you're using CrowdCent's training data to build your models, the inference data features will always match that of the *latest* training dataset version. The assets are generally the same as you would find in the training data, but new additions or removals are possible. For the inference data, we aim to track the listed and tradeable perps on Hyperliquid.
+
+### Features
+The training data contains 80 total features following the pattern `feature_{n}_lag{lag}`:
+
+- 20 unique features (n = 1 to 20)
+- 4 lag values per feature (0, 5, 10, 15 days)
+
+Features with the same number represent the same metric at different time points. For example, `feature_1_lag0` through `feature_1_lag15` track the same underlying metric over time. This structure preserves temporal relationships, allowing you to build sequence models (LSTM, GRU, Transformer), identify trends/patterns across different time horizons, and engineer additional features based on temporal changes.
+
+### Targets
+Targets are the rankings of an asset's 10d and 30d forward relative returns (with a 1d lag). Targets do not currently take funding rate or any other factors (e.g. market cap, volume, etc.) into account. It's possible that the targets will be updated in the future to include such factors.
+
+**Why the 1-day lag?**
+For our purposes, the crypto universe has a close time of 24:00 UTC. At 14:00 UTC when predictions are made, only data through the previous day's 24:00 UTC close is available. The lag ensures predictions use only historical data while forecasting returns starting from tonight's close.
+
+**Timeline:**
+```
+Day D-1: 24:00 UTC → Close price finalized (latest available data)
+Day D:   14:00 UTC → Inference pipeline starts
+         14:00-18:00 UTC → Inference period lasts 4 hours
+         24:00 UTC → Prediction/Scoring period starts (Day D close)
+Day D+10/30: 24:00 UTC → Prediction/Scoring period ends
+```
+
+- Predictions rank assets by expected performance over the next 10/30 days starting from tonight's close
+- Rankings are relative. They say nothing about the expected absolute performance of an asset.
+
 ## Inference data
+
 - Inference Period Open: The internal pipeline *starts* at **14:00&nbsp;UTC**. The file usually becomes available a few seconds to a few minutes later, once data quality checks pass.
 - Inference Period Close: **4 hours after the actual release timestamp** (typically around 18:00&nbsp;UTC).
 
@@ -45,54 +93,6 @@ client.download_inference_data("2024-12-15")
 
 !!! tip
     You do *not* need to use the features included in the inference data. You can use and are encouraged to use your own features. It may still be helpful to use our inference data and id mappings to use the same universe of assets.
-
-### Asset IDs
-We currently provide `id` (the hyperliquid id) and `eodhd_id` (the id to download via EODHD) for each asset. You can request we include additional id mappings from other data vendors in the inference data if data licenses allow.
-
-If you're using CrowdCent's training data to build your models, the inference data features will always match that of the *latest* training dataset version. The assets are generally the same as you would find in the training data, but new additions or removals are possible. For the inference data, we aim to track the listed and tradeable perps on Hyperliquid.
-
-## Training data
-The training dataset is created just to get you started. Simple models can be built with just the features and targets, but don't expect to win the challenge with them. We recommend building your own training datasets with sources like ccxt, eodhd, coingecko, or yfinance.
-
-You can download our training data, including features and targets from [crowdcent.com/challenge/hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) or via the CrowdCent client:
-```python
-client.download_training_dataset("latest")
-```
-
-| id      | eodhd_id             | date       | feature_1_lag15 | feature_1_lag10 | ... | feature_1_lag0 | target_10d | target_30d |
-|---------|----------------------|------------|----------------|----------------|-----|------------------|------------|------------|
-| BABY    | BABY32198-USD.CC     | 2024-03-20 | 0.123          | 0.145          | ... | 0.823            | 0.15       | 0.25       |
-| OM      | OM-USD.CC            | 2024-03-20 | 0.456          | 0.423          | ... | 0.756            | 0.35       | 0.45       | 
-| IOTA    | IOTA-USD.CC          | 2024-03-20 | 0.789          | 0.812          | ... | 0.923            | 0.55       | 0.65       |
-| MOODENG | MOODENG33093-USD.CC  | 2024-03-20 | 0.234          | 0.267          | ... | 0.445            | 0.75       | 0.85       |
-| ENS     | ENS-USD.CC           | 2024-03-20 | 0.567          | 0.534          | ... | 0.678            | 0.95       | 0.88       |
-
-### Features
-The training data contains 80 total features following the pattern `feature_{n}_lag{lag}`:
-
-- 20 unique features (n = 1 to 20)
-- 4 lag values per feature (0, 5, 10, 15 days)
-
-Features with the same number represent the same metric at different time points. For example, `feature_1_lag0` through `feature_1_lag15` track the same underlying metric over time. This structure preserves temporal relationships, allowing you to build sequence models (LSTM, GRU, Transformer), identify trends/patterns across different time horizons, and engineer additional features based on temporal changes.
-
-### Targets
-
-Targets are the rankings of an asset's 10d and 30d forward relative returns (with a 1d lag). Targets do not currently take funding rate or any other factors (e.g. market cap, volume, etc.) into account. It's possible that the targets will be updated in the future to include such factors.
-
-**Why the 1-day lag?**
-For our purposes, the crypto universe has a close time of 24:00 UTC. At 14:00 UTC when predictions are made, only data through the previous day's 24:00 UTC close is available. The lag ensures predictions use only historical data while forecasting returns starting from tonight's close.
-
-**Timeline:**
-```
-Day D-1: 24:00 UTC → Close price finalized (latest available data)
-Day D:   14:00 UTC → Inference pipeline starts
-         14:00-18:00 UTC → Inference period lasts 4 hours
-         24:00 UTC → Prediction/Scoring period starts (Day D close)
-Day D+10/30: 24:00 UTC → Prediction/Scoring period ends
-```
-
-- Predictions rank assets by expected performance over the next 10/30 days starting from tonight's close
-- Rankings are relative. They say nothing about the expected absolute performance of an asset.
 
 ## Submitting predictions
 Minimum of 80 ids from the inference data are required for a valid submission. The following columns are also required (no index):
@@ -140,17 +140,31 @@ When you see NDCG@40, think: "how well did I rank the top 40 assets and how well
 
 Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.
 
-### Composite Score (Warm-up Phase)
+### Composite Percentile (Warm-up Phase)
 
-During the initial *warm-up* phase of the challenge, all metrics across all timeframes are equally as valuable. The **composite** daily score is simply the average of four raw metrics: two horizons × two metric types:
+During the initial *warm-up* phase of the challenge, the goal is to maximize all metrics across all timeframes equally. Since NDCG@40 (0-1 range) and Spearman correlation (-1 to 1 range) have different scales and distributions, we use a **composite percentile** for fair comparison.
 
-$$\text{Overall Score} = \frac{1}{4}\left( \text{NDCG@40}_{10d} + \text{NDCG@40}_{30d} + \rho_{\text{spearman},10d} + \rho_{\text{spearman},30d}\right)$$
+The **composite percentile** is calculated as the average of your percentile rankings across all four metrics:
+$$
+\text{Composite Percentile} = \frac{1}{4} \times \left(
+\begin{array}{l}
+\text{percentile(NDCG@40}_{10d}) + \\
+\text{percentile(NDCG@40}_{30d}) + \\
+\text{percentile(spearman}_{10d}) + \\
+\text{percentile(spearman}_{30d})
+\end{array}
+\right)
+$$
+
+Where each percentile represents your ranking (0-100) compared to other participants for that specific metric for a given day/inference period.
+
+**Important:** Composite percentiles are only calculated when **ten (10) or more valid submissions** (counted by submission slots, not users) are received for a given day. If fewer than ten submissions are present, the composite percentile will not be calculated, and you'll need to look at absolute metric scores instead.
 
 As we learn more about the challenge's metamodel, we may adjust the weighting or add/remove metrics.
 
 ### Score Ranges and Percentile Rankings
 
-**Score Ranges:**
+**Raw Score Ranges:**
 
 - **NDCG@40**: Ranges from 0.0 (worst possible) to 1.0 (perfect ranking of top and bottom 40 assets)
 - **ρ (Spearman's Rank Correlation)**: Ranges from -1.0 (perfect inverse ranking) to 1.0 (perfect ranking), with 0.0 indicating random performance
@@ -165,5 +179,5 @@ CrowdCent calculates **percentile rankings** that show where you stand relative 
 
 Tracking your percentile scores over time is often more informative than focusing on absolute scores, as it accounts for evolving competition and regime shifts that affect all participants. A model that consistently ranks in the 75th percentile across different market conditions can often be more valuable than one that occasionally achieves top scores but performs poorly in other regimes.
 
-!!! warning "Minimum submissions for percentiles"
-    Percentile ranks are **only calculated when five (5) or more valid submissions** are received for a given day. If fewer than five submissions are present, percentile-based metrics will be omitted for that day and the daily percentile will not contribute to any official scoring.
+!!! warning "Minimum submissions for percentile"
+    Percentiles only calculated when **ten (10) or more valid submissions** are received for a given day. If fewer than ten submissions are present, you'll see individual metric scores, but no percentile.
