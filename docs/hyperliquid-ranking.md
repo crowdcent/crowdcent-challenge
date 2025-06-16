@@ -140,11 +140,12 @@ When you see NDCG@40, think: "how well did I rank the top 40 assets and how well
 
 Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.
 
-### Composite Percentile (Warm-up Phase)
+### Composite Percentile
 
 During the initial *warm-up* phase of the challenge, the goal is to maximize all metrics across all timeframes equally. Since NDCG@40 (0-1 range) and Spearman correlation (-1 to 1 range) have different scales and distributions, we use a **composite percentile** for fair comparison.
 
 The **composite percentile** is calculated as the average of your percentile rankings across all four metrics:
+
 $$
 \text{Composite Percentile} = \frac{1}{4} \times \left(
 \begin{array}{l}
@@ -181,3 +182,40 @@ Tracking your percentile scores over time is often more informative than focusin
 
 !!! warning "Minimum submissions for percentile"
     Percentiles only calculated when **ten (10) or more valid submissions** are received for a given day. If fewer than ten submissions are present, you'll see individual metric scores, but no percentile.
+
+## Meta Model
+
+The CrowdCent Meta Model aggregates predictions from all participants, representing a "wisdom of the crowd" which is made available to all users with a valid CrowdCent account. This may change in the future with no notice.
+
+!!! warning "Meta Model Disclaimer"
+    Meta model signals are released for informational and educational purposes only. Not financial, investment, or trading advice. CrowdCent disclaims all liability for any losses, damages, or consequences arising from use of the meta model. Users assume all risks.
+
+### Construction Methodology
+
+The meta model is currently constructed daily using a **simple, naive average** of all submission slots:
+
+1. **Uniform Ranking**: Each individual submission's predictions are first converted to uniform rankings [0, 1] for each prediction column (`pred_10d`, `pred_30d`)
+2. **Missing ID Handling**: Any asset IDs missing from individual submissions are filled with neutral rankings of 0.5 *after* the uniform ranking step
+3. **Averaging**: The meta model takes the arithmetic mean of all normalized rankings across all valid submissions for each day
+
+!!! note "Future Enhancements"
+    The current simple averaging approach is intentionally naive but effective as a starting point. Future versions may incorporate more sophisticated weighting schemes based on historical performance, tail weighting, or other ensemble methods.
+
+### Access and Downloads
+
+The meta model is available through multiple channels:
+
+- Via web: [https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/)
+- Via API: `client.download_meta_model(dest_path="meta_model.parquet")`
+
+The meta model is a parquet file with the following columns. New predictions are added daily, creating a time series with multiple release dates as shown in this sample:
+
+| id      | pred_10d | pred_30d | release_date |
+|---------|----------|----------|--------------|
+| BTC     | 0.85     | 0.82     | 2024-12-15   |
+| ETH     | 0.74     | 0.78     | 2024-12-15   |
+| SOL     | 0.91     | 0.89     | 2024-12-15   |
+| BTC     | 0.85     | 0.82     | 2024-12-16   |
+| ETH     | 0.74     | 0.78     | 2024-12-16   |
+| SOL     | 0.91     | 0.83     | 2024-12-16   |
+| ...     | ...      | ...      | ...          |
