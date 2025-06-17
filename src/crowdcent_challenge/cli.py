@@ -90,7 +90,8 @@ def get_client(challenge_slug=None):
                         )
                     elif len(challenges) > 1:
                         click.echo(
-                            "Multiple challenges available. Please specify one:", err=True
+                            "Multiple challenges available. Please specify one:",
+                            err=True,
                         )
                         for c in challenges:
                             click.echo(f"  - {c['slug']}: {c['name']}", err=True)
@@ -154,7 +155,7 @@ def cli():
 @handle_api_error
 def set_default_challenge(challenge_slug):
     """Set the default challenge slug for future commands.
-    
+
     This is optional - if you only have one challenge, it will be auto-selected.
     Setting a default is useful when working with multiple challenges.
     """
@@ -231,6 +232,7 @@ def list_training_data(challenge_slug):
     client = get_client(challenge_slug)
     datasets = client.list_training_datasets()
     click.echo(json.dumps(datasets, indent=2))
+
 
 @cli.command("get-training-data")
 @click.option(

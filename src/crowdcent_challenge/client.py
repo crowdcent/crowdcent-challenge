@@ -156,7 +156,9 @@ class ChallengeClient:
                     error_data = e.response.json()
                     if "error" in error_data and isinstance(error_data["error"], dict):
                         error_code = error_data["error"].get("code", "UNKNOWN_ERROR")
-                        error_message = error_data["error"].get("message", e.response.text)
+                        error_message = error_data["error"].get(
+                            "message", e.response.text
+                        )
                     else:
                         error_code = "API_ERROR"
                         error_message = e.response.text
@@ -188,18 +190,25 @@ class ChallengeClient:
                     raise CrowdCentAPIError(
                         f"HTTP error ({status_code}): {error_message} [{error_code}]"
                     ) from e
-            except (requests_exceptions.ConnectionError, requests_exceptions.Timeout) as e:
+            except (
+                requests_exceptions.ConnectionError,
+                requests_exceptions.Timeout,
+            ) as e:
                 # Connection errors and timeouts are retryable
                 if attempt < max_retries:
-                    delay = retry_delay * (2 ** attempt)  # Exponential backoff
+                    delay = retry_delay * (2**attempt)  # Exponential backoff
                     logger.warning(
                         f"Connection error: {e}. Retrying in {delay:.1f}s... "
                         f"(attempt {attempt + 1}/{max_retries})"
                     )
                     time.sleep(delay)
                     continue
-                logger.error(f"Request failed after {max_retries} retries: {e} for {method} {url}")
-                raise CrowdCentAPIError(f"Request failed after {max_retries} retries: {e}") from e
+                logger.error(
+                    f"Request failed after {max_retries} retries: {e} for {method} {url}"
+                )
+                raise CrowdCentAPIError(
+                    f"Request failed after {max_retries} retries: {e}"
+                ) from e
             except requests_exceptions.RequestException as e:
                 logger.error(f"Request failed: {e} for {method} {url}")
                 raise CrowdCentAPIError(f"Request failed: {e}") from e
@@ -306,7 +315,7 @@ class ChallengeClient:
                 "GET", f"/challenges/{self.challenge_slug}/training_data/latest/"
             )
             return response.json()
-            
+
         response = self._request(
             "GET", f"/challenges/{self.challenge_slug}/training_data/{version}/"
         )
@@ -327,7 +336,9 @@ class ChallengeClient:
             latest_info = self.get_training_dataset("latest")
             version = latest_info["version"]
 
-        endpoint = f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
+        endpoint = (
+            f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
+        )
 
         logger.info(
             f"Downloading training data for challenge '{self.challenge_slug}' v{version} to {dest_path}"
@@ -335,13 +346,18 @@ class ChallengeClient:
         response = self._request("GET", endpoint, stream=True)
 
         # Get total file size from headers
-        total_size = int(response.headers.get('content-length', 0))
-        
+        total_size = int(response.headers.get("content-length", 0))
+
         try:
             from tqdm import tqdm
-            
+
             with open(dest_path, "wb") as f:
-                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                with tqdm(
+                    total=total_size,
+                    unit="B",
+                    unit_scale=True,
+                    desc=f"Downloading {os.path.basename(dest_path)}",
+                ) as pbar:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
                         pbar.update(len(chunk))
@@ -387,12 +403,14 @@ class ChallengeClient:
                 "GET", f"/challenges/{self.challenge_slug}/inference_data/current/"
             )
             return response.json()
-        
+
         if release_date == "latest":
             # Simply resolve via list_inference_data(); avoid noisy probe.
             periods = self.list_inference_data()
             if not periods:
-                raise NotFoundError("No inference data periods found for this challenge.")
+                raise NotFoundError(
+                    "No inference data periods found for this challenge."
+                )
 
             latest_period = max(periods, key=lambda p: p["release_date"])
             release_date_iso = latest_period["release_date"]
@@ -450,7 +468,9 @@ class ChallengeClient:
             if release_date == "latest":
                 latest_info = self.get_inference_data("latest")
                 release_date_iso = latest_info.get("release_date")
-                release_date = release_date_iso.split("T")[0] if release_date_iso else None
+                release_date = (
+                    release_date_iso.split("T")[0] if release_date_iso else None
+                )
                 if not release_date:
                     raise CrowdCentAPIError(
                         "Malformed response when resolving latest inference period."
@@ -472,13 +492,18 @@ class ChallengeClient:
         response = self._request("GET", endpoint, stream=True)
 
         # Get total file size from headers
-        total_size = int(response.headers.get('content-length', 0))
-        
+        total_size = int(response.headers.get("content-length", 0))
+
         try:
             from tqdm import tqdm
-            
+
             with open(dest_path, "wb") as f:
-                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                with tqdm(
+                    total=total_size,
+                    unit="B",
+                    unit_scale=True,
+                    desc=f"Downloading {os.path.basename(dest_path)}",
+                ) as pbar:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
                         pbar.update(len(chunk))
@@ -621,7 +646,7 @@ class ChallengeClient:
 
             # Submit from a file
             client.submit_predictions(file_path="predictions.parquet")
-            
+
             # Submit with custom retry settings
             client.submit_predictions(df=predictions_df, max_retries=5, retry_delay=2.0)
         """
@@ -712,13 +737,18 @@ class ChallengeClient:
         response = self._request("GET", endpoint, stream=True)
 
         # Get total file size from headers
-        total_size = int(response.headers.get('content-length', 0))
-        
+        total_size = int(response.headers.get("content-length", 0))
+
         try:
             from tqdm import tqdm
-            
+
             with open(dest_path, "wb") as f:
-                with tqdm(total=total_size, unit='B', unit_scale=True, desc=f"Downloading {os.path.basename(dest_path)}") as pbar:
+                with tqdm(
+                    total=total_size,
+                    unit="B",
+                    unit_scale=True,
+                    desc=f"Downloading {os.path.basename(dest_path)}",
+                ) as pbar:
                     for chunk in response.iter_content(chunk_size=8192):
                         f.write(chunk)
                         pbar.update(len(chunk))
