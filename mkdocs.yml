@@ -10,7 +10,6 @@ nav:
       - Getting Started: getting-started.md
       - Scoring : scoring.md
       - FAQ: faq.md
-      # - Glossary: glossary.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md
           - Equity NLP &#128683;: equity-nlp.md
@@ -22,8 +21,8 @@ nav:
           - Disclaimer: disclaimer.md
           - Changelog: changelog.md
   - Tutorials:
-      - Python Client Cheatsheet: tutorials/client-cheatsheet.ipynb
       - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
+      - Advanced LSTM Cross-Validation: tutorials/advanced-cv-lstm.ipynb
       - Submission Automation: tutorials/submission-automation.md
   - API Reference:
       - Python: api-reference/python.md
