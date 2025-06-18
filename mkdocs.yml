@@ -22,7 +22,7 @@ nav:
           - Changelog: changelog.md
   - Tutorials:
       - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
-      - Advanced LSTM Cross-Validation: tutorials/advanced-cv-lstm.ipynb
+      - XGBoost vs LSTM with Time-Series Cross-Validation: tutorials/advanced-cv-lstm.ipynb
       - Submission Automation: tutorials/submission-automation.md
   - API Reference:
       - Python: api-reference/python.md
