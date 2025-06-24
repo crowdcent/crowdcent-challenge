@@ -15,6 +15,7 @@ nav:
           - Equity NLP &#128683;: equity-nlp.md
       - Python Client:
           - Install & Quick Start: install-quickstart.md
+          - AI Agents (MCP): ai-agents-mcp.md
       - More:
           - About CrowdCent: about.md
           - Contributing: contributing.md
