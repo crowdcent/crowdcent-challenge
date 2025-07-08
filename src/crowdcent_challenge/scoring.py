@@ -261,6 +261,15 @@ def spearman_correlation(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         return 0.0
 
 
+def safe_metric(metric_func, y_true, y_pred, *args, **kwargs):
+    """
+    A wrapper that calls a metric function only if data is present, otherwise returns nan.
+    """
+    if not len(y_true) or not len(y_pred):
+        return np.nan
+    return metric_func(y_true, y_pred, *args, **kwargs)
+
+
 def evaluate_hyperliquid_submission(
     y_true_10d: np.ndarray,
     y_pred_10d: np.ndarray,
@@ -285,13 +294,13 @@ def evaluate_hyperliquid_submission(
     """
     scores = {}
 
-    # Spearman correlations (NOT Pearson)
-    scores["spearman_10d"] = spearman_correlation(y_true_10d, y_pred_10d)
-    scores["spearman_30d"] = spearman_correlation(y_true_30d, y_pred_30d)
+    # Spearman correlations
+    scores["spearman_10d"] = safe_metric(spearman_correlation, y_true_10d, y_pred_10d)
+    scores["spearman_30d"] = safe_metric(spearman_correlation, y_true_30d, y_pred_30d)
 
-    # Symmetric NDCG@40 (NOT @20)
-    scores["ndcg@40_10d"] = symmetric_ndcg_at_k(y_true_10d, y_pred_10d, k=40)
-    scores["ndcg@40_30d"] = symmetric_ndcg_at_k(y_true_30d, y_pred_30d, k=40)
+    # Symmetric NDCG@40
+    scores["ndcg@40_10d"] = safe_metric(symmetric_ndcg_at_k, y_true_10d, y_pred_10d, k=40)
+    scores["ndcg@40_30d"] = safe_metric(symmetric_ndcg_at_k, y_true_30d, y_pred_30d, k=40)
 
     return scores
 
