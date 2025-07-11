@@ -764,7 +764,7 @@ toml = [
 
 [[package]]
 name = "crowdcent-challenge"
-version = "0.1.11"
+version = "0.1.12"
 source = { editable = "." }
 dependencies = [
     { name = "click" },

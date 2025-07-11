@@ -8,7 +8,7 @@ from crowdcent_challenge.scoring import *
 
 One of the key metrics used in some challenges is Symmetric Normalized Discounted Cumulative Gain (Symmetric NDCG@k).
 
-**Concept:**
+### Concept
 
 **Normalized Discounted Cumulative Gain (NDCG@k)** is a metric used to evaluate how well a model ranks items. It assesses the quality of the top *k* predictions by:
 
@@ -27,12 +27,40 @@ Our metric of **Symmetric** NDCG@k addresses this by evaluating ranking performa
     *   Calculating `NDCG@k` for how well your lowest predictions match the items with the lowest true values.
 3.  **Averaging:** The final `symmetric_ndcg_at_k` score is the simple average of the Top NDCG@k and the Bottom NDCG@k. `(NDCG_top + NDCG_bottom) / 2`.
 
-**Interpretation:**
+### Calculation
 
-*   A score closer to 1 indicates the model is excellent at identifying both the top *k* best and bottom *k* worst items according to their true values.
-*   A score closer to 0 indicates poor performance at identifying the extremes.
+The Symmetric NDCG@k is calculated as:
 
-**Usage:**
+1. **Top NDCG@k**: Rank items by predicted scores (highest first), calculate NDCG@k using true values as relevance
+2. **Bottom NDCG@k**: Rank items by predicted scores (lowest first), calculate NDCG@k using negative true values as relevance
+3. **Final Score**: Average of top and bottom NDCG@k scores: `(NDCG_top + NDCG_bottom) / 2`
+
+The standard NDCG formula includes:
+
+- DCG@k = Σ(relevance_i / log₂(i+1)) for i=1 to k
+- IDCG@k = DCG@k for ideal ranking
+- NDCG@k = DCG@k / IDCG@k
+
+### Interpretation
+
+Notably, Symmetric NDCG@k does not give 0.5 for random predictions, but ~0.55 for our default k=40. Understanding the random baseline is crucial for interpreting your scores.
+
+*   **NDCG@k = 1**: perfect performance at identifying both the top *k* best and bottom *k* worst items according to their true values.
+*   **NDCG@k = 0.55**: random guessing.
+*   **NDCG@k = 0**: no overlap with top k or bottom k.
+
+**How k Affects the Random Baseline:**
+
+<div style="display: flex; justify-content: space-around; margin: 20px 0;">
+  <img src="../overrides/assets/images/random_baseline_vs_k.png" alt="Random baseline vs k" style="width: 80%;">
+</div>
+
+Key insights:
+
+- Random baseline starts near 0.5 for small k and increases monotonically
+- For Hyperliquid (k=40, n≈170-200), random predictions score ~0.55
+
+### Usage
 
 ```python
 from crowdcent_challenge.scoring import symmetric_ndcg_at_k
@@ -53,7 +81,7 @@ This metric provides a more holistic view of ranking performance when both high 
 
 Spearman's rank correlation coefficient is a non-parametric measure of rank correlation that assesses how well the relationship between two variables can be described using a monotonic function.
 
-**Concept:**
+### Concept
 
 In the context of ranking challenges, **Spearman correlation** measures how well your predicted rankings align with the true rankings. Unlike Pearson correlation (which measures linear relationships), Spearman correlation:
 
@@ -61,20 +89,21 @@ In the context of ranking challenges, **Spearman correlation** measures how well
 2. **Captures monotonic relationships**: Perfect Spearman correlation (±1) means perfect monotonic relationship, even if not linear
 3. **Robust to outliers**: Since it uses ranks rather than raw values, extreme values have less influence
 
-**Calculation:**
+### Calculation
 
 The Spearman correlation coefficient (ρ) is calculated as:
+
 - First, convert both `y_true` and `y_pred` to ranks
 - Then calculate the Pearson correlation coefficient on these ranks
 - Formula: ρ = 1 - (6 × Σd²) / (n × (n² - 1)), where d is the difference between paired ranks
 
-**Interpretation:**
+### Interpretation
 
 - **ρ = 1**: Perfect positive correlation (your rankings perfectly match the true rankings)
 - **ρ = 0**: No correlation (your rankings are unrelated to the true rankings)  
 - **ρ = -1**: Perfect negative correlation (your rankings are exactly reversed)
 
-**Usage:**
+### Usage
 
 ```python
 from scipy.stats import spearmanr

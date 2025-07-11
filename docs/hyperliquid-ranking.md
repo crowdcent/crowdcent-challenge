@@ -136,6 +136,9 @@ When you see NDCG@40, think: "how well did I rank the top 40 assets and how well
   
   The logarithmic discount means getting the #1 ranked token correct is much more valuable than getting the #40 ranked token correct. A perfect NDCG@40 score of 1.0 means you perfectly ranked both tails of the distribution. This metric is particularly valuable for portfolio construction where you want to maximize exposure to the best performers while avoiding or shorting the worst.
 
+!!! note "Random Baseline"
+      Random predictions score approximately 0.55 for NDCG@40 with ~170 tokens, not 0.5. See the [detailed explanation](https://docs.crowdcent.com/scoring/#interpretation) for why this happens.
+
 2) [Spearman Correlation](https://docs.crowdcent.com/scoring/#spearman-correlation)
 
 Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.

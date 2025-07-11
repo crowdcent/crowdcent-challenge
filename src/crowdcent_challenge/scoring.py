@@ -35,34 +35,20 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     y_pred_2d = y_pred.reshape(1, -1)
 
     # --- Top-k NDCG Calculation ---
-    # Use the new _ndcg_sample_scores which handles ties properly
     ndcg_top = _ndcg_sample_scores(y_true_2d, y_pred_2d, k=k, ignore_ties=False)[0]
 
     # --- Bottom-k NDCG Calculation ---
-    # For bottom ranking, we want to evaluate how well the model identifies the worst items.
-    # We'll flip the predictions to make lowest predictions highest, then evaluate.
-    y_pred_flipped = -y_pred_2d
+    # Transform to invert rankings while keeping values non-negative
+    # This makes originally low values high, so NDCG will reward finding the originally lowest items
+    y_true_inverted = 1 - y_true_2d
+    y_pred_inverted = 1 - y_pred_2d
+    
+    ndcg_bottom = _ndcg_sample_scores(y_true_inverted, y_pred_inverted, k=k, ignore_ties=False)[0]
 
-    # Also need to create relevance scores for bottom ranking:
-    # The most negative true values should have highest relevance
-    y_true_for_bottom = -y_true_2d
-
-    # Shift to make all values non-negative (required for NDCG)
-    min_val = y_true_for_bottom.min()
-    if min_val < 0:
-        y_true_for_bottom = y_true_for_bottom - min_val
-
-    # Calculate bottom NDCG
-    ndcg_bottom = _ndcg_sample_scores(
-        y_true_for_bottom, y_pred_flipped, k=k, ignore_ties=False
-    )[0]
-
-    # --- Combine ---
+    # --- Average Top and Bottom ---
     symmetric_ndcg = (ndcg_top + ndcg_bottom) / 2.0
 
-    # Clamp score between 0 and 1, as edge cases might theoretically yield slightly outside this.
-    return max(0.0, min(1.0, symmetric_ndcg))
-
+    return symmetric_ndcg
 
 # -----------------------------------------------------------------------------
 # Scikit-learn style DCG / NDCG implementation
