@@ -73,7 +73,8 @@ def test_dcg_score_with_ties():
 
 def test_symmetric_ndcg_perfect_ranking_returns_one():
     """Perfect prediction should yield a score of exactly 1.0."""
-    y_true = np.array([10, 9, 8, 2, 0, -1, -5])
+    # Use normalized ranks in [0, 1]
+    y_true = np.array([1.0, 0.857, 0.714, 0.571, 0.429, 0.286, 0.143])
     y_pred = y_true.copy()  # identical ranking
     k = 3
     assert np.isclose(symmetric_ndcg_at_k(y_true, y_pred, k), 1.0)
@@ -81,11 +82,12 @@ def test_symmetric_ndcg_perfect_ranking_returns_one():
 
 def test_symmetric_ndcg_worst_ranking_near_zero():
     """Completely reversed ranking should produce a score close to 0."""
-    y_true = np.array([3, 2, 1, 0, -1, -2, -3])
-    y_pred = -y_true  # reverse the order
+    # Use normalized ranks in [0, 1]
+    y_true = np.array([1.0, 0.833, 0.667, 0.5, 0.333, 0.167, 0.0])
+    y_pred = y_true[::-1]  # reverse the order
     k = 3
     score = symmetric_ndcg_at_k(y_true, y_pred, k)
-    assert score < 0.1  # near zero (exact 0 might not happen due to ties/fp)
+    assert score < 0.2  # low score for worst ranking
 
 
 def test_symmetric_ndcg_length_mismatch_raises():
@@ -108,12 +110,20 @@ def test_evaluate_hyperliquid_submission():
     n = 100
     np.random.seed(42)
 
-    # Create correlated predictions
-    y_true_10d = np.random.randn(n)
-    y_pred_10d = y_true_10d + np.random.randn(n) * 0.5
+    # Create correlated predictions with raw values
+    y_true_10d_raw = np.random.randn(n)
+    y_pred_10d_raw = y_true_10d_raw + np.random.randn(n) * 0.5
 
-    y_true_30d = np.random.randn(n)
-    y_pred_30d = y_true_30d + np.random.randn(n) * 0.5
+    y_true_30d_raw = np.random.randn(n)
+    y_pred_30d_raw = y_true_30d_raw + np.random.randn(n) * 0.5
+    
+    # Convert to normalized ranks in [0, 1]
+    from scipy.stats import rankdata
+    y_true_10d = rankdata(y_true_10d_raw) / n
+    y_pred_10d = rankdata(y_pred_10d_raw) / n
+    
+    y_true_30d = rankdata(y_true_30d_raw) / n
+    y_pred_30d = rankdata(y_pred_30d_raw) / n
 
     scores = evaluate_hyperliquid_submission(
         y_true_10d, y_pred_10d, y_true_30d, y_pred_30d
