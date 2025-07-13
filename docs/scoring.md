@@ -67,12 +67,11 @@ from crowdcent_challenge.scoring import symmetric_ndcg_at_k
 import numpy as np
 
 # Example data
-y_true = np.array([0.1, -0.2, 0.5, -0.1, 0.3])
-y_pred = np.array([0.2, -0.1, 0.6, 0.0, 0.4])
+y_true = np.array([0.1, 0.2, 0.9, 0.3, 0.7])
+y_pred = np.array([0.2, 0.1, 0.8, 0.4, 0.6])
 k = 3
 
 score = symmetric_ndcg_at_k(y_true, y_pred, k)
-print(f"Symmetric NDCG@{k}: {score:.4f}")
 ```
 
 This metric provides a more holistic view of ranking performance when both high and low extremes are important.
@@ -115,5 +114,4 @@ y_pred = np.array([0.9, 0.6, 0.25, 0.22, 0.05])    # Predicted values (will be r
 
 # Calculate Spearman correlation
 correlation, p_value = spearmanr(y_true, y_pred)
-print(f"Spearman Correlation: {correlation:.4f}")
 ```

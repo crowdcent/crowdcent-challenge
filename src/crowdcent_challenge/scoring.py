@@ -12,12 +12,15 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     The final score is the average of the NDCG@k for the top and bottom.
 
     Args:
-        y_true: Array of true target values.
-        y_pred: Array of predicted scores.
+        y_true: Array of true target values. Must be in range [0, 1].
+        y_pred: Array of predicted scores. Will be uniformly scaled to [0, 1].
         k: The rank cutoff for both top and bottom evaluation.
 
     Returns:
         The Symmetric NDCG@k score, ranging from 0 to 1.
+    
+    Raises:
+        ValueError: If y_true contains values outside [0, 1].
     """
     # Ensure inputs are numpy arrays
     y_true = np.asarray(y_true)
@@ -29,6 +32,19 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
         raise ValueError("k must be a positive integer.")
     if len(y_true) == 0:
         return 0.0  # Or NaN, depending on desired behavior for empty input
+
+    # Ensure y_true is in range [0, 1]
+    if np.min(y_true) < 0 or np.max(y_true) > 1:
+        raise ValueError("y_true values must be in range [0, 1].")
+    
+    # Uniformly scale y_pred to [0, 1]
+    y_pred_min = np.min(y_pred)
+    y_pred_max = np.max(y_pred)
+    if y_pred_min == y_pred_max:
+        # All predictions are the same - set to 0.5
+        y_pred = np.full_like(y_pred, 0.5)
+    else:
+        y_pred = (y_pred - y_pred_min) / (y_pred_max - y_pred_min)
 
     # Reshape to 2D for consistency with helper functions
     y_true_2d = y_true.reshape(1, -1)
