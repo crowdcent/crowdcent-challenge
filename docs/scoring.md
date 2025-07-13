@@ -22,17 +22,17 @@ Our metric of **Symmetric** NDCG@k addresses this by evaluating ranking performa
 
 1.  **Top Performance:** It calculates the standard `NDCG@k` based on your predicted scores (`y_pred`) compared to the actual true values (`y_true`). This measures how well you identify the items with the highest true values.
 2.  **Bottom Performance:** It calculates another `NDCG@k` focused on the lowest ranks. It does this by:
-    *   Ranking items based on your *lowest* predicted scores.
-    *   Using the *negative* of the true values (`-y_true`) as relevance. This makes the most negative true values the most "relevant" for this bottom-ranking task.
-    *   Calculating `NDCG@k` for how well your lowest predictions match the items with the lowest true values.
+    *   Inverting both true values and predictions using `1 - value` transformation
+    *   This makes originally low values (close to 0) become high values (close to 1), so standard NDCG rewards finding the originally lowest items
+    *   Calculating `NDCG@k` for how well your lowest predictions match the items with the lowest true values
 3.  **Averaging:** The final `symmetric_ndcg_at_k` score is the simple average of the Top NDCG@k and the Bottom NDCG@k. `(NDCG_top + NDCG_bottom) / 2`.
 
 ### Calculation
 
 The Symmetric NDCG@k is calculated as:
 
-1. **Top NDCG@k**: Rank items by predicted scores (highest first), calculate NDCG@k using true values as relevance
-2. **Bottom NDCG@k**: Rank items by predicted scores (lowest first), calculate NDCG@k using negative true values as relevance
+1. **Top NDCG@k**: Calculate standard NDCG@k using true values and predicted scores
+2. **Bottom NDCG@k**: Invert both true values and predictions using `1 - value`, then calculate NDCG@k
 3. **Final Score**: Average of top and bottom NDCG@k scores: `(NDCG_top + NDCG_bottom) / 2`
 
 The standard NDCG formula includes:
