@@ -412,9 +412,11 @@ def create_ranking_targets(
             .drop(fwd_temp)
         )
 
+    # Define return column names
+    return_cols = [f"fwd_return_{h}d" for h in horizons]
+    
     # Optionally drop rows without targets
     if drop_incomplete:
-        return_cols = [f"fwd_return_{h}d" for h in horizons]
         result_df = result_df.drop_nulls(subset=return_cols)
 
     # Create cross-sectional rankings
