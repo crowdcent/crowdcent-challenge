@@ -315,6 +315,7 @@ def create_ranking_targets(
     date_col: str = "date",
     ticker_col: str = "ticker",
     return_raw_returns: bool = False,
+    drop_incomplete: bool = True,
 ):
     """
     Create cross-sectional ranking targets from price data.
@@ -359,6 +360,9 @@ def create_ranking_targets(
         Column name for ticker/asset identifiers
     return_raw_returns : bool, default False
         If True, also return the raw forward returns (not just ranks)
+    drop_incomplete : bool, default True
+        If True, drop rows where any target is null. If False, keep all rows
+        and compute rankings only for non-null values within each group
 
     Returns
     -------
@@ -380,8 +384,10 @@ def create_ranking_targets(
 
     Notes
     -----
-    - The function drops rows where targets cannot be calculated (e.g., last h days)
+    - By default, drops rows where targets cannot be calculated (e.g., last h days)
+    - Set drop_incomplete=False to keep partial targets (e.g., 1d target exists but 30d doesn't)
     - Rankings are done cross-sectionally within each date
+    - Null values remain null in rankings and don't participate in rank calculation
     - This matches the standard scoring methodology for ranking challenges
     - Perfect for backtesting strategies before live submission
     """
@@ -406,9 +412,10 @@ def create_ranking_targets(
             .drop(fwd_temp)
         )
 
-    # Drop rows without targets
-    return_cols = [f"fwd_return_{h}d" for h in horizons]
-    result_df = result_df.drop_nulls(subset=return_cols)
+    # Optionally drop rows without targets
+    if drop_incomplete:
+        return_cols = [f"fwd_return_{h}d" for h in horizons]
+        result_df = result_df.drop_nulls(subset=return_cols)
 
     # Create cross-sectional rankings
     for h in horizons:
