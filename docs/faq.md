@@ -4,7 +4,7 @@
 
 ### What is the CrowdCent Challenge?
 
-The CrowdCent Challenge is a series of open data science competitions (challenges) focused on predicting investment/market outcomes. Participants use various datasets to build machine learning models that predict future returns over various time horizons. Submissions are used to create meta models that can be turned into investable portfolios.
+The CrowdCent Challenge is a series of open data science competitions (challenges) focused on predicting investment/market outcomes. Participants use various datasets to build machine learning models that predict future returns over various time horizons. Submissions are used to create meta-models that can be turned into investable portfolios.
 
 ### How do I get started?
 
@@ -58,7 +58,7 @@ Use the `ChallengeClient` within your Python code for automation and integration
 
 ### What format is the data provided in?
 
-All datasets (training data, inference features, meta models) and submission files are in the Apache Parquet (`.parquet`) format. This columnar format is efficient for the type of data used in the challenge.
+All datasets (training data, inference features, meta-models) and submission files are in the Apache Parquet (`.parquet`) format. This columnar format is efficient for the type of data used in the challenge.
 
 ### What kind of features are included?
 
@@ -76,9 +76,9 @@ Your goal is to to predict relative performance metrics (e.g., returns) for diff
 *   **Training Data:** Used to train your models. Contains historical data, including target variables (e.g., `target_10d`, `target_30d`, ...) and identifiers (`id`, dates). It *may* also contain pre-computed features, but sometimes you will need to generate your own features based on the provided IDs and timestamps. Training datasets are versioned (e.g. v1.0, v1.1, etc.).
 *   **Inference Data:** Contains features (if provided by the challenge) and identifiers (`id`) for a *new* period but *without* the target labels. This is the data you use (along with any features you generate) to make predictions for submission. Inference data is released periodically.
 
-### What is the 'Meta Model'?
+### What is the 'Meta-Model'?
 
-The meta model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI.
+The meta-model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI.
 
 ## Submissions
 

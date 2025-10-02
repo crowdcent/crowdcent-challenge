@@ -118,9 +118,9 @@ Manage inference periods and download inference features.
     - **Use `"latest"`** for when you need immediate access to the most recent inference period even if it's closed
     - **Use `YYYY-MM-DD`** when working with historical periods or debugging
 
-## Meta Model
+## Meta-Model
 
-Download the consolidated meta model for a challenge. The meta model typically represents an aggregation of all valid user submissions for past inference periods.
+Download the consolidated meta-model for a challenge. The meta-model typically represents an aggregation of all valid user submissions for past inference periods.
 
 === "Python"
 

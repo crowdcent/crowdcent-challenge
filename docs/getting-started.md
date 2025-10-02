@@ -48,15 +48,15 @@ Navigate to the [Leaderboard](https://crowdcent.com/leaderboard) page to see how
 
 [![Leaderboard](overrides/assets/images/leaderboard.png)](https://crowdcent.com/leaderboard){:target="_blank"}
 
-## Watch the Meta Model
-For some challenges, the meta model is published after an inference period ends. For now, this is only available for the [hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) challenge and may be subject to change. The meta model represents relative signals for the investable universe.
+## Watch the Meta-Model
+For some challenges, the meta-model is published after an inference period ends. For now, this is only available for the [hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) challenge and may be subject to change. The meta-model represents relative signals for the investable universe.
 
-!!! warning "Meta Model Disclaimer"
-    The meta model represents CrowdCent's aggregation of participant submissions into a single model. While we strive to create robust meta models, please note:
+!!! warning "Meta-Model Disclaimer"
+    The meta-model represents CrowdCent's aggregation of participant submissions into a single model. While we strive to create robust meta-models, please note:
 
-    - Meta models are provided for informational purposes only and should not be construed as investment advice
-    - Past performance of meta models is not indicative of future results
-    - Meta model methodologies may change over time without notice
+    - Meta-models are provided for informational purposes only and should not be construed as investment advice
+    - Past performance of meta-models is not indicative of future results
+    - Meta-model methodologies may change over time without notice
 
 
-[![Meta Model](overrides/assets/images/meta_model.png)](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/){:target="_blank"}
+[![Meta-Model](overrides/assets/images/meta_model.png)](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/){:target="_blank"}

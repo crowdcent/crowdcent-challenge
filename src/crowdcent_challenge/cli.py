@@ -482,7 +482,7 @@ def submit(challenge_slug, file_path, slot):
         raise click.Abort()
 
 
-# --- Meta Model Commands ---
+# --- Meta-Model Commands ---
 
 
 @cli.command("download-meta-model")
@@ -502,9 +502,9 @@ def submit(challenge_slug, file_path, slot):
 )
 @handle_api_error
 def download_meta_model(challenge_slug, dest_path):
-    """Download the consolidated meta model for a specific challenge.
+    """Download the consolidated meta-model for a specific challenge.
 
-    The meta model is typically an aggregation (e.g., average) of all valid
+    The meta-model is typically an aggregation (e.g., average) of all valid
     submissions for past inference periods.
     """
     client = get_client(challenge_slug)
@@ -513,7 +513,7 @@ def download_meta_model(challenge_slug, dest_path):
 
     try:
         client.download_meta_model(dest_path)
-        click.echo(f"Consolidated meta model downloaded successfully to {dest_path}")
+        click.echo(f"Consolidated meta-model downloaded successfully to {dest_path}")
     except FileNotFoundError as e:
         click.echo(f"Error: {e}", err=True)
         raise click.Abort()
