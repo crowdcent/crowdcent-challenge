@@ -24,6 +24,7 @@ nav:
   - Tutorials:
       - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
       - XGBoost vs LSTM with Time-Series Cross-Validation: tutorials/advanced-cv-lstm.ipynb
+      - Build Your Own Custom Dataset: tutorials/advanced-custom-dataset-eodhd.ipynb
       - Submission Automation: tutorials/submission-automation.md
   - API Reference:
       - Python: api-reference/python.md
