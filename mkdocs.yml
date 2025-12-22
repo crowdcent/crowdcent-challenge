@@ -9,6 +9,7 @@ nav:
       - Overview: index.md
       - Getting Started: getting-started.md
       - Scoring : scoring.md
+      - Points System: points-system.md
       - FAQ: faq.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md

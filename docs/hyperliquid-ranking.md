@@ -195,15 +195,14 @@ The CrowdCent Meta-Model aggregates predictions from all participants, represent
 
 ### Construction Methodology
 
-The meta-model is currently constructed daily using a **simple, naive average** of all submission slots:
+The meta-model is constructed daily using a **points-weighted average** of all submissions:
 
 1. **Uniform Ranking**: Each individual submission's predictions are first converted to uniform rankings [0, 1] for each prediction column (`pred_10d`, `pred_30d`)
 2. **Missing ID Handling**: Any asset IDs missing from individual submissions are filled with neutral rankings of 0.5 *after* the uniform ranking step
 3. **Average slots**: Create a single prediction for each user by taking the arithmetic mean of all normalized rankings across all submission slots for each user.
-4. **Average users**: The final meta-model is created by taking the arithmetic mean of all normalized ranking across all users.
+4. **Points-Weighted Average**: The final meta-model is created by taking a **weighted average** across all users, where each user's weight is proportional to their **CC Points EMA** (Exponential Moving Average with 7-day half-life).
 
-!!! note "Future Enhancements"
-    The current simple averaging approach is naive but effective. Future versions may incorporate more sophisticated weighting schemes based on historical performance, tail weighting, or other ensemble methods.
+Users with more accumulated CC Points have greater influence on the meta-model. See [CC Points System](points-system.md) for details on how points are earned and how weights are calculated.
 
 ### Access and Downloads
 
