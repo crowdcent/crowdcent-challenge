@@ -100,6 +100,7 @@ The ultimate goal of the CrowdCent Challenge is to build a meta-model—an aggre
 **CrowdCent reserves the right to modify, suspend, or cancel the points system, scoring rules, and reward structures at any time without prior notice.**
 
 This includes, but is not limited to:
+
 - Adjusting point values, multipliers, or calculation formulas retroactively or proactively.
 - Removing points from users found to be in violation of the spirit of the competition.
 - Changing the weighting mechanisms for the meta-model.
