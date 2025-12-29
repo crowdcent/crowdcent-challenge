@@ -273,6 +273,9 @@ def test_submit_success_with_auto_queue(runner, mock_client, mock_predictions_fi
     assert result.exit_code == 0
     assert "Submission successful!" in result.output
     assert "Also queued for next period." in result.output
+    # Verify JSON parsing still works with merged status line
+    json_output = result.output.split("\n", 1)[1]
+    assert json.loads(json_output) == mock_response
 
 
 def test_submit_no_queue_next(runner, mock_client, mock_predictions_file):

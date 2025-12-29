@@ -481,11 +481,12 @@ def submit(challenge_slug, file_path, slot, queue_next):
     try:
         result = client.submit_predictions(file_path, slot=slot, queue_next=queue_next)
         if result.get("status") == "queued":
-            click.echo("Submission queued for next period.")
+            msg = "Submission queued for next period."
         else:
-            click.echo("Submission successful!")
+            msg = "Submission successful!"
             if result.get("queued_for_next"):
-                click.echo("Also queued for next period.")
+                msg += " Also queued for next period."
+        click.echo(msg)
         click.echo(json.dumps(result, indent=2))
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case
         click.echo(f"Error: Prediction file not found at {file_path}", err=True)
