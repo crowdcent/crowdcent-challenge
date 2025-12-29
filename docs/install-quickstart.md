@@ -137,7 +137,13 @@ Download the consolidated meta-model for a challenge. The meta-model typically r
 
 ## Submitting Predictions
 
-Submit your model's predictions for the current inference period. The file must include an `id` column and the specific prediction columns required by the challenge (e.g., `pred_10d`, `pred_30d` for some challenges, or `pred_1M`, `pred_3M`, etc., for others). Always check the specific challenge documentation for the exact column names.
+Submit your model's predictions for a challenge. The file must include an `id` column and the specific prediction columns required by the challenge (e.g., `pred_10d`, `pred_30d` for some challenges, or `pred_1M`, `pred_3M`, etc., for others). Always check the specific challenge documentation for the exact column names.
+
+!!! tip "Flexible Submission Timing"
+    - **Window open**: Your submission is accepted immediately. By default, it is also **queued for the next period** (auto-rollover).
+    - **Window closed**: Your submission is **queued** and will be automatically submitted when the next window opens.
+    
+    Use `queue_next=False` (Python) or `--no-queue-next` (CLI) to opt out of auto-rollover during open windows.
 
 === "Python"
 
@@ -162,6 +168,9 @@ Submit your model's predictions for the current inference period. The file must 
     
     # Or submit a DataFrame directly (without saving to file first)
     client.submit_predictions(df=pred_df)
+    
+    # Opt out of auto-rollover (don't queue for next period)
+    client.submit_predictions(df=pred_df, queue_next=False)
     ```
 
 === "CLI"
@@ -175,6 +184,9 @@ Submit your model's predictions for the current inference period. The file must 
     
     # Submit to a specific challenge (overriding default)
     crowdcent submit submission.parquet --challenge hyperliquid-ranking --slot 3
+    
+    # Opt out of auto-rollover
+    crowdcent submit submission.parquet --no-queue-next
     ```
 
 ## Retrieving Submissions

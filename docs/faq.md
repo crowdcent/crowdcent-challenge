@@ -89,12 +89,15 @@ Your submission must be a Parquet file containing an `id` column that matches th
 ### How do I submit my predictions?
 
 *   **Python:** Use `client.submit_predictions("path/to/your/predictions.parquet")`.
-*   **CLI:** Use `crowdcent submit <challenge_slug> path/to/your/predictions.parquet`.
-Submissions are automatically associated with the *currently active* inference period for the specified challenge.
+*   **CLI:** Use `crowdcent submit path/to/your/predictions.parquet`.
+
+If a submission window is currently open, your prediction is submitted immediately. If no window is open, your prediction is **queued** and will be automatically submitted when the next window opens.
+
+By default, submissions are also queued for the following period (auto-rollover). Use `queue_next=False` (Python) or `--no-queue-next` (CLI) to opt out.
 
 ### How often can I submit?
 
-You can typically submit multiple times for an active inference period. Your latest valid submission before the deadline is the one that counts for scoring. Check the specific challenge rules.
+You can submit multiple times for an active inference period. Your latest valid submission before the deadline is the one that counts for scoring. Check the specific challenge rules.
 
 ### How do I check my submission status?
 

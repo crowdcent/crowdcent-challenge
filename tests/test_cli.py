@@ -254,12 +254,57 @@ def test_submit_success(runner, mock_client, mock_predictions_file):
     )
     assert result.exit_code == 0
     assert "Submission successful!" in result.output
-    assert (
-        json.loads(result.output.split("\n", 1)[1]) == mock_response
-    )  # Check JSON part
+    # JSON is after the message lines
+    json_output = result.output.split("\n", 1)[1]
+    assert json.loads(json_output) == mock_response
     mock_client.submit_predictions.assert_called_once_with(
-        mock_predictions_file, slot=1
+        mock_predictions_file, slot=1, queue_next=True
     )
+
+
+def test_submit_success_with_auto_queue(runner, mock_client, mock_predictions_file):
+    """Test that auto-queue message is shown when queued_for_next is true."""
+    mock_response = {"id": 123, "status": "pending", "queued_for_next": True}
+    mock_client.submit_predictions.return_value = mock_response
+
+    result = runner.invoke(
+        cli, ["submit", "--challenge", TEST_SLUG, mock_predictions_file]
+    )
+    assert result.exit_code == 0
+    assert "Submission successful!" in result.output
+    assert "Also queued for next period." in result.output
+
+
+def test_submit_no_queue_next(runner, mock_client, mock_predictions_file):
+    """Test --no-queue-next flag is passed to client."""
+    mock_response = {"id": 123, "status": "pending"}
+    mock_client.submit_predictions.return_value = mock_response
+
+    result = runner.invoke(
+        cli, ["submit", "--challenge", TEST_SLUG, "--no-queue-next", mock_predictions_file]
+    )
+    assert result.exit_code == 0
+    assert "Submission successful!" in result.output
+    mock_client.submit_predictions.assert_called_once_with(
+        mock_predictions_file, slot=1, queue_next=False
+    )
+
+
+def test_submit_queued_response(runner, mock_client, mock_predictions_file):
+    """Test CLI handles queued response (when no active window)."""
+    mock_response = {
+        "status": "queued",
+        "slot": 1,
+        "message": "Submission queued for slot 1.",
+    }
+    mock_client.submit_predictions.return_value = mock_response
+
+    result = runner.invoke(
+        cli, ["submit", "--challenge", TEST_SLUG, mock_predictions_file]
+    )
+    assert result.exit_code == 0
+    assert "Submission queued for next period." in result.output
+    assert "Submission successful!" not in result.output
 
 
 def test_submit_file_not_found(runner):

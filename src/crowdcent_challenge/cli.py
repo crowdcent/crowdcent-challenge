@@ -459,21 +459,34 @@ def get_submission(challenge_slug, submission_id):
     default=1,
     help="Submission slot number (1-based). Defaults to 1.",
 )
+@click.option(
+    "--queue-next/--no-queue-next",
+    default=True,
+    help="Also queue for the next period (auto-rollover). Defaults to --queue-next.",
+)
 @handle_api_error
-def submit(challenge_slug, file_path, slot):
+def submit(challenge_slug, file_path, slot, queue_next):
     """Submit a prediction file (Parquet) to a specific challenge.
 
     The file must be a Parquet file with the required columns specified by the challenge
     (e.g., id, pred_10d, pred_30d).
 
-    The submission will be made to the currently active inference period.
+    If a submission window is open, the file is submitted immediately. If no window is
+    open, the file is queued and will be automatically submitted when the next window opens.
+
     Use --slot to specify a submission slot (1-based).
+    Use --no-queue-next to opt out of auto-rollover (queuing for the next period).
     """
     client = get_client(challenge_slug)
     try:
-        submission = client.submit_predictions(file_path, slot=slot)
-        click.echo("Submission successful!")
-        click.echo(json.dumps(submission, indent=2))
+        result = client.submit_predictions(file_path, slot=slot, queue_next=queue_next)
+        if result.get("status") == "queued":
+            click.echo("Submission queued for next period.")
+        else:
+            click.echo("Submission successful!")
+            if result.get("queued_for_next"):
+                click.echo("Also queued for next period.")
+        click.echo(json.dumps(result, indent=2))
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case
         click.echo(f"Error: Prediction file not found at {file_path}", err=True)
         raise click.Abort()

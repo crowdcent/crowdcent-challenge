@@ -213,6 +213,36 @@ class ChallengeClient:
                 logger.error(f"Request failed: {e} for {method} {url}")
                 raise CrowdCentAPIError(f"Request failed: {e}") from e
 
+    def _download_file(self, endpoint: str, dest_path: str, description: str) -> None:
+        """Download a file from the API with progress bar.
+
+        Args:
+            endpoint: API endpoint to download from.
+            dest_path: Local file path to save to.
+            description: Human-readable description for logging (e.g., "training data v1.0").
+        """
+        logger.info(f"Downloading {description} to {dest_path}")
+        response = self._request("GET", endpoint, stream=True)
+        total_size = int(response.headers.get("content-length", 0))
+
+        try:
+            from tqdm import tqdm
+
+            with open(dest_path, "wb") as f:
+                with tqdm(
+                    total=total_size,
+                    unit="B",
+                    unit_scale=True,
+                    desc=f"Downloading {os.path.basename(dest_path)}",
+                ) as pbar:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        pbar.update(len(chunk))
+            logger.info(f"Successfully downloaded {description} to {dest_path}")
+        except IOError as e:
+            logger.error(f"Failed to write to {dest_path}: {e}")
+            raise CrowdCentAPIError(f"Failed to write file: {e}") from e
+
     # --- Class Method for Listing All Challenges ---
 
     @classmethod
@@ -336,35 +366,8 @@ class ChallengeClient:
             latest_info = self.get_training_dataset("latest")
             version = latest_info["version"]
 
-        endpoint = (
-            f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
-        )
-
-        logger.info(
-            f"Downloading training data for challenge '{self.challenge_slug}' v{version} to {dest_path}"
-        )
-        response = self._request("GET", endpoint, stream=True)
-
-        # Get total file size from headers
-        total_size = int(response.headers.get("content-length", 0))
-
-        try:
-            from tqdm import tqdm
-
-            with open(dest_path, "wb") as f:
-                with tqdm(
-                    total=total_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=f"Downloading {os.path.basename(dest_path)}",
-                ) as pbar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        pbar.update(len(chunk))
-            logger.info(f"Successfully downloaded training data to {dest_path}")
-        except IOError as e:
-            logger.error(f"Failed to write dataset to {dest_path}: {e}")
-            raise CrowdCentAPIError(f"Failed to write dataset file: {e}") from e
+        endpoint = f"/challenges/{self.challenge_slug}/training_data/{version}/download/"
+        self._download_file(endpoint, dest_path, f"training data v{version}")
 
     # --- Inference Data Methods ---
 
@@ -486,31 +489,7 @@ class ChallengeClient:
 
             endpoint = f"/challenges/{self.challenge_slug}/inference_data/{release_date}/download/"
 
-        logger.info(
-            f"Downloading inference data for challenge '{self.challenge_slug}' {release_date} to {dest_path}"
-        )
-        response = self._request("GET", endpoint, stream=True)
-
-        # Get total file size from headers
-        total_size = int(response.headers.get("content-length", 0))
-
-        try:
-            from tqdm import tqdm
-
-            with open(dest_path, "wb") as f:
-                with tqdm(
-                    total=total_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=f"Downloading {os.path.basename(dest_path)}",
-                ) as pbar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        pbar.update(len(chunk))
-            logger.info(f"Successfully downloaded inference data to {dest_path}")
-        except IOError as e:
-            logger.error(f"Failed to write inference data to {dest_path}: {e}")
-            raise CrowdCentAPIError(f"Failed to write inference data file: {e}") from e
+        self._download_file(endpoint, dest_path, f"inference data {release_date}")
 
     def wait_for_inference_data(
         self,
@@ -610,11 +589,16 @@ class ChallengeClient:
         file_path: str = "submission.parquet",
         df: Optional[IntoFrameT] = None,
         slot: int = 1,
+        queue_next: bool = True,
         temp: bool = True,
         max_retries: int = 3,
         retry_delay: float = 1.0,
     ) -> Dict[str, Any]:
-        """Submits predictions for the current active inference period of this challenge.
+        """Submit predictions for this challenge.
+
+        If a submission window is currently open, the prediction is submitted immediately.
+        If no window is open, the prediction is queued and will be automatically submitted
+        when the next window opens.
 
         You can provide either a file path to an existing Parquet file or a DataFrame
         that will be temporarily saved as Parquet for submission.
@@ -627,18 +611,25 @@ class ChallengeClient:
             df: Optional DataFrame with the prediction columns. If provided,
                 it will be temporarily saved as Parquet for submission.
             slot: Submission slot number (1-based).
+            queue_next: Whether to also queue this submission for the next period
+                (auto-rollover). Defaults to True. When submitting during an open
+                window, this queues a copy for the following period.
             temp: Whether to save the DataFrame to a temporary file.
             max_retries: Maximum number of retry attempts for connection errors (default: 3).
             retry_delay: Initial delay between retries in seconds (default: 1.0).
 
         Returns:
-            A dictionary representing the newly created or updated submission.
+            A dictionary with submission details. The shape depends on context:
+
+            - **Window open (immediate submission)**: Contains submission fields like
+                `id`, `status`, `slot`, `submitted_at`, plus `queued_for_next` (bool).
+            - **Window closed (queued)**: Contains `status: "queued"`, `slot`,
+                `challenge`, and a `message` describing when it will be submitted.
 
         Raises:
             ValueError: If neither file_path nor df is provided, or if both are provided.
             FileNotFoundError: If the specified file_path does not exist.
-            ClientError: If the submission is invalid (e.g., wrong format,
-                         outside submission window, already submitted, etc).
+            ClientError: If the submission is invalid (e.g., wrong format, missing columns).
 
         Examples:
             # Submit from a DataFrame
@@ -647,8 +638,8 @@ class ChallengeClient:
             # Submit from a file
             client.submit_predictions(file_path="predictions.parquet")
 
-            # Submit with custom retry settings
-            client.submit_predictions(df=predictions_df, max_retries=5, retry_delay=2.0)
+            # Submit and opt-out of auto-queueing for next period
+            client.submit_predictions(df=predictions_df, queue_next=False)
         """
         if df is not None:
             df.write_parquet(file_path)
@@ -667,19 +658,28 @@ class ChallengeClient:
                         "application/octet-stream",
                     )
                 }
-                data_payload = {"slot": str(slot)}
+                data_payload = {
+                    "slot": str(slot),
+                    "also_queue_next": str(queue_next).lower(),
+                }
                 response = self._request(
                     "POST",
                     f"/challenges/{self.challenge_slug}/submissions/",
                     files=files,
-                    data=data_payload,  # Pass slot in data
+                    data=data_payload,  # Pass slot and queue flag in data
                     max_retries=max_retries,
                     retry_delay=retry_delay,
                 )
-            logger.info(
-                f"Successfully submitted predictions to challenge '{self.challenge_slug}'"
-            )
-            return response.json()
+            
+            resp_data = response.json()
+            
+            # 202=queued, 200=updated, 201=created
+            msg = {202: "queued", 200: "updated", 201: "created"}.get(response.status_code, "submitted")
+            logger.info(f"Submission {msg} (slot {slot})")
+            if resp_data.get("queued_for_next"):
+                logger.info("Also queued for next period.")
+            
+            return resp_data
         except FileNotFoundError as e:
             logger.error(f"Prediction file not found at {file_path}")
             raise FileNotFoundError(f"Prediction file not found at {file_path}") from e
@@ -728,33 +728,4 @@ class ChallengeClient:
             PermissionDenied: If the meta-model is not public and user lacks permission.
         """
         endpoint = f"/challenges/{self.challenge_slug}/meta_model/download/"
-        logger.info(
-            f"Downloading consolidated meta-model for challenge '{self.challenge_slug}' to {dest_path}"
-        )
-
-        # The API endpoint redirects to a signed URL, but requests handles the redirect automatically.
-        # We still stream the response from the final URL.
-        response = self._request("GET", endpoint, stream=True)
-
-        # Get total file size from headers
-        total_size = int(response.headers.get("content-length", 0))
-
-        try:
-            from tqdm import tqdm
-
-            with open(dest_path, "wb") as f:
-                with tqdm(
-                    total=total_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=f"Downloading {os.path.basename(dest_path)}",
-                ) as pbar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        pbar.update(len(chunk))
-            logger.info(
-                f"Successfully downloaded consolidated meta-model to {dest_path}"
-            )
-        except IOError as e:
-            logger.error(f"Failed to write meta-model to {dest_path}: {e}")
-            raise CrowdCentAPIError(f"Failed to write meta-model file: {e}") from e
+        self._download_file(endpoint, dest_path, "meta-model")

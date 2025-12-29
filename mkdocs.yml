@@ -21,7 +21,6 @@ nav:
           - About CrowdCent: about.md
           - Contributing: contributing.md
           - Disclaimer: disclaimer.md
-          - Changelog: changelog.md
   - Tutorials:
       - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
       - XGBoost vs LSTM with Time-Series Cross-Validation: tutorials/advanced-cv-lstm.ipynb

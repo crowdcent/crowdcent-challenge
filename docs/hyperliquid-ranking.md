@@ -108,6 +108,8 @@ client.submit_predictions(df=predictions_df, slot=1) # Submit a dataframe
 client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet file
 ```
 
+!!! tip "Flexible Timing"
+    You can submit anytime. If the window is open, your submission is accepted immediately. If the window is closed, your submission is queued and automatically submitted when the next window opens. By default, submissions are also queued for the following period (auto-rollover) if you submit during an open window. Use `queue_next=False` to opt out.
 
 | id      | pred_10d | pred_30d |
 |---------|----------|----------|

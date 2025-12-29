@@ -25,15 +25,20 @@ Using the downloaded training data, build a model to predict the challenge targe
 There are two main ways to submit your predictions:
 
 ### 1. Via the Website (UI)
-- During an active inference period, go to the Challenge Detail page.
+- Go to the Challenge Detail page.
 - In the submission panel, select an available **slot**.
 - Upload your prediction file (typically a Parquet file).
-- If you upload a file to a slot that already has a prediction, it will be **overwritten**.
+- **Submissions are now flexible:**
+    - If the window is **open**, your file is submitted immediately. By default, it is also queued for the *next* period (auto-rollover).
+    - If the window is **closed**, your file is **queued** and will be automatically submitted when the next period opens.
 
 ### 2. Programmatically (via API)
 - Go to your **User Profile** page (accessible from the top navigation bar when logged in).
 - In the "API Keys" section, you can generate a new API key. Give it a descriptive name. **Store this key securely as it will not be shown again.**
-- Use this API key with the `crowdcent-challenge` Python package to submit your predictions. See our [client quickstart guide](install-quickstart.md) for more details.
+- Use this API key with the `crowdcent-challenge` Python package to submit your predictions. 
+- The client supports the same flexible behavior: submitting during an open window will also queue for the next period by default (`queue_next=True`). Submitting during a closed window will automatically queue.
+
+See our [client quickstart guide](install-quickstart.md) for more details.
 
 ### 3. Via AI Agents (MCP Server)
 It's also possible to interact with challenges using AI agents like Cursor or Claude Desktop. This provides a natural language interface for downloading data, submitting, and more. See our [AI Agents (MCP) guide](ai-agents-mcp.md) for setup instructions.

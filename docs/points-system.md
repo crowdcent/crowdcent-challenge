@@ -24,6 +24,9 @@ Maintaining a daily streak increases your base credit:
 
 Missing a submission window resets your streak to 0.
 
+!!! tip "Auto-Rollover Helps Maintain Streaks"
+    By default, submissions are automatically queued for the next period (auto-rollover). This means you can submit once and have it count for the next day, helping maintain your streak for infrastructure hiccups.
+
 ## Performance Adjustment (The Core Driver)
 
 Your primary source of points is the quality of your predictions relative to other participants.
