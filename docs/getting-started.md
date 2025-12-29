@@ -20,7 +20,7 @@ Using the downloaded training data, build a model to predict the challenge targe
 - You have a specific number of **submission slots** (e.g., up to 5) for each inference period. You can choose which slot to use for each submission.
 
 [![Submission Panel](overrides/assets/images/inference_period.png)](https://crowdcent.com/challenge){:target="_blank"}
-*The submission panel on the Challenge Detail page shows active inference periods and your submission slots.*
+*The submission panel on the Challenge Detail page shows inference periods and your submission slots. In this submission panel image, we see that slots 1, 2, and 3 have successful submissions for the current inference period (lower-right check marks). However, only slots 1 and 3 have queued submissions for the next inference period (upper-right squares)*
 
 There are two main ways to submit your predictions:
 
