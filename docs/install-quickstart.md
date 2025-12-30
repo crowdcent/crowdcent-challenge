@@ -227,6 +227,14 @@ Manage and review your submissions for a challenge, including listing all submis
     crowdcent get-submission 123
     ```
 
+## Track Your Performance
+
+```python
+history = client.get_performance()  # List of scored submissions with scores & percentiles
+```
+
+See the [Track Your Performance tutorial](tutorials/track-your-performance.ipynb) for analysis and visualization examples.
+
 ## Challenges
 
 Get details for a challenge or switch between different challenges.
