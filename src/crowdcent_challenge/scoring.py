@@ -391,7 +391,7 @@ def create_ranking_targets(
     - This matches the standard scoring methodology for ranking challenges
     - Perfect for backtesting strategies before live submission
     """
-    result_df = df.clone()
+    result_df = df.clone().sort(ticker_col, date_col)
 
     # Calculate forward returns for each horizon
     for h in horizons:
@@ -408,13 +408,13 @@ def create_ranking_targets(
             )
             # Shift back by 1 day so it sits on day D-1
             # This ensures features on D-1 predict returns from D to D+h
-            .with_columns(nw.col(fwd_temp).shift(1).over(ticker_col).alias(fwd_return))
+            .with_columns(nw.col(fwd_temp).shift(-1).over(ticker_col).alias(fwd_return))
             .drop(fwd_temp)
         )
 
     # Define return column names
     return_cols = [f"fwd_return_{h}d" for h in horizons]
-    
+
     # Optionally drop rows without targets
     if drop_incomplete:
         result_df = result_df.drop_nulls(subset=return_cols)
