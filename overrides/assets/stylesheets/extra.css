@@ -1,0 +1,417 @@
+/*
+ * CrowdCent Challenge Dark/Light Mode Theme
+ * Comprehensive dark mode overhaul integrating old dark colors and brand colors.
+ * Light mode overrides added for key elements.
+ * ----------------------------------------------------------------------------
+ * Refactored and organized into sections for improved maintainability.
+ */
+
+/*=========================================================================
+  1. Global Variables (Primarily for Dark Mode)
+=========================================================================*/
+:root {
+    /* Brand Colors */
+    --brand-primary: #005380;
+    --brand-primary-light: #006ba6;
+    --brand-accent: #62e4fb;
+    --brand-accent-light: #7bd4ff;
+    --brand-accent-secondary: #24aac2;
+
+    /* Dark Theme Colors */
+    --dark-bg-primary: #001926;
+    --dark-bg-secondary: #01334a;
+    --dark-text-primary: #ffffff;
+    --dark-text-secondary: rgba(255, 255, 255, 0.7);
+    --dark-text-muted: rgba(255, 255, 255, 0.6);
+    --dark-border-color: #2a2a2a;
+
+    /* Component Properties (Shared) */
+    --border-radius-sm: 0.25rem;
+    --border-radius-md: 0.375rem;
+    --border-radius-lg: 0.5rem;
+    --border-radius-xl: 0.75rem;
+    --transition-base: all 0.2s ease-in-out;
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+
+    /* Light Theme Colors (Define defaults here or within the specific scheme) */
+    --light-bg-primary: #ffffff;
+    --light-bg-secondary: #f5f5f5; /* Light grey for secondary elements */
+    --light-text-primary: #212121; /* Dark grey for text */
+    --light-text-secondary: #757575; /* Medium grey */
+    --light-text-muted: #bdbdbd;    /* Light grey */
+    --light-border-color: #e0e0e0; /* Light grey border */
+}
+
+
+/*=========================================================================
+  2. Dark Mode Styles (`slate` scheme)
+=========================================================================*/
+[data-md-color-scheme="slate"] {
+    /* Basic Theme Overrides */
+    --md-default-bg-color: var(--dark-bg-primary);
+    --md-default-fg-color: var(--dark-text-primary);
+    --md-default-fg-color--light: var(--dark-text-secondary);
+    --md-default-fg-color--lighter: var(--dark-text-muted);
+    --md-primary-fg-color: var(--dark-bg-primary); /* Header text color */
+    --md-primary-fg-color--light: var(--dark-bg-secondary);
+    --md-primary-bg-color: var(--dark-text-primary); /* Header background - might need adjustment */
+    --md-accent-fg-color: var(--brand-accent);
+    --md-typeset-a-color: var(--brand-accent);
+    --md-code-fg-color: var(--brand-accent);
+    --md-code-bg-color: var(--dark-bg-secondary);
+    --md-admonition-fg-color: var(--dark-text-primary);
+    --md-admonition-bg-color: var(--dark-bg-secondary);
+    --md-footer-bg-color: var(--dark-bg-primary);
+    --md-footer-bg-color--dark: var(--dark-bg-primary); /* Ensure consistency */
+    --md-typeset-table-color: var(--dark-border-color);
+    --md-typeset-kbd-fg-color: var(--dark-text-primary);
+    --md-typeset-kbd-bg-color: var(--dark-bg-secondary);
+    --md-typeset-mark-color: rgba(98, 228, 251, 0.3); /* Highlight color */
+
+    /* Header and Navigation */
+    /* .md-header styles moved to shared section */
+
+    /* Navigation */
+    .md-nav__title { /* Ensure sidebar title is light */
+      color: var(--dark-text-primary);
+    }
+
+    /* Buttons and Interactive Elements */
+    .md-button--primary {
+        background-color: var(--brand-accent);
+        color: var(--dark-bg-primary); /* Ensure dark text on accent button */
+        border-color: var(--brand-accent);
+    }
+    .md-button--primary:hover {
+        background-color: var(--brand-accent-light);
+        border-color: var(--brand-accent-light);
+        color: var(--dark-bg-primary);
+    }
+    .md-search__input {
+        background-color: var(--dark-bg-secondary);
+        color: var(--dark-text-primary);
+    }
+    .md-search__input::placeholder {
+        color: var(--dark-text-muted);
+    }
+
+    /* Code Blocks */
+    .md-typeset code {
+        background-color: var(--md-code-bg-color);
+        color: var(--md-code-fg-color);
+        border-radius: var(--border-radius-sm) !important;
+    }
+    .md-typeset pre code { /* Ensure text color inside pre is also set */
+       color: var(--md-code-fg-color);
+    }
+    .md-typeset pre {
+        background-color: var(--md-code-bg-color);
+        border-radius: var(--border-radius-md) !important;
+        border: 1px solid var(--dark-border-color);
+    }
+
+    /* Tables */
+    .md-typeset table:not([class]) {
+        border: 1px solid var(--dark-border-color);
+    }
+    .md-typeset table:not([class]) th {
+        background-color: var(--dark-bg-secondary);
+        color: var(--dark-text-primary);
+        border-right: 1px solid var(--dark-border-color);
+        border-bottom: 1px solid var(--dark-border-color);
+    }
+     .md-typeset table:not([class]) td {
+        border-right: 1px solid var(--dark-border-color);
+        border-bottom: 1px solid var(--dark-border-color);
+     }
+    .md-typeset table:not([class]) tr:hover {
+        background-color: rgba(98, 228, 251, 0.1);
+    }
+
+    /* Admonitions */
+    .md-typeset .admonition {
+        border-left: 4px solid var(--brand-accent);
+        background-color: var(--md-admonition-bg-color);
+        color: var(--md-admonition-fg-color); /* Ensure text color */
+    }
+    .md-typeset .admonition-title {
+        background-color: rgba(98, 228, 251, 0.1);
+        color: var(--dark-text-primary); /* Ensure title text color */
+    }
+
+    /* Other Elements */
+    .md-footer {
+        background-color: var(--md-footer-bg-color);
+        color: var(--dark-text-secondary); /* Footer text often muted */
+    }
+    .md-footer-meta { /* Area with copyright etc. */
+        background-color: var(--md-footer-bg-color--dark); /* Match footer */
+    }
+
+    /* Typography Refinements */
+    .md-typeset h1,
+    .md-typeset h2,
+    .md-typeset h3,
+    .md-typeset h4,
+    .md-typeset h5,
+    .md-typeset h6 {
+        color: var(--dark-text-primary);
+        font-weight: 500;
+    }
+    .md-typeset h1 {
+        color: var(--brand-accent);
+    }
+
+    /* Content Tabs */
+    .md-typeset .tabbed-labels > label {
+        color: var(--dark-text-secondary);
+    }
+    .md-typeset .tabbed-labels > label:hover {
+        color: var(--brand-accent);
+    }
+    .md-typeset .tabbed-labels > input:checked + label {
+        color: var(--brand-accent);
+        border-color: var(--brand-accent);
+    }
+    .md-typeset .tabbed-content { /* Ensure tab content bg is dark */
+        background-color: var(--dark-bg-secondary);
+        border: 1px solid var(--dark-border-color);
+    }
+
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--dark-bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--dark-bg-secondary);
+        border-radius: var(--border-radius-sm);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--brand-accent);
+    }
+
+    .md-code {
+      color: var(--brand-accent);
+    }
+
+    .md-nav__item .md-nav__link--active {
+        color: var(--brand-accent);
+    }
+    .md-nav__link:hover {
+        color: var(--brand-accent-light);
+    }
+
+    .md-typeset a {
+      color: var(--brand-accent);
+    }
+
+    .md-typeset a:hover, .md-typeset a:active {
+        color: var(--dark-text-primary);
+    }
+
+    .md-nav__item--active a:active {
+        color: var(--brand-accent);
+    }
+}
+
+/*=========================================================================
+  3. Light Mode Overrides (`default` scheme)
+=========================================================================*/
+[data-md-color-scheme="default"] {
+    /* Basic Theme Overrides */
+    --md-default-bg-color: var(--light-bg-primary);
+    --md-default-fg-color: var(--light-text-primary);
+    --md-default-fg-color--light: var(--light-text-secondary);
+    --md-default-fg-color--lighter: var(--light-text-muted);
+    --md-primary-fg-color: var(--light-bg-primary); /* Header text color (white on dark blue) */
+    --md-primary-bg-color: var(--brand-primary);    /* Header background (brand blue) */
+    --md-accent-fg-color: var(--brand-primary);     /* Accent color (use primary brand blue) */
+    --md-typeset-a-color: var(--brand-primary);     /* Link color */
+    --md-code-fg-color: var(--brand-accent-secondary); /* Default light mode code color */
+    --md-code-bg-color: var(--light-bg-secondary); /* Light grey code background */
+    --md-admonition-fg-color: var(--light-text-primary);
+    --md-admonition-bg-color: var(--light-bg-secondary);
+    --md-footer-bg-color: var(--light-bg-secondary); /* Light grey footer */
+    --md-footer-bg-color--dark: var(--light-bg-secondary);
+    --md-typeset-table-color: var(--light-border-color);
+    --md-typeset-kbd-fg-color: var(--light-text-primary);
+    --md-typeset-kbd-bg-color: var(--light-bg-secondary);
+    --md-typeset-mark-color: #ffecb3; /* Light yellow highlight */
+
+    /* Navigation */
+    .md-nav__title { /* Ensure sidebar title is dark */
+      color: var(--light-text-primary);
+    }
+
+    /* Buttons and Interactive Elements */
+    .md-button--primary {
+        background-color: var(--md-accent-fg-color); /* Brand blue button */
+        color: var(--light-bg-primary); /* White text */
+        border-color: var(--md-accent-fg-color);
+    }
+    .md-button--primary:hover {
+        background-color: var(--brand-primary-light);
+        border-color: var(--brand-primary-light);
+        color: var(--light-bg-primary);
+    }
+    .md-search__input {
+        background-color: var(--light-bg-secondary);
+        color: var(--light-text-primary);
+    }
+    .md-search__input::placeholder {
+        color: var(--light-text-muted);
+    }
+
+    /* Code Blocks */
+    .md-typeset code {
+        background-color: var(--md-code-bg-color);
+        color: var(--md-code-fg-color);
+        border-radius: var(--border-radius-sm) !important;
+    }
+     .md-typeset pre code { /* Ensure text color inside pre is also set */
+       color: var(--md-code-fg-color);
+    }
+    .md-typeset pre {
+        background-color: var(--md-code-bg-color);
+        border-radius: var(--border-radius-md) !important;
+        border: 1px solid var(--light-border-color);
+    }
+
+    /* Tables */
+    .md-typeset table:not([class]) {
+        border: 1px solid var(--light-border-color);
+    }
+    .md-typeset table:not([class]) th {
+        background-color: var(--light-bg-secondary); /* Light grey header */
+        color: var(--light-text-primary);
+        border-right: 1px solid var(--light-border-color);
+        border-bottom: 1px solid var(--light-border-color);
+    }
+     .md-typeset table:not([class]) td {
+        border-right: 1px solid var(--light-border-color);
+        border-bottom: 1px solid var(--light-border-color);
+     }
+    .md-typeset table:not([class]) tr:hover {
+        background-color: rgba(0, 83, 128, 0.05); /* Faint blue hover */
+    }
+
+    /* Admonitions */
+    .md-typeset .admonition {
+        border-left: 4px solid var(--brand-primary); /* Use brand blue for border */
+        background-color: var(--md-admonition-bg-color);
+        color: var(--md-admonition-fg-color);
+    }
+    .md-typeset .admonition-title {
+        background-color: rgba(0, 83, 128, 0.1); /* Faint blue title bg */
+        color: var(--brand-primary); /* Dark blue title text */
+    }
+
+    /* Footer */
+    .md-footer {
+        background-color: var(--dark-bg-primary);
+        color: var(--dark-text-secondary);
+    }
+    .md-footer-meta {
+        background-color: var(--dark-bg-primary);
+    }
+
+    /* Typography */
+    .md-typeset h1,
+    .md-typeset h2,
+    .md-typeset h3,
+    .md-typeset h4,
+    .md-typeset h5,
+    .md-typeset h6 {
+        color: var(--light-text-primary);
+        font-weight: 500;
+    }
+    .md-typeset h1 {
+       color: var(--brand-primary); /* Use brand blue for H1 */
+    }
+
+    /* Content Tabs */
+    .md-typeset .tabbed-labels > label {
+        color: var(--light-text-secondary);
+    }
+    .md-typeset .tabbed-labels > label:hover {
+        color: var(--brand-primary);
+    }
+    .md-typeset .tabbed-labels > input:checked + label {
+        color: var(--brand-primary);
+        border-color: var(--brand-primary);
+    }
+    .md-typeset .tabbed-content { /* Ensure tab content bg is light */
+        background-color: var(--light-bg-primary);
+        border: 1px solid var(--light-border-color);
+    }
+
+    /* Custom Scrollbar (Optional: Light mode scrollbar) */
+    /* You can keep the dark scrollbar or define a light one */
+    ::-webkit-scrollbar-track {
+        background: var(--light-bg-secondary); /* Light grey track */
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--light-border-color); /* Medium grey thumb */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--light-text-secondary); /* Darker grey hover */
+    }
+
+    .md-code {
+       color: var(--md-code-fg-color);
+    }
+
+    .lg {
+        color: var(--brand-primary);
+    }
+}
+
+
+/*=========================================================================
+  4. Shared Styles (Apply regardless of scheme)
+=========================================================================*/
+
+/* Header is always dark with a bottom border */
+.md-header {
+    background-color: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15); /* Subtle border */
+}
+
+.md-ellipsis {
+    font-weight: 500;
+}
+
+/* Tabs styling (shared for both light and dark mode) */
+.md-tabs {
+    background-color: var(--dark-bg-primary);
+}
+.md-tabs__link {
+    color: var(--dark-text-secondary);
+    opacity: 1;
+}
+.md-tabs__item--active {
+    color: white;
+}
+.md-tabs__link:hover {
+    color: var(--brand-accent);
+}
+
+/* Add external link icon only to the API Reference (OpenAPI) tab which uses an external URL */
+.md-tabs__link[href^="https://crowdcent.com/challenge"]::after {
+    content: "↗";
+    font-size: smaller;
+    margin-left: 0.2em;
+}
+
+.md-nav__link[href^="https://crowdcent.com/api/swagger-ui/"]::after {
+    content: "↗";
+    font-size: smaller;
+    margin-left: 0.2em;
+}
