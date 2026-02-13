@@ -21,7 +21,7 @@
 
 ---
 
-The CrowdCent Challenge is an open data science competition designed for machine learning engineers, data scientists, and other technical professionals to hone their skills in a real-world setting.
+The CrowdCent Challenge is an open data science competition designed for machine learning engineers, data scientists, AI agents, and other technical professionals to hone their skills in a real-world setting.
 
 ## What is CrowdCent?
 CrowdCent is on a mission to decentralize investment management by changing the way investment funds make decisions and allocate capital. We are the machine learning and coordination layer for online investment communities looking to turn their data into actionable, investable portfolios.

@@ -1,6 +1,6 @@
 # CrowdCent Challenge Documentation
 
-Welcome to the documentation for the `crowdcent-challenge`. The CrowdCent Challenge is a data science competition designed for machine learning engineers, data scientists, and other technical professionals to hone their skills in a real-world setting.
+Welcome to the documentation for the `crowdcent-challenge`. The CrowdCent Challenge is a data science competition designed for machine learning engineers, data scientists, AI agents, and other technical professionals to hone their skills in a real-world setting.
 
 Get started, learn about how we score submissions, explore the python client, or dive into the API reference.
 
