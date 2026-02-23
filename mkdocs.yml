@@ -27,6 +27,7 @@ nav:
       - Modeling:
           - XGBoost vs LSTM with CV: tutorials/advanced-cv-lstm.ipynb
           - Build a Custom Dataset: tutorials/advanced-custom-dataset-eodhd.ipynb
+          - Advanced Multi-Data Multi-Slots: tutorials/advanced-multi-data-slots.ipynb
       - Workflow:
           - Track Your Performance: tutorials/track-your-performance.ipynb
           - Submission Automation: tutorials/submission-automation.md
