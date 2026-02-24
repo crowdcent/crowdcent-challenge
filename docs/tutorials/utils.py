@@ -164,8 +164,8 @@ def _download_and_filter_yiedl(
             f.write(chunk)
             downloaded += len(chunk)
             if downloaded % (100 * 1024 * 1024) < len(chunk):
-                print(f"  {downloaded / (1024**3):.1f} GB downloaded...")
-    print(f"  Download complete: {downloaded / (1024**3):.1f} GB")
+                print(f"\r  {downloaded / (1024**3):.1f} GB downloaded...", end="", flush=True)
+    print(f"\r  Download complete: {downloaded / (1024**3):.1f} GB")
 
     # Extract parquet from zip
     print("Extracting...")
