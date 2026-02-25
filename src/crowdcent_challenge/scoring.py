@@ -18,7 +18,7 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
 
     Returns:
         The Symmetric NDCG@k score, ranging from 0 to 1.
-    
+
     Raises:
         ValueError: If y_true contains values outside [0, 1].
     """
@@ -36,7 +36,7 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     # Ensure y_true is in range [0, 1]
     if np.min(y_true) < 0 or np.max(y_true) > 1:
         raise ValueError("y_true values must be in range [0, 1].")
-    
+
     # Uniformly scale y_pred to [0, 1]
     y_pred_min = np.min(y_pred)
     y_pred_max = np.max(y_pred)
@@ -58,13 +58,16 @@ def symmetric_ndcg_at_k(y_true: np.ndarray, y_pred: np.ndarray, k: int) -> float
     # This makes originally low values high, so NDCG will reward finding the originally lowest items
     y_true_inverted = 1 - y_true_2d
     y_pred_inverted = 1 - y_pred_2d
-    
-    ndcg_bottom = _ndcg_sample_scores(y_true_inverted, y_pred_inverted, k=k, ignore_ties=False)[0]
+
+    ndcg_bottom = _ndcg_sample_scores(
+        y_true_inverted, y_pred_inverted, k=k, ignore_ties=False
+    )[0]
 
     # --- Average Top and Bottom ---
     symmetric_ndcg = (ndcg_top + ndcg_bottom) / 2.0
 
     return symmetric_ndcg
+
 
 # -----------------------------------------------------------------------------
 # Scikit-learn style DCG / NDCG implementation
@@ -263,6 +266,118 @@ def spearman_correlation(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         return 0.0
 
 
+def corr_to_meta(y_pred: np.ndarray, meta_pred: np.ndarray) -> float:
+    """
+    Spearman correlation between predictions and meta model.
+
+    Measures how aligned your predictions are with the meta model.
+    Values near zero indicate unique/orthogonal predictions.
+
+    Args:
+        y_pred: Your predicted scores (cross-sectional, over assets)
+        meta_pred: Meta model's predictions for the same horizon
+
+    Returns:
+        Spearman correlation in [-1, 1]:
+        - -1 = exact inverse of meta
+        -  0 = orthogonal to meta (maximally unique)
+        - +1 = identical to meta
+    """
+    return spearman_correlation(y_pred, meta_pred)
+
+
+def neutralize_predictions(
+    y_pred: np.ndarray,
+    meta_pred: np.ndarray,
+) -> np.ndarray:
+    """
+    Neutralize predictions against the meta model using least-squares regression.
+
+    Removes the component of y_pred that's explained by meta_pred, leaving
+    only the orthogonal (unique) component. Uses np.linalg.lstsq for numerical
+    stability.
+
+    Args:
+        y_pred: Your predicted scores
+        meta_pred: Meta model's predictions
+
+    Returns:
+        Residual predictions (orthogonal component)
+    """
+    y_pred = np.asarray(y_pred, dtype=float)
+    meta_pred = np.asarray(meta_pred, dtype=float)
+
+    if len(y_pred) != len(meta_pred):
+        raise ValueError("y_pred and meta_pred must have the same length")
+    if len(y_pred) == 0:
+        return y_pred
+
+    features = np.column_stack([meta_pred, np.ones(len(meta_pred))])
+    coeffs, _, _, _ = np.linalg.lstsq(features, y_pred, rcond=None)
+    return y_pred - features @ coeffs
+
+
+def orthogonal_ic(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    meta_pred: np.ndarray,
+    metric_fn=spearman_correlation,
+    **metric_kwargs,
+) -> float:
+    """
+    Orthogonal Information Coefficient: score your unique signal with any metric.
+
+    Measures whether the part of your predictions NOT explained by meta performs
+    well according to the specified metric.
+
+    Steps:
+        1. Neutralize y_pred vs meta_pred (remove meta exposure)
+        2. Score the residual against y_true using the provided metric function
+
+    Args:
+        y_true: Actual target values
+        y_pred: Your predicted scores
+        meta_pred: Meta model's predictions
+        metric_fn: Scoring function with signature (y_true, y_pred, **kwargs) -> float.
+        **metric_kwargs: Additional arguments passed to metric_fn
+
+    Returns:
+        The metric score applied to your orthogonal (residualized) predictions.
+        Range depends on the metric used (e.g., [-1, 1] for Spearman, [0, 1] for NDCG).
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    meta_pred = np.asarray(meta_pred)
+
+    if not (len(y_true) == len(y_pred) == len(meta_pred)):
+        raise ValueError("y_true, y_pred, and meta_pred must have the same length")
+
+    # Get orthogonal component (residual)
+    residual = neutralize_predictions(y_pred, meta_pred)
+
+    # Score residual against target using the provided metric
+    return float(metric_fn(y_true, residual, **metric_kwargs))
+
+
+def oic_spearman(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    meta_pred: np.ndarray,
+) -> float:
+    """Orthogonal IC using Spearman correlation. Convenience wrapper."""
+    return orthogonal_ic(y_true, y_pred, meta_pred, metric_fn=spearman_correlation)
+
+
+def oic_ndcg(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    meta_pred: np.ndarray,
+    k: int = 40,
+) -> float:
+    """Orthogonal IC using Symmetric NDCG@k. Convenience wrapper."""
+    return orthogonal_ic(y_true, y_pred, meta_pred, metric_fn=symmetric_ndcg_at_k, k=k)
+
+
 def safe_metric(metric_func, y_true, y_pred, *args, **kwargs):
     """
     A wrapper that calls a metric function only if data is present, otherwise returns nan.
@@ -301,8 +416,66 @@ def evaluate_hyperliquid_submission(
     scores["spearman_30d"] = safe_metric(spearman_correlation, y_true_30d, y_pred_30d)
 
     # Symmetric NDCG@40
-    scores["ndcg@40_10d"] = safe_metric(symmetric_ndcg_at_k, y_true_10d, y_pred_10d, k=40)
-    scores["ndcg@40_30d"] = safe_metric(symmetric_ndcg_at_k, y_true_30d, y_pred_30d, k=40)
+    scores["ndcg@40_10d"] = safe_metric(
+        symmetric_ndcg_at_k, y_true_10d, y_pred_10d, k=40
+    )
+    scores["ndcg@40_30d"] = safe_metric(
+        symmetric_ndcg_at_k, y_true_30d, y_pred_30d, k=40
+    )
+
+    return scores
+
+
+def evaluate_hyperliquid_uniqueness(
+    y_true_10d: np.ndarray,
+    y_pred_10d: np.ndarray,
+    meta_pred_10d: np.ndarray,
+    y_true_30d: np.ndarray,
+    y_pred_30d: np.ndarray,
+    meta_pred_30d: np.ndarray,
+) -> dict[str, float]:
+    """
+    Evaluate uniqueness of a Hyperliquid submission relative to the meta model.
+
+    Companion to evaluate_hyperliquid_submission(). Called separately because
+    a meta model may not always be available.
+
+    Calculates:
+    - corr_to_meta: Spearman correlation with meta (lower = more unique)
+    - oic_spearman: Orthogonal IC via Spearman (signal beyond meta)
+    - oic_ndcg@40: Orthogonal IC via Symmetric NDCG@40 (ranking quality beyond meta)
+
+    Each metric is computed for both 10d and 30d horizons.
+
+    Args:
+        y_true_10d: True target values for 10-day horizon
+        y_pred_10d: Predicted scores for 10-day horizon
+        meta_pred_10d: Meta model predictions for 10-day horizon
+        y_true_30d: True target values for 30-day horizon
+        y_pred_30d: Predicted scores for 30-day horizon
+        meta_pred_30d: Meta model predictions for 30-day horizon
+
+    Returns:
+        Dict with 6 uniqueness metrics
+    """
+    scores = {}
+
+    scores["corr_to_meta_10d"] = safe_metric(corr_to_meta, y_pred_10d, meta_pred_10d)
+    scores["corr_to_meta_30d"] = safe_metric(corr_to_meta, y_pred_30d, meta_pred_30d)
+
+    scores["oic_spearman_10d"] = safe_metric(
+        oic_spearman, y_true_10d, y_pred_10d, meta_pred_10d
+    )
+    scores["oic_spearman_30d"] = safe_metric(
+        oic_spearman, y_true_30d, y_pred_30d, meta_pred_30d
+    )
+
+    scores["oic_ndcg@40_10d"] = safe_metric(
+        oic_ndcg, y_true_10d, y_pred_10d, meta_pred_10d, k=40
+    )
+    scores["oic_ndcg@40_30d"] = safe_metric(
+        oic_ndcg, y_true_30d, y_pred_30d, meta_pred_30d, k=40
+    )
 
     return scores
 
