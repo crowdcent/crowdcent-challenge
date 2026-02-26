@@ -359,22 +359,22 @@ def orthogonal_ic(
     return float(metric_fn(y_true, residual, **metric_kwargs))
 
 
-def oic_spearman(
+def unique_spearman(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     meta_pred: np.ndarray,
 ) -> float:
-    """Orthogonal IC using Spearman correlation. Convenience wrapper."""
+    """Unique Spearman: orthogonal IC using Spearman correlation. Convenience wrapper."""
     return orthogonal_ic(y_true, y_pred, meta_pred, metric_fn=spearman_correlation)
 
 
-def oic_ndcg(
+def unique_ndcg(
     y_true: np.ndarray,
     y_pred: np.ndarray,
     meta_pred: np.ndarray,
     k: int = 40,
 ) -> float:
-    """Orthogonal IC using Symmetric NDCG@k. Convenience wrapper."""
+    """Unique NDCG: orthogonal IC using Symmetric NDCG@k. Convenience wrapper."""
     return orthogonal_ic(y_true, y_pred, meta_pred, metric_fn=symmetric_ndcg_at_k, k=k)
 
 
@@ -442,8 +442,8 @@ def evaluate_hyperliquid_uniqueness(
 
     Calculates:
     - corr_to_meta: Spearman correlation with meta (lower = more unique)
-    - oic_spearman: Orthogonal IC via Spearman (signal beyond meta)
-    - oic_ndcg@40: Orthogonal IC via Symmetric NDCG@40 (ranking quality beyond meta)
+    - unique_spearman: Unique Spearman (signal after removing meta component)
+    - unique_ndcg@40: Unique NDCG (ranking quality after removing meta component)
 
     Each metric is computed for both 10d and 30d horizons.
 
@@ -463,18 +463,18 @@ def evaluate_hyperliquid_uniqueness(
     scores["corr_to_meta_10d"] = safe_metric(corr_to_meta, y_pred_10d, meta_pred_10d)
     scores["corr_to_meta_30d"] = safe_metric(corr_to_meta, y_pred_30d, meta_pred_30d)
 
-    scores["oic_spearman_10d"] = safe_metric(
-        oic_spearman, y_true_10d, y_pred_10d, meta_pred_10d
+    scores["unique_spearman_10d"] = safe_metric(
+        unique_spearman, y_true_10d, y_pred_10d, meta_pred_10d
     )
-    scores["oic_spearman_30d"] = safe_metric(
-        oic_spearman, y_true_30d, y_pred_30d, meta_pred_30d
+    scores["unique_spearman_30d"] = safe_metric(
+        unique_spearman, y_true_30d, y_pred_30d, meta_pred_30d
     )
 
-    scores["oic_ndcg@40_10d"] = safe_metric(
-        oic_ndcg, y_true_10d, y_pred_10d, meta_pred_10d, k=40
+    scores["unique_ndcg@40_10d"] = safe_metric(
+        unique_ndcg, y_true_10d, y_pred_10d, meta_pred_10d, k=40
     )
-    scores["oic_ndcg@40_30d"] = safe_metric(
-        oic_ndcg, y_true_30d, y_pred_30d, meta_pred_30d, k=40
+    scores["unique_ndcg@40_30d"] = safe_metric(
+        unique_ndcg, y_true_30d, y_pred_30d, meta_pred_30d, k=40
     )
 
     return scores

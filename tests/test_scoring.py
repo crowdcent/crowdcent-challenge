@@ -10,8 +10,8 @@ from crowdcent_challenge.scoring import (
     evaluate_hyperliquid_uniqueness,
     corr_to_meta,
     orthogonal_ic,
-    oic_spearman,
-    oic_ndcg,
+    unique_spearman,
+    unique_ndcg,
     neutralize_predictions,
 )
 
@@ -324,40 +324,40 @@ def test_neutralize_predictions_constant_meta():
     np.testing.assert_array_almost_equal(residual, y_pred - np.mean(y_pred))
 
 
-# --- Tests for oic_spearman ------------------------------------------
+# --- Tests for unique_spearman ------------------------------------------
 
 
-def test_oic_spearman_matches_orthogonal_ic_default():
-    """oic_spearman should match orthogonal_ic with default metric."""
+def test_unique_spearman_matches_orthogonal_ic_default():
+    """unique_spearman should match orthogonal_ic with default metric."""
     np.random.seed(42)
     n = 50
     y_true = np.random.rand(n)
     y_pred = np.random.rand(n)
     meta_pred = np.random.rand(n)
     
-    score1 = oic_spearman(y_true, y_pred, meta_pred)
+    score1 = unique_spearman(y_true, y_pred, meta_pred)
     score2 = orthogonal_ic(y_true, y_pred, meta_pred)
     
     assert np.isclose(score1, score2)
 
 
-# --- Tests for oic_ndcg ------------------------------------------
+# --- Tests for unique_ndcg ------------------------------------------
 
 
-def test_oic_ndcg_range():
-    """OIC-NDCG should be in [0, 1]."""
+def test_unique_ndcg_range():
+    """Unique NDCG should be in [0, 1]."""
     np.random.seed(42)
     for _ in range(10):
         n = 100
         y_true = np.random.rand(n)
         y_pred = np.random.rand(n)
         meta_pred = np.random.rand(n)
-        score = oic_ndcg(y_true, y_pred, meta_pred, k=40)
+        score = unique_ndcg(y_true, y_pred, meta_pred, k=40)
         assert 0 <= score <= 1
 
 
-def test_oic_ndcg_perfect_unique_signal():
-    """When unique signal perfectly identifies top/bottom, OIC-NDCG should be high."""
+def test_unique_ndcg_perfect_unique_signal():
+    """When unique signal perfectly identifies top/bottom, unique NDCG should be high."""
     np.random.seed(42)
     n = 100
 
@@ -370,21 +370,21 @@ def test_oic_ndcg_perfect_unique_signal():
     # User prediction: matches target well
     y_pred = y_true + np.random.rand(n) * 0.1
     
-    score = oic_ndcg(y_true, y_pred, meta_pred, k=40)
+    score = unique_ndcg(y_true, y_pred, meta_pred, k=40)
     # Should be reasonably high since y_pred's unique part predicts y_true
     assert score > 0.5
 
 
-def test_oic_ndcg_vs_oic_spearman_different():
-    """OIC-NDCG and OIC-Spearman should generally give different values."""
+def test_unique_ndcg_vs_unique_spearman_different():
+    """Unique NDCG and Unique Spearman should generally give different values."""
     np.random.seed(42)
     n = 100
     y_true = np.random.rand(n)
     y_pred = np.random.rand(n)
     meta_pred = np.random.rand(n)
     
-    spearman_score = oic_spearman(y_true, y_pred, meta_pred)
-    ndcg_score = oic_ndcg(y_true, y_pred, meta_pred, k=40)
+    spearman_score = unique_spearman(y_true, y_pred, meta_pred)
+    ndcg_score = unique_ndcg(y_true, y_pred, meta_pred, k=40)
     
     # They measure different things, so shouldn't be identical
     # (though could be close by chance)
@@ -417,15 +417,15 @@ def test_evaluate_hyperliquid_uniqueness_keys_and_ranges():
     assert set(scores.keys()) == {
         "corr_to_meta_10d",
         "corr_to_meta_30d",
-        "oic_spearman_10d",
-        "oic_spearman_30d",
-        "oic_ndcg@40_10d",
-        "oic_ndcg@40_30d",
+        "unique_spearman_10d",
+        "unique_spearman_30d",
+        "unique_ndcg@40_10d",
+        "unique_ndcg@40_30d",
     }
 
     for key, value in scores.items():
         assert isinstance(value, float), f"{key} is not float"
-        if "corr_to_meta" in key or "oic_spearman" in key:
+        if "corr_to_meta" in key or "unique_spearman" in key:
             assert -1 <= value <= 1, f"{key}={value} out of [-1, 1]"
         else:
             assert 0 <= value <= 1, f"{key}={value} out of [0, 1]"
