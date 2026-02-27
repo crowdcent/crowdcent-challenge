@@ -51,6 +51,11 @@ For more details on how scores are calculated and what the scores mean, see the 
 ## Check the Leaderboard
 Navigate to the [Leaderboard](https://crowdcent.com/leaderboard) page to see how your submissions rank against other participants for each challenge. You can switch the leaderboard by challenge, sort by different scores, and view results by user or by individual submission slots.
 
+The leaderboard has two views toggled by the **Raw / Unique** buttons:
+
+- **Raw**: How accurate your predictions are against actual outcomes (NDCG@40, Spearman)
+- **Unique**: How differentiated your predictions are from the meta-model and how predictive that unique signal is
+
 [![Leaderboard](overrides/assets/images/leaderboard.png)](https://crowdcent.com/leaderboard){:target="_blank"}
 
 ## Watch the Meta-Model

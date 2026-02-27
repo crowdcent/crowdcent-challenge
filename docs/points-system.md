@@ -31,7 +31,7 @@ Missing a submission window resets your streak to 0.
 
 Your primary source of points is the quality of your predictions relative to other participants.
 
-At the end of the day, all your valid slots are evaluated against the target metrics. We calculate the **composite percentile** of all your evaluated slots, then apply a **cosine curve** to this percentile.
+At the end of the day, all your valid slots are evaluated against the target metrics. We calculate the **composite percentile** of all your evaluated slots (based on [raw metrics](hyperliquid-ranking.md#raw-metrics) only -- uniqueness metrics are tracked separately and do not currently affect points), then apply a **cosine curve** to this percentile.
 
 ### The Curve
 The curve rewards consistency—moving from "average" (50th) to "good" (70th) yields the steepest point gains. Bad days are penalized, but less severely than a linear model. The curve flattens at the extremes to discourage variance.

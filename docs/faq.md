@@ -105,6 +105,20 @@ You can submit multiple times for an active inference period. Your latest valid 
 *   **CLI:** Use `crowdcent list-submissions <challenge_slug>` (optionally filter with `--period current` or `--period YYYY-MM-DD`) and `crowdcent get-submission <challenge_slug> <submission_id>`.
 Statuses include "pending", "processing", "evaluated" (or "scored"), and "error" (or "failed").
 
+## Scoring & Uniqueness
+
+### What are uniqueness metrics?
+
+Uniqueness metrics measure how differentiated your predictions are from the meta-model and whether that unique signal is actually predictive. See [Scoring - Uniqueness Metrics](scoring.md#uniqueness-metrics) for full details.
+
+### Should I optimize for raw metrics or uniqueness metrics?
+
+Both matter. Raw metrics determine your composite percentile and CC Points. Uniqueness metrics measure your contribution to the meta-model -- a submission highly correlated with the meta adds little new information even if its raw scores are strong. The ideal is a model that scores well on raw metrics *and* provides differentiated signal. In practice, focusing on building a genuinely good model with your own data and features tends to naturally produce unique predictions.
+
+### What is the difference between corr_to_meta and unique_spearman?
+
+`corr_to_meta` tells you *how similar* your predictions are to the meta-model (lower absolute value = more unique). `unique_spearman` tells you *whether your unique signal is predictive* -- it neutralizes out the meta component and then checks if the residual correlates with actual outcomes. You can be unique (low `corr_to_meta`) but wrong (negative `unique_spearman`), or you can be unique and right (low `corr_to_meta`, positive `unique_spearman`).
+
 ## Environment & Troubleshooting
 
 ### What version of Python should I use?

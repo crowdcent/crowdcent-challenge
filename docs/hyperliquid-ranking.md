@@ -127,9 +127,11 @@ client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet
 Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], and any missing ids are filled with 0.5.
 
 
-### Metrics
-1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](https://docs.crowdcent.com/scoring/#symmetric-normalized-discounted-cumulative-gain-symmetric-NDCGk)
+### Raw Metrics
 
+These metrics measure how accurate your predictions are against actual market outcomes.
+
+1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](scoring.md#symmetric-ndcgk)
 
 When you see NDCG@40, think: "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~170 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric equally rewards both:
 
@@ -139,17 +141,45 @@ When you see NDCG@40, think: "how well did I rank the top 40 assets and how well
   The logarithmic discount means getting the #1 ranked token correct is much more valuable than getting the #40 ranked token correct. A perfect NDCG@40 score of 1.0 means you perfectly ranked both tails of the distribution. This metric is particularly valuable for portfolio construction where you want to maximize exposure to the best performers while avoiding or shorting the worst.
 
 !!! note "Random Baseline"
-      Random predictions score approximately 0.55 for NDCG@40 with ~170 tokens, not 0.5. See the [detailed explanation](https://docs.crowdcent.com/scoring/#interpretation) for why this happens.
+      Random predictions score approximately 0.55 for NDCG@40 with ~170 tokens, not 0.5. See the [detailed explanation](scoring.md#interpretation) for why this happens.
 
-2) [Spearman Correlation](https://docs.crowdcent.com/scoring/#spearman-correlation)
+2) [Spearman Correlation](scoring.md#spearman-correlation)
 
 Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.
 
+### Uniqueness Metrics
+
+In addition to raw accuracy, CrowdCent evaluates how **unique** your predictions are relative to the [meta-model](#meta-model). The meta-model already captures the crowd's collective wisdom -- uniqueness metrics measure whether you're contributing *new* predictive signal that the crowd doesn't already have.
+
+The leaderboard provides a **Raw / Unique toggle** to switch between these two views.
+
+!!! info "Requires Meta-Model"
+    Uniqueness metrics are only computed for inference periods where a meta-model is available. Early periods or periods with insufficient submissions will only show raw metrics.
+
+Three uniqueness metrics are computed for each horizon (10d, 30d):
+
+1) **Correlation to Meta** (`corr_to_meta`)
+
+    Spearman correlation between your predictions and the meta-model. Measures how similar your signal is to the crowd. Values closer to zero indicate more differentiated predictions.
+
+2) **Unique Spearman** (`unique_spearman`)
+
+    Your predictions are first [neutralized](scoring.md#neutralization) against the meta-model to isolate the orthogonal component, then scored with Spearman correlation against actuals. Positive values mean your unique signal is predictive.
+
+3) **Unique NDCG@40** (`unique_ndcg@40`)
+
+    Same neutralization step, but scored with Symmetric NDCG@40. Measures whether your unique signal correctly identifies the top and bottom 40 assets.
+
+For detailed explanations of the math behind these metrics, see [Uniqueness Metrics](scoring.md#uniqueness-metrics).
+
+!!! tip "Why Uniqueness Matters"
+    A submission that's highly correlated with the meta-model adds little new information, even if its raw scores are strong. Conversely, a submission with moderate raw scores but high uniqueness can significantly improve the meta-model by contributing orthogonal signal. The best participants deliver both accuracy *and* differentiation.
+
 ### Composite Percentile
 
-During the initial *warm-up* phase of the challenge, the goal is to maximize all metrics across all timeframes equally. Since NDCG@40 (0-1 range) and Spearman correlation (-1 to 1 range) have different scales and distributions, we use a **composite percentile** for fair comparison.
+Since NDCG@40 (0-1 range) and Spearman correlation (-1 to 1 range) have different scales and distributions, we use a **composite percentile** for fair comparison.
 
-The **composite percentile** is calculated as the average of your percentile rankings across all four metrics:
+The **composite percentile** is calculated as the average of your percentile rankings across the four **raw** metrics:
 
 $$
 \text{Composite Percentile} = \frac{1}{4} \times \left(
@@ -164,6 +194,9 @@ $$
 
 Where each percentile represents your ranking (0-100) compared to other participants for that specific metric for a given day/inference period.
 
+!!! note
+    The composite percentile currently uses **raw metrics only**. Uniqueness metrics have their own separate percentile rankings visible in the Unique leaderboard view, but they do not currently factor into the composite percentile or [CC Points](points-system.md) calculations. In the future, we intend to add uniqueness percentiles into the composite percentile score.
+
 **Important:** Composite percentiles are only calculated when **ten (10) or more valid submissions** (counted by submission slots, not users) are received for a given day. If fewer than ten submissions are present, the composite percentile will not be calculated, and you'll need to look at absolute metric scores instead.
 
 As we learn more about the challenge's metamodel, we may adjust the weighting or add/remove metrics.
@@ -175,13 +208,18 @@ As we learn more about the challenge's metamodel, we may adjust the weighting or
 - **NDCG@40**: Ranges from 0.0 (worst possible) to 1.0 (perfect ranking of top and bottom 40 assets)
 - **ρ (Spearman's Rank Correlation)**: Ranges from -1.0 (perfect inverse ranking) to 1.0 (perfect ranking), with 0.0 indicating random performance
 
+**Uniqueness Score Ranges:**
+
+- **unique_ndcg@40**: 0.0 to 1.0 (~0.55 = random baseline, higher = better)
+- **unique_spearman**: -1.0 to +1.0 (higher = better unique signal)
+
 **Why Are Scores Typically Low?**
 
 Financial markets are characterized by extremely high noise-to-signal ratios. Seemingly "low" scores can be quite competitive in this domain. Additionally, market regimes shift over time, causing the distribution of achievable scores to fluctuate significantly.
 
 **Percentile Rankings: Your Most Reliable Metric**
 
-CrowdCent calculates **percentile rankings** that show where you stand relative to other participants. These percentiles are recalculated daily.
+CrowdCent calculates **percentile rankings** that show where you stand relative to other participants. These percentiles are recalculated daily for both raw and uniqueness metrics.
 
 Tracking your percentile scores over time is often more informative than focusing on absolute scores, as it accounts for evolving competition and regime shifts that affect all participants. A model that consistently ranks in the 75th percentile across different market conditions can often be more valuable than one that occasionally achieves top scores but performs poorly in other regimes.
 
@@ -190,7 +228,12 @@ Tracking your percentile scores over time is often more informative than focusin
 
 ## Meta-Model
 
-The CrowdCent Meta-Model aggregates predictions from all participants, representing a "wisdom of the crowd" which is made available to all users with a valid CrowdCent account. This may change in the future with no notice.
+The CrowdCent Meta-Model aggregates predictions from all participants, representing a "wisdom of the crowd." It serves two purposes:
+
+1. **Downloadable signal**: Available to all participants with a tier higher than Challenger (100+ points)
+2. **Uniqueness benchmark**: Used as the reference for computing [uniqueness metrics](#uniqueness-metrics) -- your predictions are compared against it to measure differentiation.
+
+This may change in the future with no notice.
 
 !!! warning "Meta-Model Disclaimer"
     Meta-model signals are released for informational and educational purposes only. Not financial, investment, or trading advice. CrowdCent disclaims all liability for any losses, damages, or consequences arising from use of the meta-model. Users assume all risks.
