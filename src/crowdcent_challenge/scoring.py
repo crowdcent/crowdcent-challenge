@@ -408,6 +408,10 @@ def evaluate_hyperliquid_submission(
 
     Returns:
         Dict containing all individual metrics (no composite_score)
+        - spearman_10d: Spearman correlation for 10-day horizon
+        - spearman_30d: Spearman correlation for 30-day horizon
+        - ndcg@40_10d: Symmetric NDCG@40 for 10-day horizon
+        - ndcg@40_30d: Symmetric NDCG@40 for 30-day horizon
     """
     scores = {}
 
@@ -457,6 +461,12 @@ def evaluate_hyperliquid_uniqueness(
 
     Returns:
         Dict with 6 uniqueness metrics
+        - corr_to_meta_10d: Spearman correlation to meta for 10-day horizon
+        - corr_to_meta_30d: Spearman correlation to meta for 30-day horizon
+        - unique_spearman_10d: Unique Spearman for 10-day horizon
+        - unique_spearman_30d: Unique Spearman for 30-day horizon
+        - unique_ndcg@40_10d: Unique NDCG@40 for 10-day horizon
+        - unique_ndcg@40_30d: Unique NDCG@40 for 30-day horizon
     """
     scores = {}
 
