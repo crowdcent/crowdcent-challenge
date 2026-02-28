@@ -61,6 +61,9 @@ The leaderboard has two views toggled by the **Raw / Unique** buttons:
 ## Watch the Meta-Model
 For some challenges, the meta-model is published after an inference period ends. For now, this is only available for the [hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) challenge and may be subject to change. The meta-model represents relative signals for the investable universe.
 
+!!! info "Meta-Model Access"
+    Real-time meta-model predictions require **Challenger** tier or above (100+ [CC Points](points-system.md)). All users can access 90-day delayed predictions and full performance scores.
+
 !!! warning "Meta-Model Disclaimer"
     The meta-model represents CrowdCent's aggregation of participant submissions into a single model. While we strive to create robust meta-models, please note:
 

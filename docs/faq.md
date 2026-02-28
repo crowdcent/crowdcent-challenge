@@ -78,7 +78,7 @@ Your goal is to to predict relative performance metrics (e.g., returns) for diff
 
 ### What is the 'Meta-Model'?
 
-The meta-model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI.
+The meta-model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI. Real-time predictions are available to **Challenger+** tier (100+ CC Points); all other users receive 90-day delayed data. Performance scores are open to everyone. See [CC Points](points-system.md) for tier details.
 
 ## Submissions
 

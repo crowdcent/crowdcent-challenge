@@ -82,7 +82,7 @@ As you accumulate CC Points, you'll progress through **5 tiers**—each with a u
 | **Centurion** | 1,500+ | Commander of predictions |
 | **Sovereign** | 5,000+ | Pinnacle of mastery |
 
-Higher tiers unlock greater recognition in the community and demonstrate your track record of consistent, quality predictions.
+Higher tiers unlock greater recognition in the community and demonstrate your track record of consistent, quality predictions. Reaching **Challenger** also unlocks real-time [meta-model](hyperliquid-ranking.md#meta-model) predictions (users below Challenger receive 90-day delayed data).
 
 ## The Meta-Model: Why Points Matter
 

@@ -230,7 +230,7 @@ Tracking your percentile scores over time is often more informative than focusin
 
 The CrowdCent Meta-Model aggregates predictions from all participants, representing a "wisdom of the crowd." It serves two purposes:
 
-1. **Downloadable signal**: Available to all participants with a tier higher than Challenger (100+ points)
+1. **Downloadable signal**: Real-time predictions available to **Challenger+** tier (100+ [CC Points](points-system.md)). All users can access 90-day delayed predictions and full performance scores.
 2. **Uniqueness benchmark**: Used as the reference for computing [uniqueness metrics](#uniqueness-metrics) -- your predictions are compared against it to measure differentiation.
 
 This may change in the future with no notice.
@@ -250,6 +250,8 @@ The meta-model is constructed daily using a **points-weighted average** of all s
 Users with more accumulated CC Points have greater influence on the meta-model. See [CC Points System](points-system.md) for details on how points are earned and how weights are calculated.
 
 ### Access and Downloads
+
+Real-time meta-model predictions require **Challenger** tier or above (100+ CC Points). Users below Challenger can access predictions on a 90-day delay. Performance scores are always available to everyone.
 
 The meta-model is available through multiple channels:
 
