@@ -51,6 +51,7 @@ dev-dependencies = [
     "xgboost>=3.0.2",
     "crowdcent-challenge",
     "sklego>=0.0",
+    "griffe>=2.0.0",
 ]
 
 [tool.uv.sources]
