@@ -153,22 +153,13 @@ In addition to raw accuracy, CrowdCent evaluates how **unique** your predictions
 
 The leaderboard provides a **Raw / Unique toggle** to switch between these two views.
 
-!!! info "Requires Meta-Model"
-    Uniqueness metrics are only computed for inference periods where a meta-model is available. Early periods or periods with insufficient submissions will only show raw metrics.
-
 Three uniqueness metrics are computed for each horizon (10d, 30d):
 
-1) **Correlation to Meta** (`corr_to_meta`)
+1) **Unique Spearman** (`unique_spearman`) -- Your predictions are first [neutralized](scoring.md#neutralization) against the meta-model to isolate the orthogonal component, then scored with Spearman correlation against actuals. Positive values mean your unique signal is predictive.
 
-    Spearman correlation between your predictions and the meta-model. Measures how similar your signal is to the crowd. Values closer to zero indicate more differentiated predictions.
+2) **Unique NDCG@40** (`unique_ndcg@40`) -- Same neutralization step, but scored with Symmetric NDCG@40. Measures whether your unique signal correctly identifies the top and bottom 40 assets.
 
-2) **Unique Spearman** (`unique_spearman`)
-
-    Your predictions are first [neutralized](scoring.md#neutralization) against the meta-model to isolate the orthogonal component, then scored with Spearman correlation against actuals. Positive values mean your unique signal is predictive.
-
-3) **Unique NDCG@40** (`unique_ndcg@40`)
-
-    Same neutralization step, but scored with Symmetric NDCG@40. Measures whether your unique signal correctly identifies the top and bottom 40 assets.
+3) **Correlation to Meta** (`corr_to_meta`) -- Spearman correlation between your predictions and the meta-model. Measures how similar your signal is to the crowd. Values closer to zero indicate more differentiated predictions. Unlike the above two, this is a pure similarity measure and is not included in the [unique composite percentile](#unique-composite-percentile).
 
 For detailed explanations of the math behind these metrics, see [Uniqueness Metrics](scoring.md#uniqueness-metrics).
 
