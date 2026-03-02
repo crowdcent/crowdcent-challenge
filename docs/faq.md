@@ -113,7 +113,7 @@ Uniqueness metrics measure how differentiated your predictions are from the meta
 
 ### Should I optimize for raw metrics or uniqueness metrics?
 
-Both matter. Raw metrics determine your composite percentile and CC Points. Uniqueness metrics measure your contribution to the meta-model -- a submission highly correlated with the meta adds little new information even if its raw scores are strong. The ideal is a model that scores well on raw metrics *and* provides differentiated signal. In practice, focusing on building a genuinely good model with your own data and features tends to naturally produce unique predictions.
+Both matter. Raw metrics determine your [composite percentile](hyperliquid-ranking.md#composite-percentile) and CC Points. Uniqueness metrics have their own [unique composite percentile](hyperliquid-ranking.md#unique-composite-percentile) that summarizes your differentiated performance. A submission highly correlated with the meta adds little new information even if its raw scores are strong. The ideal is a model that scores well on raw metrics *and* provides differentiated signal. In practice, focusing on building a genuinely good model with your own data and features tends to naturally produce unique predictions.
 
 ### What is the difference between corr_to_meta and unique_spearman?
 

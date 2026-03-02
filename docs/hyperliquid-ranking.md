@@ -195,11 +195,30 @@ $$
 Where each percentile represents your ranking (0-100) compared to other participants for that specific metric for a given day/inference period.
 
 !!! note
-    The composite percentile currently uses **raw metrics only**. Uniqueness metrics have their own separate percentile rankings visible in the Unique leaderboard view, but they do not currently factor into the composite percentile or [CC Points](points-system.md) calculations. In the future, we intend to add uniqueness percentiles into the composite percentile score.
+    The composite percentile uses **raw metrics only**. Uniqueness metrics have their own composite — see [Unique Composite Percentile](#unique-composite-percentile) below.
 
 **Important:** Composite percentiles are only calculated when **ten (10) or more valid submissions** (counted by submission slots, not users) are received for a given day. If fewer than ten submissions are present, the composite percentile will not be calculated, and you'll need to look at absolute metric scores instead.
 
 As we learn more about the challenge's metamodel, we may adjust the weighting or add/remove metrics.
+
+### Unique Composite Percentile
+
+Analogous to the composite percentile, but for **uniqueness metrics**. The **unique composite percentile** averages your percentile rankings across the four unique metrics:
+
+$$
+\text{Unique Composite Percentile} = \frac{1}{4} \times \left(
+\begin{array}{l}
+\text{percentile(unique\_NDCG@40}_{10d}) + \\
+\text{percentile(unique\_NDCG@40}_{30d}) + \\
+\text{percentile(unique\_spearman}_{10d}) + \\
+\text{percentile(unique\_spearman}_{30d})
+\end{array}
+\right)
+$$
+
+This gives you a single number capturing how well your *differentiated signal* performs relative to other participants. It is visible in the **Unique** leaderboard view and profile sparklines.
+
+The unique composite percentile is kept separate from the raw composite percentile so that the raw composite can always serve as a fair comparison against the [meta-model](#meta-model). The unique composite percentile does not currently factor into [CC Points](points-system.md) calculations.
 
 ### Score Ranges and Percentile Rankings
 
