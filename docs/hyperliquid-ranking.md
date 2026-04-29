@@ -111,6 +111,9 @@ client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet
 !!! tip "Flexible Timing"
     You can submit anytime. If the window is open, your submission is accepted immediately. If the window is closed, your submission is queued and automatically submitted when the next window opens. By default, submissions are also queued for the following period (auto-rollover) if you submit during an open window. Use `queue_next=False` to opt out.
 
+!!! info "Experimental Submissions & Notes"
+    Use any of your 5 slots for an **experimental** submission to test a new model. It will be scored and given a shadow percentile, but won't affect the leaderboard, the meta-model, or your CC Points. You must keep at least one non-experimental submission in another slot for the same period. Pass `is_experimental=True` (Python) / `--experimental` (CLI). Optional `notes="..."` / `--notes "..."` attaches a private annotation.
+
 | id      | pred_10d | pred_30d |
 |---------|----------|----------|
 | BABY    | 0.2      | 0.3      |
@@ -131,7 +134,7 @@ Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], an
 
 These metrics measure how accurate your predictions are against actual market outcomes.
 
-1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](scoring.md#symmetric-ndcgk)
+1) [Symmetric Normalized Discounted Cumulative Gain (NDCG@40)](scoring.md#symmetric-ndcgk-symmetric_ndcg_at_k)
 
 When you see NDCG@40, think: "how well did I rank the top 40 assets and how well did I rank the bottom 40 assets?" With ~170 tokens in the universe, k=40 represents approximately the top/bottom 20-25% of assets. This metric equally rewards both:
 
@@ -143,7 +146,7 @@ When you see NDCG@40, think: "how well did I rank the top 40 assets and how well
 !!! note "Random Baseline"
       Random predictions score approximately 0.55 for NDCG@40 with ~170 tokens, not 0.5. See the [detailed explanation](scoring.md#interpretation) for why this happens.
 
-2) [Spearman Correlation](scoring.md#spearman-correlation)
+2) [Spearman Correlation](scoring.md#spearman-correlation-spearman_correlation)
 
 Spearman's rank correlation (ρ) measures how well your predicted ranks align with the true ranks across the entire universe of ~170 tokens. Unlike NDCG@40 which focuses on the 40 extremes, ρ treats all rank positions in the entire universe equally.
 
@@ -155,7 +158,7 @@ The leaderboard provides a **Raw / Unique toggle** to switch between these two v
 
 Three uniqueness metrics are computed for each horizon (10d, 30d):
 
-1) **Unique Spearman** (`unique_spearman`) -- Your predictions are first [neutralized](scoring.md#neutralization) against the meta-model to isolate the orthogonal component, then scored with Spearman correlation against actuals. Positive values mean your unique signal is predictive.
+1) **Unique Spearman** (`unique_spearman`) -- Your predictions are first [neutralized](scoring.md#neutralization-neutralize_predictions) against the meta-model to isolate the orthogonal component, then scored with Spearman correlation against actuals. Positive values mean your unique signal is predictive.
 
 2) **Unique NDCG@40** (`unique_ndcg@40`) -- Same neutralization step, but scored with Symmetric NDCG@40. Measures whether your unique signal correctly identifies the top and bottom 40 assets.
 
@@ -254,7 +257,7 @@ The meta-model is constructed daily using a **points-weighted average** of all s
 
 1. **Uniform Ranking**: Each individual submission's predictions are first converted to uniform rankings [0, 1] for each prediction column (`pred_10d`, `pred_30d`)
 2. **Missing ID Handling**: Any asset IDs missing from individual submissions are filled with neutral rankings of 0.5 *after* the uniform ranking step
-3. **Average slots**: Create a single prediction for each user by taking the arithmetic mean of all normalized rankings across all submission slots for each user.
+3. **Average slots**: Create a single prediction for each user by taking the arithmetic mean of all normalized rankings across that user's **non-experimental** submission slots.
 4. **Points-Weighted Average**: The final meta-model is created by taking a **weighted average** across all users, where each user's weight is proportional to their **CC Points EMA** (Exponential Moving Average with 7-day half-life).
 
 Users with more accumulated CC Points have greater influence on the meta-model. See [CC Points System](points-system.md) for details on how points are earned and how weights are calculated.

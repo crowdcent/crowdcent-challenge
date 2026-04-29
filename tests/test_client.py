@@ -311,3 +311,169 @@ def test_download_inference_data_invalid_date_raises(client, tmp_path):
         client.download_inference_data(
             release_date="13-2025-01", dest_path=str(tmp_path / "x.parquet")
         )
+
+
+# --- submit_predictions tests ---
+
+
+def _make_submission_parquet(tmp_path):
+    """Create a minimal Parquet file usable as a submission payload."""
+    import polars as pl
+
+    df = pl.DataFrame(
+        {
+            "id": [1, 2, 3],
+            "pred_10d": [0.1, 0.2, 0.3],
+            "pred_30d": [0.4, 0.5, 0.6],
+        }
+    )
+    fp = tmp_path / "preds.parquet"
+    df.write_parquet(fp)
+    return str(fp)
+
+
+def _multipart_form_fields(request):
+    """Pull the requests-mock multipart body and return the textual form-field
+    portions as a single decoded string. The parquet file part is binary, so
+    we split on the boundary and skip parts that don't decode."""
+    body = request.body
+    if isinstance(body, str):
+        return body
+    boundary_header = request.headers.get("Content-Type", "")
+    if "boundary=" not in boundary_header:
+        return body.decode("latin-1", errors="ignore")
+    boundary = "--" + boundary_header.split("boundary=", 1)[1]
+    parts = body.split(boundary.encode("ascii"))
+    decoded = []
+    for part in parts:
+        try:
+            decoded.append(part.decode("utf-8"))
+        except UnicodeDecodeError:
+            continue
+    return "\n".join(decoded)
+
+
+def test_submit_predictions_default_payload(client, requests_mock, tmp_path):
+    """A baseline submit without new params still works and sends defaults
+    (is_experimental=false, notes="") on the wire."""
+    fp = _make_submission_parquet(tmp_path)
+    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
+    mock_response = {
+        "id": 1,
+        "status": "pending",
+        "slot": 1,
+        "is_experimental": False,
+        "notes": "",
+        "queued_for_next": True,
+        "queue_error_code": None,
+        "queue_error": None,
+    }
+    requests_mock.post(mock_url, json=mock_response, status_code=201)
+
+    resp = client.submit_predictions(file_path=fp)
+    assert resp == mock_response
+
+    fields = _multipart_form_fields(requests_mock.last_request)
+    assert 'name="slot"' in fields
+    assert 'name="also_queue_next"' in fields
+    assert 'name="is_experimental"' in fields
+    assert 'name="notes"' in fields
+    # Default values on the wire
+    assert "true" in fields  # also_queue_next
+    assert "false" in fields  # is_experimental
+
+
+def test_submit_predictions_experimental_with_notes(client, requests_mock, tmp_path):
+    """Setting is_experimental=True and notes='...' propagates to the form payload."""
+    fp = _make_submission_parquet(tmp_path)
+    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
+    mock_response = {
+        "id": 42,
+        "status": "pending",
+        "slot": 2,
+        "is_experimental": True,
+        "notes": "transformer baseline",
+        "queued_for_next": True,
+        "queue_error_code": None,
+        "queue_error": None,
+    }
+    requests_mock.post(mock_url, json=mock_response, status_code=201)
+
+    resp = client.submit_predictions(
+        file_path=fp,
+        slot=2,
+        is_experimental=True,
+        notes="transformer baseline",
+    )
+    assert resp["is_experimental"] is True
+    assert resp["notes"] == "transformer baseline"
+
+    fields = _multipart_form_fields(requests_mock.last_request)
+    assert "transformer baseline" in fields
+    assert 'name="is_experimental"' in fields
+    assert "true" in fields
+
+
+def test_submit_predictions_partial_success_queue_rejected(
+    client, requests_mock, tmp_path
+):
+    """Live save returns 200 with queue_error_code populated when the queue copy
+    is rejected by the experimental constraint. The client surfaces the dict
+    intact (no exception)."""
+    fp = _make_submission_parquet(tmp_path)
+    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
+    mock_response = {
+        "id": 99,
+        "status": "pending",
+        "slot": 1,
+        "is_experimental": True,
+        "notes": "",
+        "queued_for_next": False,
+        "queue_error_code": "EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP",
+        "queue_error": "Queue a non-experimental prediction first.",
+    }
+    requests_mock.post(mock_url, json=mock_response, status_code=200)
+
+    resp = client.submit_predictions(file_path=fp, is_experimental=True)
+    assert resp["queued_for_next"] is False
+    assert resp["queue_error_code"] == "EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP"
+    assert resp["queue_error"]
+
+
+
+def test_get_performance_includes_experimental_and_notes(client, requests_mock):
+    """get_performance() rows must additively expose is_experimental and notes."""
+    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
+    mock_data = [
+        {
+            "id": 1,
+            "slot": 1,
+            "inference_data_release_date": "2025-01-15T00:00:00Z",
+            "submitted_at": "2025-01-15T14:05:00Z",
+            "status": "evaluated",
+            "is_experimental": False,
+            "notes": "baseline",
+            "score_details": {"spearman_10d": 0.05},
+            "percentile_details": {"composite": 0.72},
+        },
+        {
+            "id": 2,
+            "slot": 2,
+            "inference_data_release_date": "2025-01-15T00:00:00Z",
+            "submitted_at": "2025-01-15T14:06:00Z",
+            "status": "evaluated",
+            "is_experimental": True,
+            "notes": "transformer trial",
+            "score_details": {"spearman_10d": 0.04},
+            "percentile_details": {"composite": 0.65},
+        },
+    ]
+    requests_mock.get(mock_url, json=mock_data)
+
+    rows = client.get_performance()
+    assert len(rows) == 2
+    by_slot = {r["slot"]: r for r in rows}
+    assert by_slot[1]["is_experimental"] is False
+    assert by_slot[1]["notes"] == "baseline"
+    assert by_slot[2]["is_experimental"] is True
+    assert by_slot[2]["notes"] == "transformer trial"

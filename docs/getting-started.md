@@ -4,7 +4,7 @@ Sign up for a CrowdCent account [here](https://crowdcent.com/accounts/signup/) o
 ## Explore Challenges
 Once logged in, you'll land on the [Challenge List](https://crowdcent.com/challenge) page. Browse through the available challenges to find one that interests you. Each challenge card will give you a brief overview. Click on a challenge to see more details.
 
-[![Challenge List](overrides/assets/images/challenge_list.png)](https://crowdcent.com/challenge){:target="_blank"}
+[![Challenge List](overrides/assets/images/challenge_list.png){: style="width:70%; display:block; margin:0 auto;"}](https://crowdcent.com/challenge){:target="_blank"}
 
 ## Download Data
 On the detail page for your chosen challenge (e.g. [hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking)), you will find:
@@ -17,10 +17,10 @@ Using the downloaded training data, build a model to predict the challenge targe
 
 ## Submit predictions during an Inference Period
 - The Challenge Detail page will display information about the current **Inference Data** period, including its release date and submission deadline.
-- You have a specific number of **submission slots** (e.g., up to 5) for each inference period. You can choose which slot to use for each submission.
+- You have multiple **submission slots** for each inference period (currently up to 5 for Hyperliquid Ranking). You can choose which slot to use for each submission.
 
-[![Submission Panel](overrides/assets/images/inference_period.png)](https://crowdcent.com/challenge){:target="_blank"}
-*The submission panel on the Challenge Detail page shows inference periods and your submission slots. In this submission panel image, we see that slots 1, 2, and 3 have successful submissions for the current inference period (lower-right check marks). However, only slots 1 and 3 have queued submissions for the next inference period (upper-right squares)*
+[![Submission Panel](overrides/assets/images/submission_panel.png)](https://crowdcent.com/challenge){:target="_blank"}
+*The submission panel on the Challenge Detail page shows inference periods, your submission slots, and options to queue, mark a submission as experimental, or attach a private note. Slot indicators show submitted (check marks) and queued (squares/dots) states.*
 
 There are two main ways to submit your predictions:
 
@@ -28,9 +28,11 @@ There are two main ways to submit your predictions:
 - Go to the Challenge Detail page.
 - In the submission panel, select an available **slot**.
 - Upload your prediction file (typically a Parquet file).
-- **Submissions are now flexible:**
+- **Submissions are flexible:**
     - If the window is **open**, your file is submitted immediately. By default, it is also queued for the *next* period (auto-rollover).
     - If the window is **closed**, your file is **queued** and will be automatically submitted when the next period opens.
+- **Mark a submission as experimental** to test new models without affecting your leaderboard rank, CC Points, or meta-model contribution. Experimental submissions are still scored and shown on profiles with an **experimental** label (triangular slot badge). You must keep at least one non-experimental submission in another slot for the same period.
+- **Add a note** (e.g. *"added sector features"*) so future-you remembers what changed. Notes are private to you and editable any time.
 
 ### 2. Programmatically (via API)
 - Go to your **User Profile** page (accessible from the top navigation bar when logged in).

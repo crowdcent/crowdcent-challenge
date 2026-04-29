@@ -64,6 +64,15 @@ pip install crowdcent-challenge
    
    # Submit predictions
    client.submit_predictions(file_path="predictions.parquet")
+
+   # Or test a new model with an experimental submission + private note
+   # (requires another slot to have a non-experimental submission)
+   client.submit_predictions(
+       file_path="predictions.parquet",
+       slot=2,
+       is_experimental=True,
+       notes="2-layer transformer w/ sector embeddings",
+   )
    ```
 
 ## 🏆 Available Challenges
@@ -90,6 +99,10 @@ crowdcent download-inference-data current -o inference.parquet
 
 # Submit predictions
 crowdcent submit predictions.parquet
+
+# Submit an experimental prediction with a private note
+crowdcent submit predictions.parquet --slot 2 --experimental \
+    --notes "2-layer transformer w/ sector embeddings"
 ```
 
 **Documentation**: [docs.crowdcent.com](https://docs.crowdcent.com)

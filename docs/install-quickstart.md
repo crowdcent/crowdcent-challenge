@@ -145,6 +145,9 @@ Submit your model's predictions for a challenge. The file must include an `id` c
     
     Use `queue_next=False` (Python) or `--no-queue-next` (CLI) to opt out of auto-rollover during open windows.
 
+!!! info "Experimental submissions and notes"
+    Pass `is_experimental=True` to test a new model without affecting your leaderboard rank, CC Points, or meta-model contribution (requires at least one non-experimental submission in another slot for the same period). Add `notes="..."` to attach a private annotation. See the [experimental submissions FAQ](faq.md#what-is-an-experimental-submission) for edge cases.
+
 === "Python"
 
     ```python
@@ -171,6 +174,15 @@ Submit your model's predictions for a challenge. The file must include an `id` c
     
     # Opt out of auto-rollover (don't queue for next period)
     client.submit_predictions(df=pred_df, queue_next=False)
+
+    # Experimental submission with notes (requires another slot to have a
+    # non-experimental submission for the same period)
+    response = client.submit_predictions(
+        df=pred_df,
+        slot=2,
+        is_experimental=True,
+        notes="2-layer transformer w/ sector embeddings",
+    )
     ```
 
 === "CLI"
@@ -187,6 +199,12 @@ Submit your model's predictions for a challenge. The file must include an `id` c
     
     # Opt out of auto-rollover
     crowdcent submit submission.parquet --no-queue-next
+
+    # Experimental submission with a private note
+    crowdcent submit submission.parquet \
+        --slot 2 \
+        --experimental \
+        --notes "2-layer transformer w/ sector embeddings"
     ```
 
 ## Retrieving Submissions

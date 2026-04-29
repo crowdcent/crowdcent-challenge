@@ -464,8 +464,25 @@ def get_submission(challenge_slug, submission_id):
     default=True,
     help="Also queue for the next period (auto-rollover). Defaults to --queue-next.",
 )
+@click.option(
+    "--experimental/--no-experimental",
+    default=False,
+    show_default=True,
+    help=(
+        "Mark this submission as experimental. Experimental submissions get "
+        "shadow percentiles but are excluded from leaderboard, meta-model, "
+        "and CC Points performance. Requires another slot to have a "
+        "non-experimental submission for the same period."
+    ),
+)
+@click.option(
+    "--notes",
+    type=str,
+    default="",
+    help="Free-text annotation for this submission (max 2000 chars). Private to you.",
+)
 @handle_api_error
-def submit(challenge_slug, file_path, slot, queue_next):
+def submit(challenge_slug, file_path, slot, queue_next, experimental, notes):
     """Submit a prediction file (Parquet) to a specific challenge.
 
     The file must be a Parquet file with the required columns specified by the challenge
@@ -476,16 +493,31 @@ def submit(challenge_slug, file_path, slot, queue_next):
 
     Use --slot to specify a submission slot (1-based).
     Use --no-queue-next to opt out of auto-rollover (queuing for the next period).
+    Use --experimental to mark the submission as experimental (see docs).
+    Use --notes "..." to attach a private annotation.
     """
     client = get_client(challenge_slug)
     try:
-        result = client.submit_predictions(file_path, slot=slot, queue_next=queue_next)
+        result = client.submit_predictions(
+            file_path,
+            slot=slot,
+            queue_next=queue_next,
+            is_experimental=experimental,
+            notes=notes,
+        )
         if result.get("status") == "queued":
             msg = "Submission queued for next period."
         else:
             msg = "Submission successful!"
             if result.get("queued_for_next"):
                 msg += " Also queued for next period."
+            elif result.get("queue_error_code"):
+                msg += (
+                    f" Queue copy was rejected ({result['queue_error_code']}): "
+                    f"{result.get('queue_error', '')}"
+                )
+        if experimental:
+            msg += " Marked as experimental."
         click.echo(msg)
         click.echo(json.dumps(result, indent=2))
     except FileNotFoundError:  # Should be caught by click.Path, but handle just in case

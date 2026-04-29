@@ -595,6 +595,8 @@ class ChallengeClient:
         temp: bool = True,
         max_retries: int = 3,
         retry_delay: float = 1.0,
+        is_experimental: bool = False,
+        notes: str = "",
     ) -> Dict[str, Any]:
         """Submit predictions for this challenge.
 
@@ -619,19 +621,33 @@ class ChallengeClient:
             temp: Whether to save the DataFrame to a temporary file.
             max_retries: Maximum number of retry attempts for connection errors (default: 3).
             retry_delay: Initial delay between retries in seconds (default: 1.0).
+            is_experimental: Mark this submission as experimental. Experimental
+                submissions are scored normally and receive a shadow percentile
+                against the non-experimental competitive field, but are excluded
+                from the leaderboard, the meta-model, and CC Points performance
+                adjustment. **Constraint:** at least one slot per period must
+                have a non-experimental submission; submitting experimental
+                without a non-experimental sibling in another slot is rejected.
+                Defaults to False.
+            notes: Free-text annotation for this submission, max 2000 characters.
+                Notes are private to the submission owner. Defaults to "".
 
         Returns:
             A dictionary with submission details. The shape depends on context:
 
-            - **Window open (immediate submission)**: Contains submission fields like
-                `id`, `status`, `slot`, `submitted_at`, plus `queued_for_next` (bool).
+            - **Window open (immediate submission)**: Contains submission fields
+                like `id`, `status`, `slot`, `submitted_at`, `is_experimental`,
+                `notes`, plus `queued_for_next` (bool). If the queue copy was
+                rejected, `queue_error_code` and `queue_error` are populated.
             - **Window closed (queued)**: Contains `status: "queued"`, `slot`,
-                `challenge`, and a `message` describing when it will be submitted.
+                `challenge`, `is_experimental`, `notes`, and a `message`
+                describing when it will be submitted.
 
         Raises:
             ValueError: If neither file_path nor df is provided, or if both are provided.
             FileNotFoundError: If the specified file_path does not exist.
-            ClientError: If the submission is invalid (e.g., wrong format, missing columns).
+            ClientError: If the submission is invalid (e.g., wrong format, missing columns,
+                experimental constraint violated).
 
         Examples:
             # Submit from a DataFrame
@@ -642,6 +658,14 @@ class ChallengeClient:
 
             # Submit and opt-out of auto-queueing for next period
             client.submit_predictions(df=predictions_df, queue_next=False)
+
+            # Submit an experimental prediction with a note
+            client.submit_predictions(
+                df=predictions_df,
+                slot=2,
+                is_experimental=True,
+                notes="2-layer transformer w/ sector embeddings",
+            )
         """
         if df is not None:
             df.write_parquet(file_path)
@@ -663,12 +687,14 @@ class ChallengeClient:
                 data_payload = {
                     "slot": str(slot),
                     "also_queue_next": str(queue_next).lower(),
+                    "is_experimental": str(is_experimental).lower(),
+                    "notes": notes,
                 }
                 response = self._request(
                     "POST",
                     f"/challenges/{self.challenge_slug}/submissions/",
                     files=files,
-                    data=data_payload,  # Pass slot and queue flag in data
+                    data=data_payload,
                     max_retries=max_retries,
                     retry_delay=retry_delay,
                 )
@@ -679,9 +705,15 @@ class ChallengeClient:
             msg = {202: "queued", 200: "updated", 201: "created"}.get(
                 response.status_code, "submitted"
             )
-            logger.info(f"Submission {msg} (slot {slot})")
+            exp_label = " (experimental)" if is_experimental else ""
+            logger.info(f"Submission {msg} (slot {slot}){exp_label}")
             if resp_data.get("queued_for_next"):
                 logger.info("Also queued for next period.")
+            elif resp_data.get("queue_error_code"):
+                logger.warning(
+                    "Live submission saved but queue copy was rejected: "
+                    f"{resp_data['queue_error_code']} - {resp_data.get('queue_error')}"
+                )
 
             return resp_data
         except FileNotFoundError as e:
@@ -744,6 +776,8 @@ class ChallengeClient:
             - release_date: The inference period date (ISO string)
             - submitted_at: When the submission was made (ISO string)
             - status: Submission status ("pending" or "evaluated")
+            - is_experimental: Whether this submission was marked experimental (bool)
+            - notes: Free-text note attached at submit time (str, may be empty)
             - score_*: Individual score metrics (e.g., score_spearman_10d)
             - percentile_*: Individual percentile metrics (e.g., percentile_spearman_10d)
             - composite_percentile: Overall percentile ranking (if available)
@@ -756,6 +790,13 @@ class ChallengeClient:
             - Percentile fields (e.g., composite_percentile=0.75) indicate rank
               relative to all participants — 0.75 means outperforming 75% of
               submissions for that period.
+
+            - Experimental submissions are included in the result. They are
+              scored against the non-experimental competitive field (shadow
+              percentiles) but excluded from leaderboards, the meta-model, and
+              CC Points performance adjustment. Filter them out client-side if
+              you want only competitive history:
+              ``[r for r in rows if not r["is_experimental"]]``.
 
         Example:
             >>> client = ChallengeClient("momentum-alpha")
@@ -794,6 +835,8 @@ class ChallengeClient:
                 else None,
                 "submitted_at": sub.get("submitted_at"),
                 "status": sub.get("status"),
+                "is_experimental": sub.get("is_experimental", False),
+                "notes": sub.get("notes", "") or "",
             }
 
             # Flatten score_details (avoid redundant prefix if key already contains it)

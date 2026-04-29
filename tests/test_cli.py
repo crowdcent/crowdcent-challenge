@@ -258,7 +258,11 @@ def test_submit_success(runner, mock_client, mock_predictions_file):
     json_output = result.output.split("\n", 1)[1]
     assert json.loads(json_output) == mock_response
     mock_client.submit_predictions.assert_called_once_with(
-        mock_predictions_file, slot=1, queue_next=True
+        mock_predictions_file,
+        slot=1,
+        queue_next=True,
+        is_experimental=False,
+        notes="",
     )
 
 
@@ -284,12 +288,17 @@ def test_submit_no_queue_next(runner, mock_client, mock_predictions_file):
     mock_client.submit_predictions.return_value = mock_response
 
     result = runner.invoke(
-        cli, ["submit", "--challenge", TEST_SLUG, "--no-queue-next", mock_predictions_file]
+        cli,
+        ["submit", "--challenge", TEST_SLUG, "--no-queue-next", mock_predictions_file],
     )
     assert result.exit_code == 0
     assert "Submission successful!" in result.output
     mock_client.submit_predictions.assert_called_once_with(
-        mock_predictions_file, slot=1, queue_next=False
+        mock_predictions_file,
+        slot=1,
+        queue_next=False,
+        is_experimental=False,
+        notes="",
     )
 
 
@@ -299,6 +308,8 @@ def test_submit_queued_response(runner, mock_client, mock_predictions_file):
         "status": "queued",
         "slot": 1,
         "message": "Submission queued for slot 1.",
+        "is_experimental": False,
+        "notes": "",
     }
     mock_client.submit_predictions.return_value = mock_response
 
@@ -308,6 +319,73 @@ def test_submit_queued_response(runner, mock_client, mock_predictions_file):
     assert result.exit_code == 0
     assert "Submission queued for next period." in result.output
     assert "Submission successful!" not in result.output
+
+
+def test_submit_experimental_with_notes(runner, mock_client, mock_predictions_file):
+    """--experimental and --notes are forwarded to the client and reflected in output."""
+    mock_response = {
+        "id": 555,
+        "status": "pending",
+        "is_experimental": True,
+        "notes": "transformer w/ sector embeddings",
+        "queued_for_next": True,
+    }
+    mock_client.submit_predictions.return_value = mock_response
+
+    result = runner.invoke(
+        cli,
+        [
+            "submit",
+            "--challenge",
+            TEST_SLUG,
+            "--slot",
+            "2",
+            "--experimental",
+            "--notes",
+            "transformer w/ sector embeddings",
+            mock_predictions_file,
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Submission successful!" in result.output
+    assert "Marked as experimental." in result.output
+    mock_client.submit_predictions.assert_called_once_with(
+        mock_predictions_file,
+        slot=2,
+        queue_next=True,
+        is_experimental=True,
+        notes="transformer w/ sector embeddings",
+    )
+
+
+def test_submit_partial_success_queue_rejected(
+    runner, mock_client, mock_predictions_file
+):
+    """Live save succeeded but queue copy rejected: surface the queue_error_code."""
+    mock_response = {
+        "id": 777,
+        "status": "pending",
+        "is_experimental": True,
+        "queued_for_next": False,
+        "queue_error_code": "EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP",
+        "queue_error": "Queue a non-experimental prediction first.",
+    }
+    mock_client.submit_predictions.return_value = mock_response
+
+    result = runner.invoke(
+        cli,
+        [
+            "submit",
+            "--challenge",
+            TEST_SLUG,
+            "--experimental",
+            mock_predictions_file,
+        ],
+    )
+    assert result.exit_code == 0
+    assert "Submission successful!" in result.output
+    assert "Queue copy was rejected (EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP)" in result.output
+    assert "Also queued for next period." not in result.output
 
 
 def test_submit_file_not_found(runner):

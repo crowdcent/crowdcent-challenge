@@ -4,6 +4,9 @@ All scoring functions used in the CrowdCent Challenge can be found in the `crowd
 from crowdcent_challenge.scoring import *
 ```
 
+!!! note "Experimental submissions and percentiles"
+    Percentile pools (daily, period, composite, unique composite) are constructed from **non-experimental** submissions only. Experimental submissions are still scored and assigned a percentile against that competitive pool (a "shadow percentile"), but they don't enter the denominator and don't appear on the leaderboard, in the meta-model, or in CC Points.
+
 ## Raw Metrics
 
 These metrics measure how well your predictions match the actual outcomes, without considering the meta-model.

@@ -93,7 +93,7 @@ Your submission must be a Parquet file containing an `id` column that matches th
 
 If a submission window is currently open, your prediction is submitted immediately. If no window is open, your prediction is **queued** and will be automatically submitted when the next window opens.
 
-By default, submissions are also queued for the following period (auto-rollover). Use `queue_next=False` (Python) or `--no-queue-next` (CLI) to opt out.
+By default, submissions are also queued for the following period (auto-rollover). Use `queue_next=False` (Python) or `--no-queue-next` (CLI) to opt out. The Python client and CLI also accept `is_experimental` / `--experimental` and `notes` / `--notes` — see [What is an experimental submission?](#what-is-an-experimental-submission) below.
 
 ### How often can I submit?
 
@@ -104,6 +104,30 @@ You can submit multiple times for an active inference period. Your latest valid 
 *   **Python:** Use `client.list_submissions()` (optionally filter by `period='current'` or `period='YYYY-MM-DD'`) and `client.get_submission(<submission_id>)`.
 *   **CLI:** Use `crowdcent list-submissions <challenge_slug>` (optionally filter with `--period current` or `--period YYYY-MM-DD`) and `crowdcent get-submission <challenge_slug> <submission_id>`.
 Statuses include "pending", "processing", "evaluated" (or "scored"), and "error" (or "failed").
+
+### What is an experimental submission?
+
+A submission you mark as experimental gets scored against the non-experimental competitive field (so you can see your shadow percentile) but is excluded from the leaderboard, the meta-model, and your CC Points. It's the right tool for testing a new architecture or feature set without dragging your competitive standing.
+
+### Why was my experimental submission rejected?
+
+You need at least one **non-experimental** submission in another slot for the same period. This keeps the competitive pool honest and prevents experimental-only entries. Submit a non-experimental prediction to another slot first, or uncheck experimental on the current one.
+
+### Do experimental submissions affect my CC Points or streak?
+
+Experimental submissions are excluded from the [Performance Adjustment](points-system.md) (only your non-experimental slots feed your average percentile). They don't influence the meta-model's weighting either. Your non-experimental submission is what triggers daily base credit and feeds your streak — by design every period has at least one non-experimental sub when you also submit experimental, so streak/base-credit math is unchanged.
+
+### Can other users see my experimental submissions or notes?
+
+Experimental submissions are visible on profiles with an **experimental** label (triangular slot badge), and you can see other users' shadow percentiles. However, **notes are private to the submission owner**, i.e. only the note creator can see them.
+
+### Can I edit notes after the period closes?
+
+Yes. The notes endpoint is independent of the scoring lifecycle. Edit them inline on your own profile/scores pages at any time.
+
+### Why did my live submission succeed but the queue copy was rejected?
+
+The live save and the queue-for-next-period copy are processed independently — one can succeed while the other is rejected. If you submit experimental (`is_experimental=True`) without a non-experimental queued submission in another slot, the live save commits but the queue copy is rejected. Your live submission still counts. Either pass `queue_next=False`, or queue a non-experimental sub to another slot first.
 
 ## Scoring & Uniqueness
 
