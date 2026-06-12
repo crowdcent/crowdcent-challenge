@@ -127,7 +127,7 @@ plugins:
   - open-in-new-tab
 
 extra_javascript:
-    - "overrides/assets/js/runllm-widget.js"
+    - "overrides/assets/js/centaur-widget.js"
     - "overrides/assets/js/katex.js"
     - https://unpkg.com/katex@0/dist/katex.min.js
     - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
