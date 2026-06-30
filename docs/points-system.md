@@ -5,7 +5,7 @@ The CrowdCent Points (CC Points) system rewards consistent participation and hig
 ## Summary
 
 - **Participation**: Earn a base credit that grows with your daily streak.
-- **Performance**: Earn the majority of points based on the **composite percentile** of your daily predictions.
+- **Performance**: Earn the majority of points from a **blended points percentile** — each non-experimental slot contributes 50% raw composite + 50% unique composite, averaged across your slots.
 - **Influence**: Your points translate directly to your weight in the Meta-Model.
 
 ---
@@ -31,7 +31,22 @@ Missing a submission window resets your streak to 0.
 
 Your primary source of points is the quality of your predictions relative to other participants.
 
-At the end of the day, all your valid **non-experimental** slots are evaluated against the target metrics. We calculate the **composite percentile** of all your evaluated non-experimental slots (based on [raw metrics](hyperliquid-ranking.md#raw-metrics) only), then apply a **cosine curve** to this percentile. A separate [unique composite percentile](hyperliquid-ranking.md#unique-composite-percentile) exists for uniqueness metrics but does not currently affect points. Slots flagged as experimental still receive shadow percentiles for your reference but are excluded from this calculation.
+At the end of the day, all your valid **non-experimental** slots are evaluated. Your **performance adjustment** applies a **cosine curve** to an **average points percentile** across those slots.
+
+For each slot, raw and unique count equally:
+
+\[
+\text{Slot Points Percentile} = \frac{\text{composite\_percentile} + \text{unique\_composite\_percentile}}{2}
+\]
+
+For example, a slot at the 80th composite and 40th unique composite yields a 60th slot points percentile.
+
+Your **average points percentile** is the mean of those slot values across all evaluated non-experimental slots. See [composite percentile](hyperliquid-ranking.md#composite-percentile) and [unique composite percentile](hyperliquid-ranking.md#unique-composite-percentile) for how those inputs are computed.
+
+Slots flagged as experimental still receive shadow percentiles for your reference but are excluded from this calculation.
+
+!!! note "Earlier periods"
+    Inference periods released before **July 1, 2026** used the raw composite only. That formula is unchanged for those periods; earlier ledger entries are not recalculated.
 
 ### The Curve
 The curve rewards consistency—moving from "average" (50th) to "good" (70th) yields the steepest point gains. Bad days are penalized, but less severely than a linear model. The curve flattens at the extremes to discourage variance.
@@ -41,8 +56,10 @@ The curve rewards consistency—moving from "average" (50th) to "good" (70th) yi
 **Formula:**
 
 \[
-\text{Adjustment} = -\cos\left(\text{AvgPercentile} \times \frac{\pi}{100}\right) \times 10
+\text{Adjustment} = -\cos\left(\text{AvgPointsPercentile} \times \frac{\pi}{100}\right) \times 10
 \]
+
+where **AvgPointsPercentile** is the average points percentile across your evaluated non-experimental slots, as described above.
 
 **Key Benchmarks:**
 
@@ -63,7 +80,7 @@ Your final score for the day cannot be negative.
 
 **Example (Assuming >90 day streak = 1.0 base):**
 
-| Scenario | Avg Percentile | Base (w/ Mult) | Adjustment | Calculation | Final Points |
+| Scenario | Points Percentile | Base (w/ Mult) | Adjustment | Calculation | Final Points |
 | :--- | :---: | :---: | :---: | :--- | :---: |
 | **Top Tier** | 80th | 1.0 | +8.1 | `1.0 + 8.1` | **9.1** |
 | **Consistent** | 70th | 1.0 | +5.9 | `1.0 + 5.9` | **6.9** |

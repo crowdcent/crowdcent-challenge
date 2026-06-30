@@ -212,7 +212,7 @@ $$
 
 This gives you a single number capturing how well your *differentiated signal* performs relative to other participants. It is visible in the **Unique** leaderboard view and profile sparklines.
 
-The unique composite percentile is kept separate from the raw composite percentile so that the raw composite can always serve as a fair comparison against the [meta-model](#meta-model). The unique composite percentile does not currently factor into [CC Points](points-system.md) calculations.
+The unique composite percentile is kept separate from the raw composite percentile in leaderboard views so that the raw composite can always serve as a fair comparison against the [meta-model](#meta-model). It also feeds [CC Points](points-system.md) at 50% weight alongside the raw composite percentile.
 
 ### Score Ranges and Percentile Rankings
 

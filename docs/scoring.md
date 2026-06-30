@@ -7,6 +7,9 @@ from crowdcent_challenge.scoring import *
 !!! note "Experimental submissions and percentiles"
     Percentile pools (daily, period, composite, unique composite) are constructed from **non-experimental** submissions only. Experimental submissions are still scored and assigned a percentile against that competitive pool (a "shadow percentile"), but they don't enter the denominator and don't appear on the leaderboard, in the meta-model, or in CC Points.
 
+!!! note "CC Points and uniqueness"
+    The [CC Points performance adjustment](points-system.md#performance-adjustment-the-core-driver) blends each slot's composite percentile and unique composite percentile equally. Experimental submissions remain excluded from CC Points.
+
 ## Raw Metrics
 
 These metrics measure how well your predictions match the actual outcomes, without considering the meta-model.

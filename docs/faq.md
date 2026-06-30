@@ -137,7 +137,11 @@ Uniqueness metrics measure how differentiated your predictions are from the meta
 
 ### Should I optimize for raw metrics or uniqueness metrics?
 
-Both matter. Raw metrics determine your [composite percentile](hyperliquid-ranking.md#composite-percentile) and CC Points. Uniqueness metrics have their own [unique composite percentile](hyperliquid-ranking.md#unique-composite-percentile) that summarizes your differentiated performance. A submission highly correlated with the meta adds little new information even if its raw scores are strong. The ideal is a model that scores well on raw metrics *and* provides differentiated signal. In practice, focusing on building a genuinely good model with your own data and features tends to naturally produce unique predictions.
+Both matter for [CC Points](points-system.md): raw metrics drive your [composite percentile](hyperliquid-ranking.md#composite-percentile) and uniqueness metrics drive your [unique composite percentile](hyperliquid-ranking.md#unique-composite-percentile), blended equally in the performance adjustment. A submission highly correlated with the meta adds little new information even if its raw scores are strong. The ideal is a model that scores well on raw metrics *and* provides differentiated signal. In practice, focusing on building a genuinely good model with your own data and features tends to naturally produce unique predictions.
+
+### When did CC Points start using the uniqueness blend?
+
+**July 1, 2026.** Inference periods released on or after that date use the 50/50 blend described in [Performance Adjustment](points-system.md#performance-adjustment-the-core-driver). Earlier periods keep the raw-only formula.
 
 ### What is the difference between corr_to_meta and unique_spearman?
 
