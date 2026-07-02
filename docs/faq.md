@@ -11,7 +11,7 @@ The CrowdCent Challenge is a series of open data science competitions (challenge
 Refer to the [Installation & Quick Start Guide](install-quickstart.md) for detailed steps.
 
 1.  **Install the client library:** We recommend using uv: `uv pip install crowdcent-challenge`. Alternatively, use `pip install crowdcent-challenge`.
-2.  **Get an API Key:** Visit your [CrowdCent profile page](https://crowdcent.com/profile) and generate a new key. Save it securely.
+2.  **Get an API Key:** Visit your [profile settings](https://crowdcent.com/profile/settings/) and create a new key. Save it securely.
 3.  **Set up Authentication:** Provide your API key either when initializing the Python `ChallengeClient`, setting the `CROWDCENT_API_KEY` environment variable, or placing it in a `.env` file (`CROWDCENT_API_KEY=your_key_here`) in your project directory.
 4.  **Explore:** Use the Python client or the `crowdcent` CLI to list available challenges (`crowdcent list-challenges`).
 5.  **Download Data:** Choose a challenge and download the training and inference data using the client or CLI (e.g., `crowdcent download-training-data <challenge_slug> latest`).
@@ -27,7 +27,7 @@ The challenge is open to anyone interested in data science, machine learning, an
 
 ### How do I get an API Key?
 
-Go to your profile page on the [CrowdCent website](https://crowdcent.com/profile) after logging in. Click the "Generate New Key" button.
+Go to your [profile settings](https://crowdcent.com/profile/settings/) after logging in. In the **API Keys** section, click **New Key**, enter a name, and click **Create**.
 
 ### How do I use my API Key?
 
@@ -39,7 +39,7 @@ The `crowdcent-challenge` library (both Python client and CLI) automatically loo
 
 ### What if my API key doesn't work?
 
-Ensure you copied the key correctly and included the `ApiKey ` prefix if using tools like Swagger UI directly (the client library handles this automatically). Verify it hasn't been revoked on your profile page. If issues persist, generate a new key or contact support.
+Ensure you copied the key correctly and included the `ApiKey ` prefix if using tools like Swagger UI directly (the client library handles this automatically). Verify it hasn't been revoked in your [profile settings](https://crowdcent.com/profile/settings/). If issues persist, generate a new key or contact support.
 
 ## Python Client vs. CLI
 

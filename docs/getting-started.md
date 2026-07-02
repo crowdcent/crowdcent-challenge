@@ -1,5 +1,5 @@
 ## Register for a CrowdCent account
-Sign up for a CrowdCent account [here](https://crowdcent.com/accounts/signup/) or sign in with your GitHub account. We require an email verification step to ensure the account is real. If you'd like to work with the challenge programmatically, you'll need to generate an API key from your [user profile](https://crowdcent.com/profile). See the [client quickstart](install-quickstart.md) for more details.
+Sign up for a CrowdCent account [here](https://crowdcent.com/accounts/signup/) or sign in with your GitHub account. We require an email verification step to ensure the account is real. If you'd like to work with the challenge programmatically, you'll need to generate an API key from your [profile settings](https://crowdcent.com/profile/settings/). See the [client quickstart](install-quickstart.md) for more details.
 
 ## Explore Challenges
 Once logged in, you'll land on the [Challenge List](https://crowdcent.com/challenge) page. Browse through the available challenges to find one that interests you. Each challenge card will give you a brief overview. Click on a challenge to see more details.
@@ -35,8 +35,8 @@ There are two main ways to submit your predictions:
 - **Add a note** (e.g. *"added sector features"*) so future-you remembers what changed. Notes are private to you and editable any time.
 
 ### 2. Programmatically (via API)
-- Go to your **User Profile** page (accessible from the top navigation bar when logged in).
-- In the "API Keys" section, you can generate a new API key. Give it a descriptive name. **Store this key securely as it will not be shown again.**
+- Go to your profile's **Settings** tab ([https://crowdcent.com/profile/settings/](https://crowdcent.com/profile/settings/)).
+- In the **API Keys** section, click **New Key**, enter a name, and click **Create**. **Store this key securely as it will not be shown again.**
 - Use this API key with the `crowdcent-challenge` Python package to submit your predictions. 
 - The client supports the same flexible behavior: submitting during an open window will also queue for the next period by default (`queue_next=True`). Submitting during a closed window will automatically queue.
 

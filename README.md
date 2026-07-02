@@ -43,7 +43,7 @@ pip install crowdcent-challenge
 
 ## 🚀 Quick Start
 
-1. **Get an API Key**: Generate your key from your [profile page](https://crowdcent.com/profile)
+1. **Get an API Key**: Generate your key from your [profile settings](https://crowdcent.com/profile/settings/)
 2. **Set up authentication**:
    ```bash
    export CROWDCENT_API_KEY=your_api_key_here

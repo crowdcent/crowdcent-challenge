@@ -49,7 +49,7 @@ The MCP server requires your CrowdCent API key.
     CROWDCENT_API_KEY=your_api_key_here
     ```
 
-You can get an API key from your [CrowdCent Account Page](https://crowdcent.com/account).
+You can get an API key from your [profile settings](https://crowdcent.com/profile/settings/).
 
 ### Agent Setup
 
