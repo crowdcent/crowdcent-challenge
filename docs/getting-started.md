@@ -75,3 +75,7 @@ For some challenges, the meta-model is published after an inference period ends.
 
 
 [![Meta-Model](overrides/assets/images/meta_model.png)](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/){:target="_blank"}
+
+## Simulate the Meta-Model
+
+Once the meta-model is published, put it to work: the [Simulator](simulator.md) turns it into long/short Hyperliquid portfolios you can backtest, sweep, and blend, no code required. Your [CC Points](points-system.md) unlock more of it tier by tier.

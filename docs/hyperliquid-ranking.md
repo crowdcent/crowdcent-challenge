@@ -271,6 +271,8 @@ The meta-model is available through multiple channels:
 - Via web: [https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/)
 - Via API: `client.download_meta_model(dest_path="meta_model.parquet")`
 
+You don't have to build portfolio construction yourself, either: the [Simulator](simulator.md) runs this meta-model through selectable weighting, risk, and cadence engines on real Hyperliquid data, right on the site.
+
 The meta-model is a parquet file with the following columns. New predictions are added daily, creating a time series with multiple release dates as shown in this sample:
 
 | id      | pred_10d | pred_30d | release_date |

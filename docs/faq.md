@@ -78,7 +78,11 @@ Your goal is to to predict relative performance metrics (e.g., returns) for diff
 
 ### What is the 'Meta-Model'?
 
-The meta-model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI. Real-time predictions are available to **Challenger+** tier (100+ CC Points); all other users receive 90-day delayed data. Performance scores are open to everyone. See [CC Points](points-system.md) for tier details.
+The meta-model typically represents an aggregation (e.g., an average or ensemble) of all valid user submissions for past inference periods within a specific challenge. It can serve as a benchmark or potentially as an additional feature for your own models. You can download it via the client or CLI, or run it through the [Simulator](simulator.md) as a long/short portfolio without writing any code. Real-time predictions are available to **Challenger+** tier (100+ CC Points); all other users receive 90-day delayed data. Performance scores are open to everyone. See [CC Points](points-system.md) for tier details.
+
+### Can I trade the meta-model?
+
+You can simulate it today: the [Simulator](simulator.md) backtests the meta-model as a long/short Hyperliquid portfolio with configurable weighting, risk, and cadence controls, and higher [CC Point](points-system.md) tiers unlock more of them. Live trading through CrowdCent is in a staff preview. For self-custody execution from your own machine, there is [cc-liquid](https://github.com/crowdcent/cc-liquid), our open-source CLI rebalancer. Nothing here is investment advice; see the [disclaimer](disclaimer.md).
 
 ## Submissions
 

@@ -10,6 +10,7 @@ nav:
       - Getting Started: getting-started.md
       - Scoring : scoring.md
       - Points System: points-system.md
+      - Simulator: simulator.md
       - FAQ: faq.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md
