@@ -101,6 +101,15 @@ As you accumulate CC Points, you'll progress through **5 tiers**—each with a u
 
 Higher tiers unlock greater recognition in the community and demonstrate your track record of consistent, quality predictions. Reaching **Challenger** also unlocks real-time [meta-model](hyperliquid-ranking.md#meta-model) predictions (users below Challenger receive 90-day delayed data).
 
+**Your Points = Your Toolkit.** Tiers also unlock the [Simulator](simulator.md), where the meta-model becomes a long/short Hyperliquid portfolio you can backtest:
+
+| Tier | Simulator unlocks |
+|:---|:---|
+| Everyone | Full-realism backtesting on 90-day delayed meta-model data |
+| **Challenger** | Real-time meta-model, Inverse-Vol & HRP weighting, parameter sweeps |
+| **Contender** | Risk & capacity controls, full sweep & blend budgets |
+| **Centurion** | Classified alpha controls |
+
 ## The Meta-Model: Why Points Matter
 
 The ultimate goal of the CrowdCent Challenge is to build a meta-model—an aggregate of all participants that outperforms any single participant on their own.
