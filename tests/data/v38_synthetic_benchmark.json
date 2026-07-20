@@ -1,0 +1,24 @@
+{
+  "label": "SYNTHETIC pipeline-wiring proof ONLY. NOT a live Hyperliquid result. Regenerate deliberately if xgboost/numpy is bumped.",
+  "config": {
+    "assets_per_period": 24,
+    "n_features": 12,
+    "seed": 11,
+    "library": "smoke"
+  },
+  "env": {
+    "xgboost": "3.2.0",
+    "numpy": "2.4.2",
+    "python": "3.12.3"
+  },
+  "selected_candidate_ids": ["primitive:bilstm"],
+  "outer_validation_start": "2026-11-23",
+  "outer_validation_end": "2026-12-01",
+  "outer_periods": 9,
+  "inner_periods": 45,
+  "n_evaluations": 119,
+  "outer_v38_points": 4.294074,
+  "outer_v36_points": -5.185627,
+  "outer_delta": 9.479701,
+  "tolerance_points_abs": 0.25
+}

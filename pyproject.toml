@@ -20,6 +20,15 @@ dependencies = [
 [project.scripts]
 crowdcent = "crowdcent_challenge.cli:cli"
 
+[project.optional-dependencies]
+validation-training = [
+    "centimators>=0.1.11",
+    "jax>=0.6.2",
+    "keras>=3.12.1",
+    "polars>=1.38.1",
+    "xgboost>=3.2.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
