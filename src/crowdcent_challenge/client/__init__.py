@@ -26,7 +26,7 @@ class ChallengeClient(DataAPI, SubmissionsAPI, SimulatorAPI, TradingAPI, BaseCli
     Handles authentication and provides methods for accessing challenge data,
     training datasets, inference data, and managing prediction submissions for
     a specific challenge identified by its slug — plus meta-model simulation
-    and (staff preview) live trading.
+    and live trading (staff preview until Trading GA).
     """
 
 

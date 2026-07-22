@@ -1,6 +1,6 @@
 # Using AI Agents
 
-The `crowdcent-challenge` package ships with a built-in Model Context Protocol (MCP) server, so AI assistants like Claude, Cursor, and Codex can work with the CrowdCent Challenge in natural language: download data, submit predictions, check performance, backtest portfolio constructions on the meta-model, and (for enabled accounts) manage live trading.
+The `crowdcent-challenge` package ships with a built-in Model Context Protocol (MCP) server, so AI assistants like Claude, Cursor, and Codex can work with the CrowdCent Challenge in natural language: download data, submit predictions, check performance, backtest portfolio constructions on the meta-model, and manage live trading (a staff preview until Trading GA).
 
 ## Setup
 
@@ -109,9 +109,9 @@ The server ships two prompts, packaged versions of the asks above that encode th
 - **`sweep_and_summarize`**: runs a sweep, tables in-sample and out-of-sample Sharpe, identifies the stable plateau rather than the single best cell, recommends one configuration from inside it, and hands you the site deep link.
 - **`morning_briefing`**: pulls your recent scores, account state, last rebalance results, and working orders, then narrates what needs your attention. Built for trading-enabled accounts; anyone can use it for the scoring summary.
 
-## Live trading (staff preview, opening with Trading GA)
+## Live trading (staff preview until Trading GA)
 
-For trading-enabled accounts, the same tools that power the site's Trading tab: inspect the mandate and target book, preview a rebalance, execute it after your explicit confirmation, flatten, pause, and read the run and order audit trail.
+For trading-enabled accounts, the same tools that power the site's Trading tab: inspect the mandate and target book, preview a rebalance, execute it after your explicit confirmation, flatten, pause, and read the run and order audit trail. The concepts (mandates, custody, the consent flow) are covered in [Live Trading](live-trading.md).
 
 ```
 "Set the mandate to the sweep config we just picked, preview the rebalance
@@ -123,6 +123,6 @@ Trading tools appear when your API key has live trading enabled (Settings → "A
 ## Troubleshooting
 
 - **"API key not provided"**: set `CROWDCENT_API_KEY` in the server's `env` block (local) or the `Authorization` header (hosted).
-- **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading is staff-only until Trading GA — without OMS access on your account, tools stay hidden and API calls would fail anyway.
+- **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading is in staff preview until Trading GA — without OMS access on your account, tools stay hidden and API calls would fail anyway.
 - **A knob didn't take effect**: simulation knobs above your points tier are clamped to your tier, and the response's `locked` list names which ones. Error messages state the tier and points needed to unlock.
 - **Submission format**: predictions need the challenge's required columns (for `hyperliquid-ranking`: `id`, `pred_10d`, `pred_30d`), and submissions are only open during the challenge's submission window.

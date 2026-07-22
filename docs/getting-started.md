@@ -43,7 +43,7 @@ There are two main ways to submit your predictions:
 See our [client quickstart guide](install-quickstart.md) for more details.
 
 ### 3. Via AI Agents (MCP Server)
-It's also possible to interact with challenges using AI agents like Cursor or Claude Desktop. This provides a natural language interface for downloading data, submitting, and more. See our [AI Agents (MCP) guide](ai-agents-mcp.md) for setup instructions.
+AI assistants like Claude Code and Cursor can drive the whole loop in natural language: download data, train and submit a model, and backtest the meta-model. Connect the hosted MCP server at `mcp.crowdcent.com` with your API key (nothing to install), or run it locally with one `uvx` line. See the [AI Agents (MCP) guide](ai-agents-mcp.md) for setup.
 
 ## Wait for Scores
 After an inference period's submission deadline passes, predictions will be evaluated. Your submission status and scores will be updated on your profile and the challenge leaderboard.
@@ -78,4 +78,4 @@ For some challenges, the meta-model is published after an inference period ends.
 
 ## Simulate the Meta-Model
 
-Once the meta-model is published, put it to work: the [Simulator](simulator.md) turns it into long/short Hyperliquid portfolios you can backtest, sweep, and blend, no code required. Your [CC Points](points-system.md) unlock more of it tier by tier.
+Once the meta-model is published, put it to work: the [Simulator](simulator.md) turns it into long/short Hyperliquid portfolios you can backtest, sweep, and blend, no code required. Your [CC Points](points-system.md) unlock more of it tier by tier. When a construction survives, [Live Trading](live-trading.md) deploys it as a mandate on your own Hyperliquid account (staff preview until Trading GA).

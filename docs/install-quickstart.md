@@ -135,6 +135,41 @@ Download the consolidated meta-model for a challenge. The meta-model typically r
     crowdcent download-meta-model -o ./data/meta_model.parquet
     ```
 
+## Simulation & Trading
+
+Backtest portfolio constructions on the meta-model, the community's aggregated ranking (not your own submission), with the same engine as the site's [Simulator](simulator.md). Nothing to download; the backtest runs server-side.
+
+```python
+# Backtest one construction: 5 long / 10 short, inverse-vol, 30-day tranched
+result = client.run_simulation(config={
+    "n_long": 5, "n_short": 10, "weighting": "inv_vol",
+    "rebalance_days": "30t", "include_funding": True,
+})
+result["stats"]       # sharpe, sortino, cagr, max_drawdown, ...
+result["oos_stats"]   # out-of-sample split
+result["web_url"]     # open this exact config on crowdcent.com
+
+# Grid-search constructions in one call (the client walks the whole grid)
+sweep = client.run_sweep(
+    config={"n_short": 10, "weighting": "inv_vol"},
+    sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
+)
+for row in sweep["results"]:
+    print(row["params"], row["oos_stats"]["sharpe"])
+
+# Blend weighted sleeves into one ensemble book
+blend = client.run_blend(sleeves=[
+    {"config": {"n_long": 5, "n_short": 10, "rebalance_days": "30t"}, "weight": 0.6},
+    {"config": {"n_long": 10, "n_short": 10, "rebalance_days": "5t"}, "weight": 0.4},
+])
+blend["correlation"]  # sleeve-by-sleeve correlation matrix
+```
+
+!!! tip "Read plateaus, not peaks"
+    Knobs above your CC Points tier are clamped, not rejected (`result["locked"]` names what changed). When reading a sweep, prefer a stable region over a single bright cell, and weight `oos_stats` over `is_stats`.
+
+The same tools work in natural language through the [MCP server](ai-agents-mcp.md), and the same client drives [Live Trading](live-trading.md) on Hyperliquid (`set_mandate`, `preview_rebalance`, `execute_rebalance`, ...), which is in staff preview until Trading GA.
+
 ## Submitting Predictions
 
 Submit your model's predictions for a challenge. The file must include an `id` column and the specific prediction columns required by the challenge (e.g., `pred_10d`, `pred_30d` for some challenges, or `pred_1M`, `pred_3M`, etc., for others). Always check the specific challenge documentation for the exact column names.

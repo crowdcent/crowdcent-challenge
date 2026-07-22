@@ -2,7 +2,7 @@
 
 Welcome to the documentation for the `crowdcent-challenge`. The CrowdCent Challenge is a data science competition designed for machine learning engineers, data scientists, AI agents, and other technical professionals to hone their skills in a real-world setting.
 
-Get started, learn about how we score submissions, explore the python client, or dive into the API reference.
+Get started, learn how we score submissions, backtest the meta-model in the Simulator, or connect your AI assistant.
 
 <div class="grid cards" markdown>
 
@@ -22,14 +22,29 @@ Get started, learn about how we score submissions, explore the python client, or
 
     [:octicons-arrow-right-24: View Scoring Details](scoring.md)
 
+-   :material-chart-line:{ .lg .middle } The Simulator
+
+    ---
+
+    Backtest the meta-model as long/short portfolios: sweeps, sleeves, and tier unlocks, then deploy via [Live Trading](live-trading.md).
+
+    [:octicons-arrow-right-24: Explore the Simulator](simulator.md)
+
 -   :material-language-python:{ .lg .middle } Python Client Quick Start
 
     ---
 
-    Install the client library and make your first submission programmatically.
+    Install the client library, submit programmatically, and run simulations from Python.
 
     [:octicons-arrow-right-24: Quick Start Guide](install-quickstart.md)
 
+-   :material-robot:{ .lg .middle } AI Agents (MCP)
+
+    ---
+
+    Connect Claude Code, Cursor, or any MCP client to the hosted server, nothing to install.
+
+    [:octicons-arrow-right-24: Connect an Assistant](ai-agents-mcp.md)
 
 -   :material-help:{ .lg .middle } FAQ
 

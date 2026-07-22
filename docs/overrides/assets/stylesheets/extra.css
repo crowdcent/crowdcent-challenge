@@ -100,14 +100,12 @@
     .md-typeset code {
         background-color: var(--md-code-bg-color);
         color: var(--md-code-fg-color);
-        border-radius: var(--border-radius-sm) !important;
     }
     .md-typeset pre code { /* Ensure text color inside pre is also set */
        color: var(--md-code-fg-color);
     }
     .md-typeset pre {
         background-color: var(--md-code-bg-color);
-        border-radius: var(--border-radius-md) !important;
         border: 1px solid var(--dark-border-color);
     }
 
@@ -272,14 +270,12 @@
     .md-typeset code {
         background-color: var(--md-code-bg-color);
         color: var(--md-code-fg-color);
-        border-radius: var(--border-radius-sm) !important;
     }
      .md-typeset pre code { /* Ensure text color inside pre is also set */
        color: var(--md-code-fg-color);
     }
     .md-typeset pre {
         background-color: var(--md-code-bg-color);
-        border-radius: var(--border-radius-md) !important;
         border: 1px solid var(--light-border-color);
     }
 
@@ -414,4 +410,242 @@
     content: "↗";
     font-size: smaller;
     margin-left: 0.2em;
+}
+/*=========================================================================
+  5. CrowdCent Geometry (site canon: sharp corners)
+=========================================================================*/
+.md-typeset code,
+.md-typeset pre,
+.md-typeset pre > code,
+.md-typeset .admonition,
+.md-typeset .admonition-title,
+.md-button,
+.md-search__form,
+.md-search__input,
+.md-typeset .tabbed-set,
+.md-typeset .tabbed-content,
+.md-typeset .tabbed-labels > label,
+.md-typeset .grid.cards > :is(ul, ol) > li,
+.md-typeset .grid > .card {
+    border-radius: 0 !important;
+}
+
+/* Overview grid cards: the cc-django card, verbatim.
+   Site canon: --card-bg #0a2936 on #001926, border accent-20 hairline,
+   sharp corners, shadow 0 2px 5px, and NO hover effects (transition: none). */
+.md-typeset .grid.cards > :is(ul, ol) > li {
+    transition: none;
+}
+.md-typeset .grid.cards > :is(ul, ol) > li:hover {
+    transform: none !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    border-color: rgba(98, 228, 251, 0.2);
+}
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li {
+    background-color: #0a2936;               /* --bg-dark-subtle */
+    border: 1px solid rgba(98, 228, 251, 0.2); /* --accent-20 */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);  /* --card-shadow */
+}
+[data-md-color-scheme="default"] .md-typeset .grid.cards > :is(ul, ol) > li {
+    border: 1px solid var(--light-border-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+[data-md-color-scheme="default"] .md-typeset .grid.cards > :is(ul, ol) > li:hover {
+    border-color: var(--light-border-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+/* Card title row: the site's monospace uppercase micro-label idiom
+   ("| STRATEGY", "CUMULATIVE RETURN") — terminal labels over Poppins body. */
+.md-typeset .grid.cards > :is(ul, ol) > li > p:first-child {
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li > p:first-child {
+    color: var(--dark-text-primary);
+}
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li > hr {
+    border-bottom: 1px solid rgba(98, 228, 251, 0.2);
+}
+
+/*=========================================================================
+  6. Notebook tutorials (mkdocs-jupyter): match the docs theme
+=========================================================================*/
+/* Shared: sharp corners + mono prompts */
+.jupyter-wrapper .jp-InputArea-editor,
+.jupyter-wrapper .jp-Cell-inputWrapper,
+.jupyter-wrapper .jp-OutputArea-output,
+.jupyter-wrapper .CodeMirror,
+.jupyter-wrapper .cm-editor {
+    border-radius: 0 !important;
+}
+.jupyter-wrapper .jp-InputPrompt,
+.jupyter-wrapper .jp-OutputPrompt {
+    font-family: "Consolas", "Monaco", monospace;
+}
+/* Soften stderr/log noise in light mode too */
+[data-md-color-scheme="default"] .jupyter-wrapper .jp-OutputArea-output[data-mime-type="application/vnd.jupyter.stderr"] {
+    background: #fdf6ec;
+}
+
+/* Dark scheme: JupyterLab vars mapped to CrowdCent tokens */
+[data-md-color-scheme="slate"] .jupyter-wrapper {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.87);
+    --jp-layout-color0: transparent;
+    --jp-layout-color1: var(--dark-bg-primary);
+    --jp-layout-color2: var(--dark-bg-secondary);
+    --jp-layout-color3: #0a2936;
+    --jp-border-color0: var(--dark-border-color);
+    --jp-border-color1: var(--dark-border-color);
+    --jp-border-color2: var(--dark-border-color);
+    --jp-border-color3: var(--dark-border-color);
+    --jp-content-font-color0: #ffffff;
+    --jp-content-font-color1: rgba(255, 255, 255, 0.87);
+    --jp-content-font-color2: rgba(255, 255, 255, 0.6);
+    --jp-content-font-color3: rgba(255, 255, 255, 0.5);
+    --jp-content-link-color: var(--brand-accent);
+    --jp-cell-editor-background: var(--dark-bg-secondary);
+    --jp-cell-editor-border-color: var(--dark-border-color);
+    --jp-cell-prompt-not-active-font-color: var(--dark-text-muted);
+    /* CodeMirror tokens: the site's data-viz accent palette */
+    --jp-mirror-editor-keyword-color: #62e4fb;
+    --jp-mirror-editor-builtin-color: #a78bfa;
+    --jp-mirror-editor-def-color: #7bd4ff;
+    --jp-mirror-editor-variable-color: rgba(255, 255, 255, 0.87);
+    --jp-mirror-editor-variable-2-color: #7bd4ff;
+    --jp-mirror-editor-string-color: #3ddc97;
+    --jp-mirror-editor-string-2-color: #3ddc97;
+    --jp-mirror-editor-number-color: #ffb86c;
+    --jp-mirror-editor-atom-color: #ffb86c;
+    --jp-mirror-editor-comment-color: rgba(255, 255, 255, 0.45);
+    --jp-mirror-editor-operator-color: #62e4fb;
+    --jp-mirror-editor-meta-color: #62e4fb;
+    --jp-mirror-editor-punctuation-color: rgba(255, 255, 255, 0.7);
+    --jp-mirror-editor-bracket-color: rgba(255, 255, 255, 0.7);
+    --jp-mirror-editor-attribute-color: #7bd4ff;
+    --jp-mirror-editor-property-color: #7bd4ff;
+    --jp-mirror-editor-error-color: #ff6b6b;
+    --jp-mirror-editor-tag-color: #62e4fb;
+    --jp-mirror-editor-link-color: var(--brand-accent);
+    --jp-mirror-editor-header-color: var(--brand-accent);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper .jp-InputArea-editor {
+    background: var(--dark-bg-secondary);
+    border: 1px solid var(--dark-border-color);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper .jp-OutputArea-output {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.87);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper .jp-OutputArea-output[data-mime-type="application/vnd.jupyter.stderr"] {
+    background: rgba(255, 184, 108, 0.07);
+    color: rgba(255, 255, 255, 0.7);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper table.dataframe {
+    color: rgba(255, 255, 255, 0.87);
+    border: 1px solid var(--dark-border-color);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper table.dataframe thead th {
+    background: var(--dark-bg-secondary);
+    color: #ffffff;
+    border-bottom: 1px solid var(--dark-border-color);
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper table.dataframe tbody tr:nth-child(odd) {
+    background: transparent;
+}
+[data-md-color-scheme="slate"] .jupyter-wrapper table.dataframe tbody tr:hover {
+    background: rgba(98, 228, 251, 0.08);
+}
+
+/* Notebook syntax: nbconvert emits pygments classes (.highlight-ipynb),
+   not CodeMirror vars — map tokens to the same site palette. */
+[data-md-color-scheme="slate"] .jupyter-wrapper .jp-InputPrompt,
+[data-md-color-scheme="slate"] .jupyter-wrapper .jp-OutputPrompt {
+    color: var(--dark-text-muted) !important;
+}
+[data-md-color-scheme="slate"] .highlight-ipynb { background: transparent; }
+[data-md-color-scheme="slate"] .highlight-ipynb .k,
+[data-md-color-scheme="slate"] .highlight-ipynb .kn,
+[data-md-color-scheme="slate"] .highlight-ipynb .kd,
+[data-md-color-scheme="slate"] .highlight-ipynb .ow { color: #62e4fb; font-weight: 500; }
+[data-md-color-scheme="slate"] .highlight-ipynb .kc { color: #ffb86c; }
+[data-md-color-scheme="slate"] .highlight-ipynb .n,
+[data-md-color-scheme="slate"] .highlight-ipynb .nn,
+[data-md-color-scheme="slate"] .highlight-ipynb .p { color: rgba(255, 255, 255, 0.87); }
+[data-md-color-scheme="slate"] .highlight-ipynb .nb { color: #a78bfa; }
+[data-md-color-scheme="slate"] .highlight-ipynb .nf,
+[data-md-color-scheme="slate"] .highlight-ipynb .fm,
+[data-md-color-scheme="slate"] .highlight-ipynb .nd { color: #7bd4ff; }
+[data-md-color-scheme="slate"] .highlight-ipynb .s,
+[data-md-color-scheme="slate"] .highlight-ipynb .s1,
+[data-md-color-scheme="slate"] .highlight-ipynb .s2,
+[data-md-color-scheme="slate"] .highlight-ipynb .sa,
+[data-md-color-scheme="slate"] .highlight-ipynb .sd { color: #3ddc97; }
+[data-md-color-scheme="slate"] .highlight-ipynb .mi,
+[data-md-color-scheme="slate"] .highlight-ipynb .mf { color: #ffb86c; }
+[data-md-color-scheme="slate"] .highlight-ipynb .c,
+[data-md-color-scheme="slate"] .highlight-ipynb .c1,
+[data-md-color-scheme="slate"] .highlight-ipynb .ch { color: rgba(255, 255, 255, 0.45); font-style: italic; }
+[data-md-color-scheme="slate"] .highlight-ipynb .o,
+[data-md-color-scheme="slate"] .highlight-ipynb .op { color: rgba(255, 255, 255, 0.7); }
+[data-md-color-scheme="slate"] .highlight-ipynb .err {
+    color: #ff6b6b;
+    border: none;
+    background: transparent;
+}
+
+/* Card action links: the site's chip idiom (square, mono, uppercase).
+   The whole card is a click target via the stretched overlay; hover
+   feedback comes from the chip flipping to its solid active state —
+   the card itself stays static per the no-hover canon. */
+.md-typeset .grid.cards > :is(ul, ol) > li {
+    position: relative;
+}
+.md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a {
+    display: inline-block;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.62rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid;
+    border-radius: 0 !important;
+}
+.md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+/* Inline links in the card body stay clickable above the overlay */
+.md-typeset .grid.cards > :is(ul, ol) > li > p:not(:last-child) a {
+    position: relative;
+    z-index: 1;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a {
+    color: var(--brand-accent);
+    border-color: rgba(98, 228, 251, 0.4);
+    background: transparent;
+}
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li:hover > p:last-child > a,
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a:hover {
+    background: var(--brand-accent);
+    border-color: var(--brand-accent);
+    color: var(--dark-bg-primary);
+}
+[data-md-color-scheme="default"] .md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a {
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    background: transparent;
+}
+[data-md-color-scheme="default"] .md-typeset .grid.cards > :is(ul, ol) > li:hover > p:last-child > a,
+[data-md-color-scheme="default"] .md-typeset .grid.cards > :is(ul, ol) > li > p:last-child > a:hover {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: #ffffff;
 }

@@ -82,7 +82,7 @@ The meta-model typically represents an aggregation (e.g., an average or ensemble
 
 ### Can I trade the meta-model?
 
-You can simulate it today: the [Simulator](simulator.md) backtests the meta-model as a long/short Hyperliquid portfolio with configurable weighting, risk, and cadence controls, and higher [CC Point](points-system.md) tiers unlock more of them. Live trading through CrowdCent is in a staff preview. For self-custody execution from your own machine, there is [cc-liquid](https://github.com/crowdcent/cc-liquid), our open-source CLI rebalancer. Nothing here is investment advice; see the [disclaimer](disclaimer.md).
+You can simulate it today: the [Simulator](simulator.md) backtests the meta-model as a long/short Hyperliquid portfolio with configurable weighting, risk, and cadence controls, and higher [CC Point](points-system.md) tiers unlock more of them. [Live Trading](live-trading.md) through CrowdCent is in staff preview until Trading GA. For self-custody execution from your own machine, there is [cc-liquid](https://github.com/crowdcent/cc-liquid), our open-source CLI rebalancer. Nothing here is investment advice; see the [disclaimer](disclaimer.md).
 
 ## Submissions
 
