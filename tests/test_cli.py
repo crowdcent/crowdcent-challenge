@@ -384,7 +384,9 @@ def test_submit_partial_success_queue_rejected(
     )
     assert result.exit_code == 0
     assert "Submission successful!" in result.output
-    assert "Queue copy was rejected (EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP)" in result.output
+    assert (
+        "Queue copy was rejected (EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP)" in result.output
+    )
     assert "Also queued for next period." not in result.output
 
 

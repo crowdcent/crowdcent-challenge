@@ -1,108 +1,128 @@
 # Using AI Agents
 
-CrowdCent provides a Model Context Protocol (MCP) server that enables direct interaction with the CrowdCent Challenge API from AI agents and assistants like Cursor or Claude Desktop. This allows you to use natural language to perform challenge-related-tasks such as downloading data, training models, and submitting predictions.
+The `crowdcent-challenge` package ships with a built-in Model Context Protocol (MCP) server, so AI assistants like Claude, Cursor, and Codex can work with the CrowdCent Challenge in natural language: download data, submit predictions, check performance, backtest portfolio constructions on the meta-model, and (for enabled accounts) manage live trading.
 
-The MCP server is a separate, open-source project.
+## Setup
 
-- **Repository**: [crowdcent/crowdcent-mcp](https://github.com/crowdcent/crowdcent-mcp)
+**1. Get an API key.** Create an account at [crowdcent.com](https://crowdcent.com) and generate a key in your [profile settings](https://crowdcent.com/profile/settings/).
 
-[![MCP Server Startup](overrides/assets/images/mcp-startup.png)](https://github.com/crowdcent/crowdcent-mcp){:target="_blank"}
+**2. Connect.** There are two ways: the hosted server, which needs nothing installed, or a local server run with `uvx`.
 
+=== "Hosted (nothing to install)"
 
-## Example Prompts
+    Add `https://mcp.crowdcent.com/mcp` to any client that supports remote MCP servers over HTTP, using your API key as a bearer token.
 
-Once the server is running and your agent is configured, you can use natural language prompts.
+    Claude Code:
 
-**Example Prompts:**
-
-```
-"Download the latest CrowdCent training data and show me the first 5 rows."
-```
-
-```
-"Submit predictions from 'predictions.parquet' to the CrowdCent challenge."
-```
-
-## Installation
-
-1.  **Clone the server repository**:
     ```bash
-    git clone https://github.com/crowdcent/crowdcent-mcp.git
-    cd crowdcent-mcp
+    claude mcp add --transport http crowdcent https://mcp.crowdcent.com/mcp \
+      --header "Authorization: Bearer YOUR_API_KEY"
     ```
 
-2.  **Install dependencies**:
-    The project uses `uv` for package management.
-    ```bash
-    uv pip install -e .
-    ```
-
-## Configuration
-
-### API Key
-
-The MCP server requires your CrowdCent API key.
-
-1.  Create a `.env` file in the `crowdcent-mcp` directory.
-2.  Add your key to the file:
-    ```
-    CROWDCENT_API_KEY=your_api_key_here
-    ```
-
-You can get an API key from your [profile settings](https://crowdcent.com/profile/settings/).
-
-### Agent Setup
-
-You'll need to point your AI agent to the local MCP server.
-
-=== "Cursor"
-
-    To integrate the MCP server with Cursor:
-
-    1.  Open your Cursor settings (`~/.cursor/mcp.json` or through the UI).
-    2.  Add the following server configuration:
-
-        ```json
-        {
-          "mcpServers": {
-            "crowdcent-mcp": {
-              "command": "/path/to/your/uv",
-              "args": [
-                "run",
-                "--directory", "/path/to/crowdcent-mcp",
-                "server.py"
-              ]
-            }
-          }
-        }
-        ```
-
-=== "Claude Desktop"
-
-    For Claude Desktop, add the following to your configuration file:
-
-    -   **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-    -   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-    -   **Linux**: `~/.config/Claude/claude_desktop_config.json`
+    Cursor / VS Code (`mcp.json`):
 
     ```json
     {
       "mcpServers": {
-        "crowdcent-mcp": {
-          "command": "uv",
-          "args": [
-            "run",
-            "--directory", "/path/to/crowdcent-mcp",
-            "server.py"
-          ]
+        "crowdcent": {
+          "url": "https://mcp.crowdcent.com/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY"
+          }
         }
       }
     }
     ```
 
-!!! warning "Use Absolute Paths"
+    The hosted server is a stateless pass-through to the CrowdCent API: it stores nothing, and your key simply authenticates each request the same way the Python client does. Instead of writing files to disk, it hands your assistant signed download URLs (`get_training_dataset_url`, `get_inference_data_url`, `get_meta_model_url`), which agents with a terminal or fetch tool can use directly.
 
-    In all configurations, replace `/path/to/your/uv` and `/path/to/crowdcent-mcp` with the absolute paths on your system. For example, `uv` is often located at `~/.cargo/bin/uv`.
+=== "Local (one line, no clone)"
 
+    If you prefer running locally, or want the file-download and file-submission tools, configure your client with a single `uvx` command:
 
-For detailed troubleshooting, please refer to the [crowdcent-mcp repository](https://github.com/crowdcent/crowdcent-mcp).
+    ```json
+    {
+      "mcpServers": {
+        "crowdcent": {
+          "command": "uvx",
+          "args": ["--from", "crowdcent-challenge[mcp]", "crowdcent-mcp"],
+          "env": {"CROWDCENT_API_KEY": "your_api_key_here"}
+        }
+      }
+    }
+    ```
+
+    That is the whole setup: no repository to clone, no absolute paths, and the server always matches the client library it ships with.
+
+**3. Say hello.** Confirm the connection with a first ask:
+
+```
+"List the CrowdCent challenges and tell me about the current inference period."
+```
+
+## What to ask
+
+You don't need to know the tool names, just describe what you want. Some starting points, roughly in the order of a CrowdCent journey:
+
+**Explore the challenge**
+
+```
+"What does the hyperliquid-ranking challenge involve, and what would I submit?"
+"Show my recent submissions and how they scored."
+```
+
+**Build and submit a model.** Your assistant can run the whole loop: pull data, write and train a model in your workspace, and submit the predictions, all in one conversation.
+
+```
+"Download the latest CrowdCent training data, explore it, and train a
+baseline ranking model. Predict the current inference period and show me
+the predictions before submitting."
+```
+
+Coding agents like Claude Code and Cursor handle this end to end. Chat-only clients can still fetch data via the signed-URL tools and submit inline from a dataframe.
+
+**Backtest on the meta-model.** The simulation tools answer "how would trading the community's aggregated signal have performed?" with the same engine, tier gates, and honesty stance as the site's Simulation tab. Sweep configurations, blend sleeves, and compare in-sample against out-of-sample.
+
+```
+"Backtest 10 long / 10 short equal weight on the meta-model, rebalanced
+every 10 days with funding on, and give me the link to view it on the site."
+
+"Sweep leg size 5/10/20 and cadence 1/5/10 days on the meta-model, and tell
+me where the stable region is, in-sample and out."
+
+"Blend a fast small-book sleeve with a slower HRP sleeve 60/40 and show the
+combined out-of-sample stats and correlation."
+```
+
+The sweep tool's own guidance applies: read plateaus, not peaks. A lone bright cell is luck; a bright region is structure. Every result includes a `web_url` deep link, so anything your assistant finds can be opened and inspected on crowdcent.com.
+
+**Check in each morning** (trading-enabled accounts):
+
+```
+"Give me my CrowdCent morning briefing."
+```
+
+## Built-in workflows
+
+The server ships two prompts, packaged versions of the asks above that encode the recommended workflow. In Claude Code they appear as slash commands (`/mcp__crowdcent__sweep_and_summarize`, `/mcp__crowdcent__morning_briefing`); other clients surface them in their prompt picker.
+
+- **`sweep_and_summarize`**: runs a sweep, tables in-sample and out-of-sample Sharpe, identifies the stable plateau rather than the single best cell, recommends one configuration from inside it, and hands you the site deep link.
+- **`morning_briefing`**: pulls your recent scores, account state, last rebalance results, and working orders, then narrates what needs your attention. Built for trading-enabled accounts; anyone can use it for the scoring summary.
+
+## Live trading (staff preview, opening with Trading GA)
+
+For trading-enabled accounts, the same tools that power the site's Trading tab: inspect the mandate and target book, preview a rebalance, execute it after your explicit confirmation, flatten, pause, and read the run and order audit trail.
+
+```
+"Set the mandate to the sweep config we just picked, preview the rebalance
+on testnet, and walk me through the plan before executing anything."
+```
+
+Trading tools appear when your API key has live trading enabled (Settings → "Allow live trading") and your account has OMS access (staff preview until Trading GA). That is the same locally and on the hosted server. Execution is always two-step: the assistant previews a plan, shows it to you, and needs the preview's `plan_hash` (valid for 10 minutes) to execute. Every cap and gate is enforced server-side, and custody never moves: agent keys are trade-only, never-withdraw, and stay encrypted on CrowdCent's side. The MCP server holds nothing but your API key.
+
+## Troubleshooting
+
+- **"API key not provided"**: set `CROWDCENT_API_KEY` in the server's `env` block (local) or the `Authorization` header (hosted).
+- **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading is staff-only until Trading GA — without OMS access on your account, tools stay hidden and API calls would fail anyway.
+- **A knob didn't take effect**: simulation knobs above your points tier are clamped to your tier, and the response's `locked` list names which ones. Error messages state the tier and points needed to unlock.
+- **Submission format**: predictions need the challenge's required columns (for `hyperliquid-ranking`: `id`, `pred_10d`, `pred_30d`), and submissions are only open during the challenge's submission window.

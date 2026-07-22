@@ -15,3 +15,5 @@ wheels/
 *.csv
 *.parquet
 .env
+# mkdocs build output
+site/

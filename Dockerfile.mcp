@@ -1,0 +1,18 @@
+# Hosted MCP server (mcp.crowdcent.com): a stateless protocol translator in
+# front of https://crowdcent.com/api. Bearer tokens are CrowdCent API keys, 
+# verified via /api/auth/check/.
+#
+# Build:  docker build -f Dockerfile.mcp -t crowdcent-mcp .
+# Run:    docker run -p 8080:8080 crowdcent-mcp
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+RUN uv pip install --system --no-cache ".[mcp]" sentry-sdk
+
+ENV CROWDCENT_MCP_MODE=hosted
+# Cloud Run injects PORT; stateless HTTP lets instances scale without
+# session affinity.
+CMD exec uvicorn --factory crowdcent_challenge.mcp_server.app:http_app \
+    --host 0.0.0.0 --port ${PORT:-8080}

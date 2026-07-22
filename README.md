@@ -26,7 +26,7 @@ The CrowdCent Challenge is an open data science competition designed for machine
 ## What is CrowdCent?
 CrowdCent is on a mission to decentralize investment management by changing the way investment funds make decisions and allocate capital. We are the machine learning and coordination layer for online investment communities looking to turn their data into [actionable, investable portfolios](https://docs.crowdcent.com/simulator/).
 
-## 📦 Installation
+## Installation
 
 [![uv](https://img.shields.io/badge/uv-Recommended-6B57FF?style=flat-square)](https://github.com/astral-sh/uv)
 [![pip](https://img.shields.io/badge/pip-Compatible-blue?style=flat-square)](https://pip.pypa.io/)
@@ -41,7 +41,7 @@ uv add crowdcent-challenge
 pip install crowdcent-challenge
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Get an API Key**: Generate your key from your [profile settings](https://crowdcent.com/profile/settings/)
 2. **Set up authentication**:
@@ -75,7 +75,7 @@ pip install crowdcent-challenge
    )
    ```
 
-## 🏆 Available Challenges
+## Available Challenges
 
 - **[Hyperliquid Ranking](https://crowdcent.com/challenge/hyperliquid-ranking)**: Rank crypto assets on Hyperliquid by expected relative returns
 [![Hyperliquid Challenge](https://img.shields.io/badge/Challenge-Hyperliquid%20Ranking-blue?style=flat-square)](https://crowdcent.com/challenge/hyperliquid-ranking)
@@ -83,7 +83,7 @@ pip install crowdcent-challenge
 - **Equity NLP**: Coming soon!
 [![Equity NLP](https://img.shields.io/badge/Challenge-Equity%20NLP-gray?style=flat-square)](https://crowdcent.com/challenge)
 
-## 💻 CLI Usage
+## CLI Usage
 
 The package includes a command-line interface:
 ```bash
@@ -107,14 +107,21 @@ crowdcent submit predictions.parquet --slot 2 --experimental \
 
 **Documentation**: [docs.crowdcent.com](https://docs.crowdcent.com)
 
-## 🤖 AI Agents Integration
+## AI Agents / MCP Server
 
-CrowdCent provides a Model Context Protocol (MCP) server that enables direct interaction with the Challenge API from AI agents like Cursor or Claude Desktop using natural language.
+This package ships with a built-in Model Context Protocol (MCP) server, so assistants like Claude and Cursor can download data, submit predictions, backtest strategies on the meta-model, and check your performance in natural language. Connect the hosted server at `https://mcp.crowdcent.com/mcp` with your API key, or run it locally with one line:
 
-**MCP Server**: [github.com/crowdcent/crowdcent-mcp](https://github.com/crowdcent/crowdcent-mcp)
-[![MCP Server](https://img.shields.io/badge/MCP%20Server-GitHub-black?style=flat-square&logo=github)](https://github.com/crowdcent/crowdcent-mcp)
+```json
+{"mcpServers": {"crowdcent": {
+  "command": "uvx",
+  "args": ["--from", "crowdcent-challenge[mcp]", "crowdcent-mcp"],
+  "env": {"CROWDCENT_API_KEY": "your_api_key_here"}
+}}}
+```
 
-## 🤝 Contributing
+See the [AI Agents guide](https://docs.crowdcent.com/ai-agents-mcp/) for hosted setup, the simulation tools, and the trading preview.
+
+## Contributing
 
 Contributions are welcome! The `crowdcent-challenge` client library and documentation are open source.
 
@@ -123,7 +130,7 @@ See our [contributing guidelines](https://docs.crowdcent.com/contributing/) for 
 - Setting up development environment
 - Making changes and submitting PRs
 
-## 📬 Have Questions?
+## Have Questions?
 
 [![Documentation](https://img.shields.io/badge/Documentation-docs.crowdcent.com-orange?style=for-the-badge)](https://docs.crowdcent.com)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289DA?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/v6ZSGuTbQS)

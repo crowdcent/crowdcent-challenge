@@ -124,12 +124,13 @@ def test_evaluate_hyperliquid_submission():
 
     y_true_30d_raw = np.random.randn(n)
     y_pred_30d_raw = y_true_30d_raw + np.random.randn(n) * 0.5
-    
+
     # Convert to normalized ranks in [0, 1]
     from scipy.stats import rankdata
+
     y_true_10d = rankdata(y_true_10d_raw) / n
     y_pred_10d = rankdata(y_pred_10d_raw) / n
-    
+
     y_true_30d = rankdata(y_true_30d_raw) / n
     y_pred_30d = rankdata(y_pred_30d_raw) / n
 
@@ -211,18 +212,18 @@ def test_orthogonal_ic_perfect_unique_signal():
     """When unique signal perfectly predicts target, OIC should be high."""
     np.random.seed(42)
     n = 100
-    
+
     # Meta model: random
     meta_pred = np.random.rand(n)
-    
+
     # Target: completely orthogonal to meta
     # Create target from noise that's uncorrelated with meta
     y_true = np.random.rand(n)
-    
+
     # User prediction: matches target (but has some meta exposure too)
     # After neutralizing to meta, the residual should still correlate with target
     y_pred = y_true.copy()
-    
+
     score = orthogonal_ic(y_true, y_pred, meta_pred)
     # Should be positive since y_pred's orthogonal part predicts y_true
     assert score > 0.5
@@ -232,11 +233,11 @@ def test_orthogonal_ic_no_unique_signal():
     """When predictions are just meta, OIC should be near zero."""
     np.random.seed(42)
     n = 100
-    
+
     meta_pred = np.random.rand(n)
     y_true = np.random.rand(n)  # Unrelated to meta
     y_pred = meta_pred.copy()  # Predictions are exactly meta
-    
+
     score = orthogonal_ic(y_true, y_pred, meta_pred)
     # After neutralizing, residual is ~0, so correlation is undefined/near 0
     assert abs(score) < 0.3
@@ -246,12 +247,12 @@ def test_orthogonal_ic_wrong_unique_signal():
     """When unique signal is anti-correlated with target, OIC should be negative."""
     np.random.seed(42)
     n = 100
-    
+
     meta_pred = np.random.rand(n)
     y_true = np.random.rand(n)
     # Predictions are opposite of target
     y_pred = 1 - y_true
-    
+
     score = orthogonal_ic(y_true, y_pred, meta_pred)
     # Should be negative since unique part predicts incorrectly
     assert score < -0.5
@@ -261,11 +262,11 @@ def test_orthogonal_ic_constant_meta():
     """When meta is constant, all of y_pred is orthogonal."""
     np.random.seed(42)
     n = 100
-    
+
     meta_pred = np.full(n, 0.5)  # Constant meta
     y_true = np.random.rand(n)
     y_pred = y_true + np.random.rand(n) * 0.3  # Correlated with target
-    
+
     score = orthogonal_ic(y_true, y_pred, meta_pred)
     # Should be positive - all of y_pred is "orthogonal" to constant meta
     assert score > 0.3
@@ -300,6 +301,7 @@ def test_orthogonal_ic_range():
 def test_neutralize_predictions_removes_meta_exposure():
     """After neutralization, residuals should be uncorrelated with meta."""
     from scipy.stats import pearsonr
+
     np.random.seed(42)
     n = 100
 
@@ -308,7 +310,7 @@ def test_neutralize_predictions_removes_meta_exposure():
     y_pred = meta_pred * 0.8 + np.random.rand(n) * 0.2
 
     residual = neutralize_predictions(y_pred, meta_pred)
-    
+
     # Residual should be ~uncorrelated with meta
     corr, _ = pearsonr(residual, meta_pred)
     assert abs(corr) < 0.1
@@ -318,7 +320,7 @@ def test_neutralize_predictions_constant_meta():
     """When meta is constant, residual is mean-centered (intercept absorbs mean)."""
     y_pred = np.array([0.1, 0.5, 0.9])
     meta_pred = np.array([0.5, 0.5, 0.5])
-    
+
     residual = neutralize_predictions(y_pred, meta_pred)
     # Ranks are preserved (same ordering as y_pred)
     np.testing.assert_array_almost_equal(residual, y_pred - np.mean(y_pred))
@@ -334,10 +336,10 @@ def test_unique_spearman_matches_orthogonal_ic_default():
     y_true = np.random.rand(n)
     y_pred = np.random.rand(n)
     meta_pred = np.random.rand(n)
-    
+
     score1 = unique_spearman(y_true, y_pred, meta_pred)
     score2 = orthogonal_ic(y_true, y_pred, meta_pred)
-    
+
     assert np.isclose(score1, score2)
 
 
@@ -363,13 +365,13 @@ def test_unique_ndcg_perfect_unique_signal():
 
     # Meta: random
     meta_pred = np.random.rand(n)
-    
+
     # Target: distinct from meta
     y_true = np.random.rand(n)
-    
+
     # User prediction: matches target well
     y_pred = y_true + np.random.rand(n) * 0.1
-    
+
     score = unique_ndcg(y_true, y_pred, meta_pred, k=40)
     # Should be reasonably high since y_pred's unique part predicts y_true
     assert score > 0.5
@@ -382,10 +384,10 @@ def test_unique_ndcg_vs_unique_spearman_different():
     y_true = np.random.rand(n)
     y_pred = np.random.rand(n)
     meta_pred = np.random.rand(n)
-    
+
     spearman_score = unique_spearman(y_true, y_pred, meta_pred)
     ndcg_score = unique_ndcg(y_true, y_pred, meta_pred, k=40)
-    
+
     # They measure different things, so shouldn't be identical
     # (though could be close by chance)
     # Just verify both compute without error and are in valid ranges
@@ -410,8 +412,12 @@ def test_evaluate_hyperliquid_uniqueness_keys_and_ranges():
     meta_pred_30d = rankdata(np.random.randn(n)) / n
 
     scores = evaluate_hyperliquid_uniqueness(
-        y_true_10d, y_pred_10d, meta_pred_10d,
-        y_true_30d, y_pred_30d, meta_pred_30d,
+        y_true_10d,
+        y_pred_10d,
+        meta_pred_10d,
+        y_true_30d,
+        y_pred_30d,
+        meta_pred_30d,
     )
 
     assert set(scores.keys()) == {

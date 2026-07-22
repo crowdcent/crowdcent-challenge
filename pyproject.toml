@@ -1,6 +1,6 @@
 [project]
 name = "crowdcent-challenge"
-version = "0.1.22"
+version = "0.2.0"
 description = "CrowdCent Challenge Python Client"
 readme = "README.md"
 authors = [
@@ -17,8 +17,12 @@ dependencies = [
     "tqdm>=4.66.0",
 ]
 
+[project.optional-dependencies]
+mcp = ["fastmcp>=3,<4", "pyarrow>=14.0.0"]
+
 [project.scripts]
 crowdcent = "crowdcent_challenge.cli:cli"
+crowdcent-mcp = "crowdcent_challenge.mcp_server.app:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -38,6 +42,7 @@ dev-dependencies = [
     "jupyter>=1.1.1",
     "ruff>=0.11.5",
     "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
     "pytest-cov>=5.0.0",
     "requests-mock>=1.12.1",
     "centimators>=0.1.2",
@@ -61,3 +66,6 @@ crowdcent-challenge = { workspace = true }
 exclude = [
   "docs/**",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

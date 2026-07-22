@@ -54,7 +54,7 @@ def test_client_init_with_env_var(monkeypatch):
     assert "Api-Key env_api_key" in client.session.headers["Authorization"]
 
 
-@patch("crowdcent_challenge.client.load_dotenv")
+@patch("crowdcent_challenge.client.base.load_dotenv")
 def test_client_init_with_dotenv(mock_load_dotenv, monkeypatch):
     """Test initialization with API key from .env file.
 
@@ -75,7 +75,7 @@ def test_client_init_with_dotenv(mock_load_dotenv, monkeypatch):
     mock_load_dotenv.assert_called_once()  # Verify load_dotenv was actually called
 
 
-@patch("crowdcent_challenge.client.load_dotenv")
+@patch("crowdcent_challenge.client.base.load_dotenv")
 def test_client_init_no_key(mock_load_dotenv):
     """Test client initialization fails when no API key is found."""
     # Mock load_dotenv to do nothing (no .env file)
@@ -85,7 +85,7 @@ def test_client_init_no_key(mock_load_dotenv):
         ChallengeClient(challenge_slug=TEST_SLUG, base_url=BASE_URL)
 
 
-@patch("crowdcent_challenge.client.load_dotenv")
+@patch("crowdcent_challenge.client.base.load_dotenv")
 def test_client_init_key_priority(mock_load_dotenv, monkeypatch):
     """Test API key priority: direct > env var > .env."""
 
@@ -111,7 +111,7 @@ def test_client_init_key_priority(mock_load_dotenv, monkeypatch):
     monkeypatch.delenv("CROWDCENT_API_KEY")
 
     # We need a new mock since the API key is loaded during init
-    with patch("crowdcent_challenge.client.load_dotenv") as new_mock:
+    with patch("crowdcent_challenge.client.base.load_dotenv") as new_mock:
 
         def set_dotenv_only():
             monkeypatch.setenv("CROWDCENT_API_KEY", "dotenv_api_key")
@@ -179,7 +179,7 @@ def test_list_all_challenges_success(requests_mock, monkeypatch):
     )
 
 
-@patch("crowdcent_challenge.client.load_dotenv")
+@patch("crowdcent_challenge.client.base.load_dotenv")
 def test_list_all_challenges_no_key(mock_load_dotenv):
     """Test class method fails if no API key is found."""
     # Mock load_dotenv to do nothing (no .env file)
@@ -438,7 +438,6 @@ def test_submit_predictions_partial_success_queue_rejected(
     assert resp["queued_for_next"] is False
     assert resp["queue_error_code"] == "EXPERIMENTAL_QUEUE_REQUIRES_NON_EXP"
     assert resp["queue_error"]
-
 
 
 def test_get_performance_includes_experimental_and_notes(client, requests_mock):
