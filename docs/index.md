@@ -26,7 +26,7 @@ Get started, learn how we score submissions, backtest the meta-model in the Simu
 
     ---
 
-    Backtest the meta-model as long/short portfolios: sweeps, sleeves, and tier unlocks, then deploy via [Live Trading](live-trading.md).
+    Backtest the meta-model as long/short portfolios, then deploy via [Live Trading](live-trading.md).
 
     [:octicons-arrow-right-24: Explore the Simulator](simulator.md)
 
