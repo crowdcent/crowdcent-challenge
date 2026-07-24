@@ -649,3 +649,22 @@
     border-color: var(--brand-primary);
     color: #ffffff;
 }
+
+/* --- Vega-Lite charts inside mkdocs-jupyter tutorial pages --- */
+/* The vega-embed export dropdown (three-dots menu) loses its own CSS here and
+   renders as an unstyled column of links; it adds nothing on a docs page. */
+.jupyter-wrapper .vega-embed details,
+.jupyter-wrapper .vega-embed .vega-actions,
+.jupyter-wrapper .vega-embed summary {
+    display: none !important;
+}
+/* Never downscale a chart to fit the column; scroll instead so text stays
+   at its designed size. */
+.jupyter-wrapper .jp-OutputArea-output {
+    overflow-x: auto;
+}
+.jupyter-wrapper .vega-embed,
+.jupyter-wrapper .vega-embed svg,
+.jupyter-wrapper .vega-embed canvas {
+    max-width: none !important;
+}
