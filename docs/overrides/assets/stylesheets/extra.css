@@ -658,8 +658,22 @@
 .jupyter-wrapper .vega-embed summary {
     display: none !important;
 }
-/* Never downscale a chart to fit the column; scroll instead so text stays
-   at its designed size. */
+/* vega-embed reserves right padding for the actions button even when the
+   menu is hidden; reclaim it. */
+.jupyter-wrapper .vega-embed {
+    padding-right: 0 !important;
+}
+/* Drop the empty In[]/Out[] prompt gutters so cells get the full column. */
+.jupyter-wrapper .jp-InputPrompt,
+.jupyter-wrapper .jp-OutputPrompt {
+    display: none !important;
+}
+/* Give notebook pages a wider grid; charts are sized for this budget. */
+body:has(.jupyter-wrapper) .md-grid {
+    max-width: 66rem;
+}
+/* Never downscale a chart to fit the column; scroll as a last resort so
+   text stays at its designed size. */
 .jupyter-wrapper .jp-OutputArea-output {
     overflow-x: auto;
 }
