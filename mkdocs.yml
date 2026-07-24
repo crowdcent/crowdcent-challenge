@@ -27,6 +27,7 @@ nav:
       - Getting Started:
           - Hyperliquid End-to-End: tutorials/hyperliquid-end-to-end.ipynb
       - Modeling:
+          - Training Data v3.0: tutorials/training-data-v3.ipynb
           - XGBoost vs LSTM with CV: tutorials/advanced-cv-lstm.ipynb
           - Build a Custom Dataset: tutorials/advanced-custom-dataset-eodhd.ipynb
           - Advanced Multi-Data Multi-Slots: tutorials/advanced-multi-data-slots.ipynb
