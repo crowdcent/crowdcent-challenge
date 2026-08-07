@@ -193,7 +193,7 @@ Where each percentile represents your ranking (0-100) compared to other particip
 
 **Important:** Composite percentiles are only calculated when **ten (10) or more valid submissions** (counted by submission slots, not users) are received for a given day. If fewer than ten submissions are present, the composite percentile will not be calculated, and you'll need to look at absolute metric scores instead.
 
-As we learn more about the challenge's metamodel, we may adjust the weighting or add/remove metrics.
+As we learn more about the challenge's meta-model, we may adjust the weighting or add/remove metrics.
 
 ### Unique Composite Percentile
 

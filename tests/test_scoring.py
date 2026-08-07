@@ -213,7 +213,7 @@ def test_orthogonal_ic_perfect_unique_signal():
     np.random.seed(42)
     n = 100
 
-    # Meta model: random
+    # Meta-model: random
     meta_pred = np.random.rand(n)
 
     # Target: completely orthogonal to meta

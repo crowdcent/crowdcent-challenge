@@ -268,14 +268,14 @@ def spearman_correlation(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def corr_to_meta(y_pred: np.ndarray, meta_pred: np.ndarray) -> float:
     """
-    Spearman correlation between predictions and meta model.
+    Spearman correlation between predictions and meta-model.
 
-    Measures how aligned your predictions are with the meta model.
+    Measures how aligned your predictions are with the meta-model.
     Values near zero indicate unique/orthogonal predictions.
 
     Args:
         y_pred: Your predicted scores (cross-sectional, over assets)
-        meta_pred: Meta model's predictions for the same horizon
+        meta_pred: Meta-model's predictions for the same horizon
 
     Returns:
         Spearman correlation in [-1, 1]:
@@ -291,7 +291,7 @@ def neutralize_predictions(
     meta_pred: np.ndarray,
 ) -> np.ndarray:
     """
-    Neutralize predictions against the meta model using least-squares regression.
+    Neutralize predictions against the meta-model using least-squares regression.
 
     Removes the component of y_pred that's explained by meta_pred, leaving
     only the orthogonal (unique) component. Uses np.linalg.lstsq for numerical
@@ -299,7 +299,7 @@ def neutralize_predictions(
 
     Args:
         y_pred: Your predicted scores
-        meta_pred: Meta model's predictions
+        meta_pred: Meta-model's predictions
 
     Returns:
         Residual predictions (orthogonal component)
@@ -337,7 +337,7 @@ def orthogonal_ic(
     Args:
         y_true: Actual target values
         y_pred: Your predicted scores
-        meta_pred: Meta model's predictions
+        meta_pred: Meta-model's predictions
         metric_fn: Scoring function with signature (y_true, y_pred, **kwargs) -> float.
         **metric_kwargs: Additional arguments passed to metric_fn
 
@@ -439,10 +439,10 @@ def evaluate_hyperliquid_uniqueness(
     meta_pred_30d: np.ndarray,
 ) -> dict[str, float]:
     """
-    Evaluate uniqueness of a Hyperliquid submission relative to the meta model.
+    Evaluate uniqueness of a Hyperliquid submission relative to the meta-model.
 
     Companion to evaluate_hyperliquid_submission(). Called separately because
-    a meta model may not always be available.
+    a meta-model may not always be available.
 
     Calculates:
     - corr_to_meta: Spearman correlation with meta (lower = more unique)
@@ -454,10 +454,10 @@ def evaluate_hyperliquid_uniqueness(
     Args:
         y_true_10d: True target values for 10-day horizon
         y_pred_10d: Predicted scores for 10-day horizon
-        meta_pred_10d: Meta model predictions for 10-day horizon
+        meta_pred_10d: Meta-model predictions for 10-day horizon
         y_true_30d: True target values for 30-day horizon
         y_pred_30d: Predicted scores for 30-day horizon
-        meta_pred_30d: Meta model predictions for 30-day horizon
+        meta_pred_30d: Meta-model predictions for 30-day horizon
 
     Returns:
         Dict with 6 uniqueness metrics
