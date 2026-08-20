@@ -1,6 +1,6 @@
 [project]
 name = "crowdcent-challenge"
-version = "0.2.0"
+version = "0.2.1"
 description = "CrowdCent Challenge Python Client"
 readme = "README.md"
 authors = [

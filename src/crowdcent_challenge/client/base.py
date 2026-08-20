@@ -3,7 +3,9 @@ helpers, and account-level calls shared by every API area."""
 
 import logging
 import os
+import threading
 import time
+from functools import partial
 from typing import Any, Dict, IO, List, Optional
 
 import requests
@@ -22,13 +24,35 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
+def _progress_bar(total_size: int, dest_path: str):
+    """A tqdm bar, retried once for sandboxed interpreters (Pyodide/WASM
+    notebooks): there multiprocessing locks are unavailable and tqdm's default
+    lock raises at construction, so hand it a plain threading lock through its
+    public set_lock API instead."""
+    from tqdm import tqdm
+
+    make_bar = partial(
+        tqdm,
+        total=total_size,
+        unit="B",
+        unit_scale=True,
+        desc=f"Downloading {os.path.basename(dest_path)}",
+    )
+    try:
+        return make_bar()
+    except RuntimeError:
+        tqdm.set_lock(threading.RLock())
+        return make_bar()
+
+
 class BaseClient:
     DEFAULT_BASE_URL = "https://crowdcent.com/api"
+    DEFAULT_CHALLENGE_SLUG = "hyperliquid-ranking"
     API_KEY_ENV_VAR = "CROWDCENT_API_KEY"
 
     def __init__(
         self,
-        challenge_slug: str,
+        challenge_slug: str = DEFAULT_CHALLENGE_SLUG,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
     ):
@@ -37,6 +61,7 @@ class BaseClient:
 
         Args:
             challenge_slug: The unique identifier (slug) for the challenge.
+                            Defaults to "hyperliquid-ranking".
             api_key: Your CrowdCent API key. If not provided, it will attempt
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
@@ -195,18 +220,13 @@ class BaseClient:
         total_size = int(response.headers.get("content-length", 0))
 
         try:
-            from tqdm import tqdm
-
-            with open(dest_path, "wb") as f:
-                with tqdm(
-                    total=total_size,
-                    unit="B",
-                    unit_scale=True,
-                    desc=f"Downloading {os.path.basename(dest_path)}",
-                ) as pbar:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
-                        pbar.update(len(chunk))
+            with (
+                open(dest_path, "wb") as f,
+                _progress_bar(total_size, dest_path) as pbar,
+            ):
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+                    pbar.update(len(chunk))
             logger.info(f"Successfully downloaded {description} to {dest_path}")
         except IOError as e:
             logger.error(f"Failed to write to {dest_path}: {e}")

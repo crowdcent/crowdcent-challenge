@@ -288,6 +288,49 @@ def test_download_training_dataset_success(client, tmp_path, monkeypatch):
     assert dest.read_bytes() == b"bytes"
 
 
+def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch):
+    """Pyodide under marimo's WASM runtime: multiprocessing.RLock raises a
+    RuntimeError subclass tqdm does not catch (plain Pyodide raises OSError,
+    which it does). The client retries via tqdm's public set_lock API and the
+    download completes with a working bar."""
+    import threading
+
+    from tqdm.std import TqdmDefaultWriteLock
+    from tqdm.std import tqdm as tqdm_cls
+
+    class UnsupportedWasmConcurrencyError(RuntimeError):
+        pass
+
+    def unsupported(*args, **kwargs):
+        raise UnsupportedWasmConcurrencyError(
+            "multiprocessing.RLock is not supported by the Pyodide WASM "
+            "process adapter"
+        )
+
+    # Drop tqdm's cached locks so construction goes through the failing path.
+    monkeypatch.delattr(tqdm_cls, "_lock", raising=False)
+    monkeypatch.delattr(TqdmDefaultWriteLock, "mp_lock", raising=False)
+    monkeypatch.setattr("multiprocessing.RLock", unsupported)
+
+    dest = tmp_path / "train.parquet"
+    monkeypatch.setattr(
+        client, "_request", lambda *a, **k: _DummyStreamResponse(b"bytes")
+    )
+
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"bytes"
+    # Proves the retry path engaged: the lock is now the plain threading lock
+    # the client installed, not tqdm's default composite lock.
+    assert isinstance(tqdm_cls.get_lock(), type(threading.RLock()))
+
+
+def test_challenge_slug_defaults_to_hyperliquid_ranking(monkeypatch):
+    """An empty ChallengeClient() targets the hyperliquid-ranking challenge."""
+    monkeypatch.setenv("CROWDCENT_API_KEY", TEST_API_KEY)
+    assert ChallengeClient().challenge_slug == "hyperliquid-ranking"
+
+
 def test_download_inference_data_success_current(client, tmp_path, monkeypatch):
     """Same as above but for the `current` inference period path."""
     dest = tmp_path / "inf.parquet"
