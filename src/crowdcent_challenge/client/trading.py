@@ -1,4 +1,4 @@
-"""Trading (staff preview until Trading GA): mandate, target book,
+"""Trading: mandate, target book,
 preview/execute consent flow, pause/resume, audit feeds."""
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class TradingAPI:
-    # --- Trading (staff preview until Trading GA) ---
+    # --- Trading ---
     #
     # Every method takes network="testnet" | "mainnet" and DEFAULTS TO
     # TESTNET — mainnet is always an explicit opt-in. The server has no
@@ -56,7 +56,11 @@ class TradingAPI:
                 parser and tier locks as the site. Optional execution knobs
                 (`order_type`, `target_leverage`, `schedule_enabled`,
                 `schedule_at_time`, `twap_minutes`, `stop_loss_pct`, ...)
-                clamp to the web's bounds.
+                clamp to the web's bounds. Sizing is the mandate's:
+                `target_leverage` is the gross multiple deployed
+                (server-capped) and `target_vol` (0 = off) adapts it under
+                that ceiling; sizing knobs inside a sleeve config are
+                ignored. Active sleeves must agree on the stop ladder.
             network: "testnet" (default) or "mainnet".
 
         Returns:
@@ -71,8 +75,9 @@ class TradingAPI:
 
     def get_target_book(self, network: str = "testnet") -> Dict[str, Any]:
         """Gets the blended target book the mandate's sleeves currently
-        resolve to: target holdings, `as_of` ranking day, and per-sleeve
-        books."""
+        resolve to: natural-gross target holdings, `as_of` ranking day,
+        per-sleeve books, and the one `gross_multiplier` the planner
+        deploys per unit of account value."""
         response = self._request(
             "GET",
             f"/challenges/{self.challenge_slug}/trading/book/",

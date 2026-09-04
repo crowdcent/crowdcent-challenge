@@ -243,7 +243,7 @@ Tracking your percentile scores over time is often more informative than focusin
 
 The CrowdCent Meta-Model aggregates predictions from all participants, representing a "wisdom of the crowd." It serves two purposes:
 
-1. **Downloadable signal**: Real-time predictions available to **Challenger+** tier (100+ [CC Points](points-system.md)). All users can access 90-day delayed predictions and full performance scores.
+1. **Downloadable signal**: Real-time predictions available to active **Challenger+** participants (100+ [CC Points](points-system.md) and a submission in the last 30 days). All users can access 90-day delayed predictions and full performance scores.
 2. **Uniqueness benchmark**: Used as the reference for computing [uniqueness metrics](#uniqueness-metrics) -- your predictions are compared against it to measure differentiation.
 
 This may change in the future with no notice.
@@ -264,14 +264,14 @@ Users with more accumulated CC Points have greater influence on the meta-model. 
 
 ### Access and Downloads
 
-Real-time meta-model predictions require **Challenger** tier or above (100+ CC Points). Users below Challenger can access predictions on a 90-day delay. Performance scores are always available to everyone.
+Real-time meta-model predictions require **Challenger** tier or above (100+ CC Points) and active participation, meaning at least one submission in the last 30 days. Everyone else can access predictions on a 90-day delay. Performance scores are always available to everyone.
 
 The meta-model is available through multiple channels:
 
 - Via web: [https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/)
 - Via API: `client.download_meta_model(dest_path="meta_model.parquet")`
 
-You don't have to build portfolio construction yourself, either: the [Simulator](simulator.md) runs this meta-model through selectable weighting, risk, and cadence engines on real Hyperliquid data, right on the site.
+You don't have to build portfolio construction yourself, either: the [Simulator](simulator.md) runs this meta-model through selectable optimizer, risk, and cadence engines on real Hyperliquid data, right on the site.
 
 The meta-model is a parquet file with the following columns. New predictions are added daily, creating a time series with multiple release dates as shown in this sample:
 

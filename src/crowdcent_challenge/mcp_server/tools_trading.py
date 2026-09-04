@@ -1,8 +1,8 @@
 """Trading tools (live Hyperliquid OMS over the CrowdCent API).
 
 Visible in list_tools only when the presenting key has trading capability
-(``allow_trading`` + ``oms_access``). Every server-side gate — staff
-preview, gross caps, plan-hash consent — binds regardless of what any
+(``allow_trading`` + ``oms_access``). Every server-side gate — eligibility,
+gross caps, plan-hash consent — binds regardless of what any
 client displays. Client exceptions propagate verbatim as tool errors
 (CONFIRMATION_REQUIRED, ACCOUNT_BUSY, ...), so act on them literally.
 
@@ -42,8 +42,12 @@ def register_trading_tools(mcp) -> None:
         "config_token", "weight", "label"?}], ...execution knobs}.
 
         Sleeve configs use the simulation vocabulary — deploy exactly what
-        was backtested by passing the winning config_token. ALWAYS show the
-        user what you are about to deploy and get their confirmation first.
+        was backtested by passing the winning config_token. Sizing is the
+        mandate's: target_leverage (capped 3x) is the gross multiple and
+        the mandate's target_vol (0 = off) adapts it under that ceiling;
+        sizing knobs inside a sleeve config are ignored. Active sleeves
+        must agree on the stop ladder. ALWAYS show the user what you are
+        about to deploy and get their confirmation first.
         """
         return client_for(challenge_slug).set_mandate(mandate, network=network)
 
@@ -52,7 +56,9 @@ def register_trading_tools(mcp) -> None:
         network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """The blended target book the mandate currently resolves to:
-        target holdings, ranking day, and per-sleeve books."""
+        natural-gross target holdings, ranking day, per-sleeve books, and
+        the one gross_multiplier the planner deploys (target_leverage, or
+        the smaller multiple the mandate's vol target picked under it)."""
         return client_for(challenge_slug).get_target_book(network=network)
 
     @mcp.tool

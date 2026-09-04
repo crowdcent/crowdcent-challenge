@@ -1,44 +1,104 @@
 # The Simulator
 
-The [Simulator](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/simulation/) turns the [meta-model](hyperliquid-ranking.md#meta-model)'s daily rankings into long/short perpetual-futures portfolios over real Hyperliquid market data, so you can study, stress-test, and eventually deploy the community's signal. No code required, and you can try it without logging in.
+The [Simulator](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/simulation/) evaluates the [meta-model](hyperliquid-ranking.md#meta-model)'s aggregate predictions as simulated long/short perpetual-futures portfolios over historical Hyperliquid market data. It allows you to test portfolio construction rules, optimizers, rebalancing frequencies, and market frictions against the community signal.
 
-It sits in the middle of the loop:
+You can use the Simulator interactively in your browser without writing code, or programmatically through the Python client and MCP tools.
 
-1. **Predict.** Build a model and submit rankings during inference periods.
-2. **Simulate.** Backtest the live meta-model as a long/short portfolio in the Simulator.
-3. **Deploy.** Set a mandate and run a simulated strategy live on Hyperliquid through [Live Trading](live-trading.md) (staff preview until Trading GA).
+## Portfolio construction knobs
 
-## Controls
+The simulator supports several configuration parameters:
 
-You control the strategy at a high level:
+- **Cohort sizing (`n_long`, `n_short`)**: Number of top-ranked assets bought long and bottom-ranked assets sold short (1 to 100 names per leg).
+- **Cadence and rolling tranches (`rebalance_days`)**: Rebalancing intervals of `1`, `5`, `10`, or `30` days. Values ending in `t` (`5t`, `10t`, or `30t`) use tranched rolling vintages. Tranched execution splits the portfolio into equal daily sub-cohorts to eliminate single-day rebalance timing luck.
+- **Optimizers (`optimizer`)**: `equal` (equal dollar allocation across assets), `inv_vol` (inverse 30-day volatility, Challenger tier), or `hrp` (Hierarchical Risk Parity, Challenger tier). Higher tiers unlock covariance optimizers and conviction-weighted sizing; the API's capabilities endpoint lists the optimizer keys and knobs your tier unlocks.
+- **Frictions and carry costs (`include_funding`, `fee_bps`, `impact_book`)**: Incorporates hourly perpetual funding rates (on by default), exchange transaction fees (0 to 20 bps per side, 3.5 by default), and order book market impact models for an assumed book size.
+- **Sizing (`leverage`, `target_vol`)**: One decision on the whole book, separate from its shape. `leverage` (0.25 to 3.0, default 1.0) is the gross book as a multiple of equity. A vol target (`target_vol`, annualized, 0 = off) adapts the multiple to hold realized volatility near the target, never above `leverage`, so the two compose as a ceiling, not a product. Leverage is not free in the backtest: funding, fees and impact scale with gross, and a book whose gross drifts past the venue's maintenance margin (6x equity, the modal Hyperliquid perp) is liquidated, booked as a total loss and reported as `liquidated_on` in the stats.
+- **Risk and liquidity filters**: Optimizer risk window (`risk_lookback`: 10 to 365 days of trailing returns, 0 = per-optimizer default), signal lag (`signal_lag`, 0 to 14 days), minimum open interest (`min_oi`), and minimum daily trading volume (`min_volume`). Continuous knobs snap to the step the capabilities listing reports.
 
-- **Selection and weighting**: how many names per leg and how they're sized (equal weight, inverse-vol, HRP, and more at higher tiers)
-- **Cadence**: rebalance frequency, including tranched "rolling vintage" modes that remove rebalance-timing luck
-- **Risk**: volatility targeting and liquidity floors
-- **Realism stress**: fees, market impact at size, and signal lag, so you can see how much edge survives real-world frictions
+## Evaluation metrics and reports
 
-Every backtest reports an out-of-sample holdout alongside the full-period result.
+Every backtest produces performance metrics split between full-period, in-sample (`is_stats`), and out-of-sample holdout (`oos_stats`) data:
 
-### Sweeps and sleeves
+- **Core statistics**: Annualized Sharpe ratio, Sortino ratio, CAGR, maximum drawdown, annualized volatility, and average gross. A path that reached zero equity (`ruined_on`) or was liquidated (`liquidated_on`) reports total return and drawdown only; its annualized ratios are withheld.
+- **Optional breakdown series (`include`)**: Daily NAV curve (`curve`), current target weights (`holdings`), monthly returns table (`monthly`), and per-asset P&L attribution (`contributions`).
+- **Null benchmarks (`benchmark_trials`)**: Compares strategy performance against up to 100 random-ranking portfolios with identical construction rules to test whether returns exceed chance.
 
-Instead of testing one configuration at a time, **parameter sweeps** run a grid of configurations and render the results as a heatmap. Read plateaus, not peaks: a lone bright cell is luck, a bright region is structure. The interface is built to surface robust parameter regions rather than overfit point estimates.
+## Parameter sweeps and multi-sleeve blends
 
-**Sleeves** let you blend several configurations into one ensemble strategy. It's the same diversification logic the Challenge applies to models, applied to portfolios.
+- **Parameter sweeps (`run_sweep`)**: Evaluates a grid of configurations (e.g., testing multiple cohort sizes against different rebalance cadences). When analyzing sweep results, look for stable parameter plateaus across out-of-sample data rather than isolated point peaks.
+- **Multi-sleeve blends (`run_blend`)**: Nets several weighted simulation configurations into one book, marked as one account (offsetting positions cancel before they are charged), and returns an inter-sleeve correlation matrix. Sizing belongs to the blend, not its sleeves: sleeves run at natural gross and the netted book is sized once, by the `leverage` and `target_vol` the sleeves share (the web chart keeps every charted configuration on the knob bar's pair; the API reads the first sleeve's).
 
-## Tier Unlocks
+## Tier unlocks and parameter clamping
 
-Simulator capability scales with [CC Points](points-system.md), earned through predictive skill:
+Simulator capabilities scale with your [CC Points](points-system.md) tier:
 
-| Tier | Simulator unlocks |
-|:---|:---|
-| Everyone | Full-realism backtesting on 90-day delayed meta-model data |
-| **Challenger** (100+) | Real-time meta-model, Inverse-Vol & HRP weighting, parameter sweeps |
-| **Contender** (500+) | Risk & capacity controls, full sweep & blend budgets |
-| **Centurion** (1,500+) | Classified alpha controls |
+| Tier | Simulator features |
+|---|---|
+| Everyone | Backtesting on 90-day delayed meta-model data |
+| **Challenger** (100+ points) | Real-time meta-model data*, Inverse-Vol & HRP optimizers, parameter sweeps |
+| **Contender** (500+ points) | Covariance optimizers, leverage and volatility targeting, market impact scaling, expanded sweep (up to 96 cells) and blend budgets (up to 5 sleeves) |
+| **Centurion** (1,500+ points) | Conviction-weighted sizing and classified alpha controls |
 
-## Deploying
+*Real-time meta-model data at any tier requires a submission in the last 30 days. Without one, data falls back to a 90-day delay.
 
-When a construction survives the Simulator, the next step is [Live Trading](live-trading.md): set a mandate (your sleeves plus an execution policy) and run it on Hyperliquid through CrowdCent, non-custodially, in staff preview until Trading GA.
+If a configuration specifies a parameter above your current tier, the server automatically clamps the value to your highest accessible tier rather than failing the request. Clamped parameters are listed in the `locked` field of the response.
+
+## Python quickstart
+
+```python
+from crowdcent_challenge import ChallengeClient
+
+client = ChallengeClient("hyperliquid-ranking")
+
+# 1. Backtest a single configuration
+result = client.run_simulation(
+    config={
+        "n_long": 10,
+        "n_short": 10,
+        "optimizer": "inv_vol",
+        "rebalance_days": "10t",
+        "include_funding": True,
+    },
+    include=["curve", "holdings"],
+    benchmark_trials=25,
+)
+
+print(f"In-sample Sharpe: {result['is_stats']['sharpe']:.2f}")
+print(f"Out-of-sample Sharpe: {result['oos_stats']['sharpe']:.2f}")
+print(f"Web URL: {result['web_url']}")
+
+# 2. Grid-search across multiple parameters
+sweep = client.run_sweep(
+    config={"n_short": 10, "optimizer": "inv_vol", "include_funding": True},
+    sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
+)
+
+for cell in sweep["results"]:
+    print(cell["params"], "OOS Sharpe:", cell["oos_stats"]["sharpe"])
+
+# 3. Blend weighted sleeves into an ensemble portfolio
+blend = client.run_blend(
+    sleeves=[
+        {
+            "config": {"n_long": 5, "n_short": 10, "rebalance_days": "30t"},
+            "weight": 0.6,
+            "label": "Slow Trend",
+        },
+        {
+            "config": {"n_long": 10, "n_short": 10, "rebalance_days": "5t"},
+            "weight": 0.4,
+            "label": "Fast Rebalance",
+        },
+    ]
+)
+
+print("Composite Sharpe:", blend["stats"]["sharpe"])
+print("Sleeve Correlations:", blend["correlation"])
+```
+
+## Deploying to live trading
+
+Once a portfolio strategy has been evaluated in the Simulator, you can deploy it as a mandate on Hyperliquid using [Live Trading](live-trading.md) (Challenger tier and above).
 
 !!! warning "Simulator Disclaimer"
     Simulations are provided for informational and educational purposes only. Not financial, investment, or trading advice. Simulated performance is not indicative of future results. Perpetual futures are leveraged instruments and you can lose your entire margin. See the full [disclaimer](disclaimer.md).

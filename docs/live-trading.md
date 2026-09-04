@@ -1,48 +1,97 @@
 # Live Trading
 
-The third step of the loop: **Predict → Simulate → Deploy**. Once a construction survives the [Simulator](simulator.md), you can run it live on Hyperliquid through CrowdCent by setting a **mandate**. Live Trading is in staff preview until Trading GA.
+Live trading allows you to deploy backtested [Simulator](simulator.md) strategies directly to Hyperliquid perpetual markets against daily meta-model updates.
 
-You don't place trades on CrowdCent, but you set a mandate, and the execution engine runs it on your Hyperliquid portfolio against the meta-model.
+Hosted live trading is available to **Challenger-tier participants** (100+ CC Points) with a submission in the last 30 days.
 
-## The Mandate
+## Mandate architecture
 
-A mandate is two things:
+Live trading operates under a **mandate**, which defines the portfolio composition and how target allocations are converted into exchange orders:
 
-- **Strategy sleeves**: one or more weighted Simulator configurations. Sleeves use the exact simulation vocabulary, so you deploy precisely what you backtested, by passing a config or the `config_token` from a winning sweep cell.
-- **Execution policy**: how the target book becomes orders. Order type (market, limit, post-only ALO, or TWAP), target leverage, slippage tolerance, protective stop-loss/take-profit, and a daily schedule window.
+- **Strategy sleeves**: One or more weighted Simulator configurations. Sleeves use the exact simulation parameter vocabulary (or `config_token` values from backtest runs).
+- **Execution policy**: Order execution type (`market`, `limit`, post-only `alo`, or `twap` with duration), target leverage, maximum slippage tolerance, protective stop-loss/take-profit triggers, and scheduled daily execution windows.
+- **Sizing**: The mandate sizes the book once. Sleeves are run at natural gross and netted; `target_leverage` is the multiple of account value deployed (server-capped at 3x), and the mandate's `target_vol` (0 = off) adapts that multiple under the leverage ceiling. Sizing knobs inside a sleeve config are ignored. The target book endpoint returns natural-gross weights and the one `gross_multiplier` the planner applies. The Trading tab's simulator mirror runs under the same sizing, liquidation line included.
 
-## Custody never moves
+## Non-custodial security
 
-The design is fully non-custodial:
+Hosted live trading uses a non-custodial design:
 
-- You approve a **trade-only agent key** by signing on-site with your own wallet. Agent keys can rebalance but can never withdraw, and you can revoke them at any time.
-- Funds stay in your own Hyperliquid account. CrowdCent stores the agent key encrypted and never your master key.
+- **Trade-only agent keys**: You authorize a scoped API agent key on Hyperliquid by signing with your wallet. Agent keys can place and cancel orders, but cannot transfer collateral or withdraw funds.
+- **Revocation**: You can revoke agent keys at any time directly through Hyperliquid or the CrowdCent dashboard.
+- **Master key protection**: CrowdCent never stores or handles your master wallet private keys.
 
-## The execution process
+## Two-step execution workflow
 
-Each day after the meta-model's rankings publish, your sleeves resolve to a blended **target book**. From there:
+Each day after the meta-model publishes new rankings, your strategy sleeves resolve into a target portfolio. Execution uses a two-step confirmation workflow:
 
-1. **Preview.** A rebalance plan is computed and shown first: trades, turnover, estimated fees. Nothing executes.
-2. **Confirm.** Executing requires the preview's `plan_hash`, valid for 10 minutes. No fresh preview, no execution.
-3. **Execute.** Orders go out under your policy (TWAP slices, ALO resting orders, protective stops). Every fill lands in the order blotter and every run in the audit trail.
+1. **Preview (`preview_rebalance`)**: Calculates the required position adjustments, turnover, and estimated fees against current balances and target allocations. Returns a signed `plan_hash` valid for 10 minutes without placing orders.
+2. **Execute (`execute_rebalance`)**: Consumes the `plan_hash` to authorize order submission. The execution engine recalculates target orders against live order books while enforcing account caps and slippage limits.
 
-Scheduled mode runs this loop for you inside your daily window. You can **pause** the mandate at any time, killing risk is never gated, while resuming requires a trade-enabled key. **Flatten** (close every position) follows the same preview-then-confirm flow.
+When scheduled execution is enabled, this loop runs automatically within your configured daily time window.
 
-## Where you can drive it
+## Safety and emergency controls
 
-The same mandate, gates, and audit trail are available from three surfaces:
+- **Testnet by default**: The SDK, REST API, and MCP tools default to `network="testnet"`. Production trading requires explicitly passing `network="mainnet"`.
+- **Immediate pause (`pause_trading`)**: Instantly disables scheduled execution. Can be triggered with any valid API key.
+- **Resume trading (`resume_trading`)**: Re-enables scheduled execution (requires an API key with live trading permissions).
+- **Position liquidation (`flatten`)**: Closes all active positions using a dedicated two-step preview and execution flow (`flatten(preview=True)` followed by `flatten(plan_hash=...)`).
 
-- **The site**: the Trading tab (mandate form, target book, Orders panel).
-- **Python**: `client.set_mandate(...)`, `preview_rebalance()`, `execute_rebalance(plan_hash)`, `pause_trading()`, see the [API reference](api-reference/python.md).
-- **AI assistants**: the same tools over [MCP](ai-agents-mcp.md), with the confirm step held by you in conversation.
+## Python quickstart
 
-The Python client and assistant tools default to **testnet**; mainnet is always an explicit opt-in, and the server accepts no ambiguity about which network you mean. Every cap and consent check binds server-side no matter which surface you use.
+```python
+from crowdcent_challenge import ChallengeClient
 
-## Access
+client = ChallengeClient("hyperliquid-ranking")
 
-Live Trading is in staff preview until Trading GA. When it opens, two switches govern API access: your account's OMS access, and a per-key **"Allow live trading"** toggle, so a key that only reads data can never trade.
+# 1. Configure the mandate with strategy sleeves and execution settings
+mandate = client.set_mandate(
+    {
+        "sleeves": [
+            {
+                "config": {
+                    "n_long": 10,
+                    "n_short": 10,
+                    "optimizer": "inv_vol",
+                    "rebalance_days": "10t",
+                    "include_funding": True,
+                },
+                "weight": 1.0,
+                "label": "Primary Model",
+            }
+        ],
+        "order_type": "twap",
+        "twap_minutes": 15,
+        "target_leverage": 1.0,
+        "schedule_enabled": True,
+        "schedule_at_time": "14:00",
+    },
+    network="testnet",
+)
 
-Until then, [cc-liquid](https://github.com/crowdcent/cc-liquid), our open-source CLI rebalancer, remains the self-custody way to run the meta-model from your own machine.
+# 2. Preview the rebalance plan (dry run)
+preview = client.preview_rebalance(network="testnet")
+print(f"Planned trades: {len(preview['trades'])}")
+print(f"Estimated turnover: ${preview['turnover']:,.2f}")
+print(f"Plan hash: {preview['plan_hash']}")
+
+# 3. Confirm and execute using the plan hash within 10 minutes
+execution = client.execute_rebalance(
+    plan_hash=preview["plan_hash"],
+    network="testnet",
+)
+print("Execution status:", execution["status"])
+
+# 4. Emergency pause
+# client.pause_trading(network="testnet")
+```
+
+## Access requirements
+
+Live trading requires:
+
+1. **Challenger tier** or above (100+ CC Points).
+2. An active submission in the last 30 days.
+3. An API key with the **Allow live trading** permission enabled in your [profile settings](https://crowdcent.com/profile/settings/).
 
 !!! warning "Trading Disclaimer"
     Not financial, investment, or trading advice. Perpetual futures are leveraged instruments and you can lose your entire margin. Simulated performance is not indicative of future results. See the full [disclaimer](disclaimer.md).

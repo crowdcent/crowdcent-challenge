@@ -64,7 +64,7 @@ The leaderboard has two views toggled by the **Raw / Unique** buttons:
 For some challenges, the meta-model is published after an inference period ends. For now, this is only available for the [hyperliquid-ranking](https://crowdcent.com/challenge/hyperliquid-ranking) challenge and may be subject to change. The meta-model represents relative signals for the investable universe.
 
 !!! info "Meta-Model Access"
-    Real-time meta-model predictions require **Challenger** tier or above (100+ [CC Points](points-system.md)). All users can access 90-day delayed predictions and full performance scores.
+    Real-time meta-model predictions require **Challenger** tier or above (100+ [CC Points](points-system.md)) and active participation, meaning at least one submission in the last 30 days. All users can access 90-day delayed predictions and full performance scores.
 
 !!! warning "Meta-Model Disclaimer"
     The meta-model represents CrowdCent's aggregation of participant submissions into a single model. While we strive to create robust meta-models, please note:
@@ -78,4 +78,4 @@ For some challenges, the meta-model is published after an inference period ends.
 
 ## Simulate the Meta-Model
 
-Once the meta-model is published, put it to work: the [Simulator](simulator.md) turns it into long/short Hyperliquid portfolios you can backtest, sweep, and blend, no code required. Your [CC Points](points-system.md) unlock more of it tier by tier. When a construction survives, [Live Trading](live-trading.md) deploys it as a mandate on your own Hyperliquid account (staff preview until Trading GA).
+Once the meta-model is published, put it to work: the [Simulator](simulator.md) turns it into long/short Hyperliquid portfolios you can backtest, sweep, and blend, no code required. Your [CC Points](points-system.md) unlock more of it tier by tier. When a construction survives, [Live Trading](live-trading.md) deploys it as a mandate on your own Hyperliquid account (Challenger tier and above).

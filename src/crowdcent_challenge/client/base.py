@@ -314,7 +314,7 @@ class BaseClient:
                 - `allow_trading`: Whether this key may call mutating trading
                   endpoints (the per-key "Allow live trading" switch).
                 - `oms_access`: Whether the trading API is open to this user
-                  at all (staff preview until Trading GA).
+                  at all (Challenger tier with active submission).
 
         Raises:
             AuthenticationError: If the key is invalid or revoked.

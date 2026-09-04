@@ -168,7 +168,7 @@ blend["correlation"]  # sleeve-by-sleeve correlation matrix
 !!! tip "Read plateaus, not peaks"
     Knobs above your CC Points tier are clamped, not rejected (`result["locked"]` names what changed). When reading a sweep, prefer a stable region over a single bright cell, and weight `oos_stats` over `is_stats`.
 
-The same tools work in natural language through the [MCP server](ai-agents-mcp.md), and the same client drives [Live Trading](live-trading.md) on Hyperliquid (`set_mandate`, `preview_rebalance`, `execute_rebalance`, ...), which is in staff preview until Trading GA.
+The same tools work in natural language through the [MCP server](ai-agents-mcp.md), and the same client drives [Live Trading](live-trading.md) on Hyperliquid (`set_mandate`, `preview_rebalance`, `execute_rebalance`, ...), which requires Challenger tier (100+ CC Points) and an active submission in the last 30 days.
 
 ## Submitting Predictions
 

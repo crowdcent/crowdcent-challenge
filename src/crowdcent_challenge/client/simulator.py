@@ -16,14 +16,16 @@ class SimulatorAPI:
         """Gets the simulator knob vocabulary for YOUR tier.
 
         Call this before building simulation configs: it lists the allowed
-        values per knob for the presenting key's points tier, the sweep and
-        blend budgets, the available data range, and which features are
-        sealed behind higher tiers.
+        values per knob for the presenting key's points tier (a list for a
+        categorical knob, `{"min", "max", "step"}` for a continuous one),
+        the sweep and blend budgets, the available data range, and which
+        features are sealed behind higher tiers.
 
         Returns:
-            A dictionary with `tier`, `data`, `config` (allowed values per
-            knob), `sealed_features`, `sweep` (budgets + sweepable knobs),
-            `blend`, `benchmark_trials`, and `include_options`.
+            A dictionary with `tier`, `data`, `config` (allowed values or
+            ranges per knob), `sealed_features`, `sweep` (budgets +
+            sweepable knobs), `blend`, `benchmark_trials` (a range), and
+            `include_options`.
         """
         response = self._request("GET", f"/challenges/{self.challenge_slug}/simulator/")
         return response.json()
@@ -41,7 +43,7 @@ class SimulatorAPI:
         Runs the exact engine behind the site's Simulation tab: the
         simulator trades the meta-model's published rankings as a long/short
         portfolio with your chosen construction knobs (cohort sizes,
-        rebalance cadence, weighting scheme, fees, funding, ...).
+        rebalance cadence, optimizer, fees, funding, ...).
 
         Knobs above your tier are silently clamped to their accessible
         values, identical to the web UI. Check the echoed `config` and the
@@ -50,7 +52,7 @@ class SimulatorAPI:
         Args:
             config: SimulationConfig field names with JSON scalars, e.g.
                 ``{"n_long": 10, "n_short": 10, "rebalance_days": "10t",
-                "weighting": "inv_vol", "include_funding": True}``. Omitted
+                "optimizer": "inv_vol", "include_funding": True}``. Omitted
                 knobs use the site's defaults.
             config_token: Alternatively, a compact config token from a
                 previous response or a site URL — reproduces that exact
@@ -59,8 +61,8 @@ class SimulatorAPI:
                 `"holdings"` (current book), `"monthly"` (returns grid),
                 `"contributions"` (per-asset P&L attribution). Defaults to
                 none, keeping responses compact.
-            benchmark_trials: 0, 25, or 100 — score the signal against that
-                many random-ranking portfolios with identical construction.
+            benchmark_trials: 0 to 100 — score the signal against that many
+                random-ranking portfolios with identical construction.
 
         Returns:
             A dictionary with the clamped `config` echo, `locked`,
@@ -71,7 +73,7 @@ class SimulatorAPI:
         Example:
             ```python
             result = client.run_simulation(
-                config={"n_long": 10, "n_short": 10, "weighting": "inv_vol"}
+                config={"n_long": 10, "n_short": 10, "optimizer": "inv_vol"}
             )
             result["stats"]["sharpe"]  # 1.42
             ```
@@ -116,8 +118,9 @@ class SimulatorAPI:
             sweep: Mapping of sweepable knob -> list of values, e.g.
                 ``{"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t"]}``.
                 See :py:meth:`get_simulator_capabilities` for your tier's
-                sweepable knobs, allowed values, and grid budget (96 configs
-                at Contender tier, 24 below).
+                sweepable knobs, allowed values or ranges (continuous knobs
+                take any values inside their range and snap to the step),
+                and grid budget (96 configs at Contender tier, 24 below).
             on_chunk: Optional callable ``on_chunk(results_so_far, total)``
                 invoked after each server chunk — useful for progress bars.
 

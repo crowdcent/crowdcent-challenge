@@ -139,8 +139,8 @@ async def test_run_simulation_passes_through(monkeypatch):
 
     fake = MagicMock()
     fake.run_simulation.return_value = {
-        "config": {"weighting": "equal"},
-        "locked": ["weighting"],
+        "config": {"optimizer": "equal"},
+        "locked": ["optimizer"],
         "stats": {"sharpe": 1.0},
     }
     monkeypatch.setattr(tools_simulation, "client_for", lambda slug: fake)
@@ -148,16 +148,16 @@ async def test_run_simulation_passes_through(monkeypatch):
     async with Client(server) as client:
         result = await client.call_tool(
             "run_simulation",
-            {"config": {"n_long": 5, "weighting": "hrp"}, "include_curve": True},
+            {"config": {"n_long": 5, "optimizer": "hrp"}, "include_curve": True},
         )
     fake.run_simulation.assert_called_once_with(
-        config={"n_long": 5, "weighting": "hrp"},
+        config={"n_long": 5, "optimizer": "hrp"},
         include=["curve"],
         benchmark_trials=0,
     )
     # Clamp echo and locked list pass through untouched.
-    assert result.data["locked"] == ["weighting"]
-    assert result.data["config"]["weighting"] == "equal"
+    assert result.data["locked"] == ["optimizer"]
+    assert result.data["config"]["optimizer"] == "equal"
 
 
 async def test_submit_predictions_from_dataframe_uses_narwhals(monkeypatch):

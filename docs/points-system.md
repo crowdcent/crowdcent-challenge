@@ -99,16 +99,18 @@ As you accumulate CC Points, you'll progress through **5 tiers**—each with a u
 | **Centurion** | 1,500+ | Commander of predictions |
 | **Sovereign** | 5,000+ | Pinnacle of mastery |
 
-Higher tiers unlock greater recognition in the community and demonstrate your track record of consistent, quality predictions. Reaching **Challenger** also unlocks real-time [meta-model](hyperliquid-ranking.md#meta-model) predictions (users below Challenger receive 90-day delayed data).
+Higher tiers unlock greater recognition in the community and demonstrate your track record of consistent, quality predictions. Reaching **Challenger** also unlocks real-time [meta-model](hyperliquid-ranking.md#meta-model) predictions while you stay active, meaning at least one submission in the last 30 days (everyone else receives 90-day delayed data).
 
 **Your Points = Your Toolkit.** Tiers also unlock the [Simulator](simulator.md), where the meta-model becomes a long/short Hyperliquid portfolio you can backtest:
 
 | Tier | Simulator unlocks |
 |:---|:---|
 | Everyone | Full-realism backtesting on 90-day delayed meta-model data |
-| **Challenger** | Real-time meta-model, Inverse-Vol & HRP weighting, parameter sweeps |
-| **Contender** | Risk & capacity controls, full sweep & blend budgets |
+| **Challenger** | Real-time meta-model*, Inverse-Vol & HRP optimizers, parameter sweeps |
+| **Contender** | Covariance optimizers, risk & capacity controls, full sweep & blend budgets |
 | **Centurion** | Classified alpha controls |
+
+*Real-time meta-model data at any tier requires a submission in the last 30 days. Without one, data falls back to a 90-day delay.
 
 ## The Meta-Model: Why Points Matter
 

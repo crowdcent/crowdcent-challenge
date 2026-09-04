@@ -303,8 +303,7 @@ def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch)
 
     def unsupported(*args, **kwargs):
         raise UnsupportedWasmConcurrencyError(
-            "multiprocessing.RLock is not supported by the Pyodide WASM "
-            "process adapter"
+            "multiprocessing.RLock is not supported by the Pyodide WASM process adapter"
         )
 
     # Drop tqdm's cached locks so construction goes through the failing path.

@@ -119,7 +119,7 @@ This package ships with a built-in Model Context Protocol (MCP) server, so assis
 }}}
 ```
 
-See the [AI Agents guide](https://docs.crowdcent.com/ai-agents-mcp/) for hosted setup, the simulation tools, and the trading preview.
+See the [AI Agents guide](https://docs.crowdcent.com/ai-agents-mcp/) for hosted setup, the simulation tools, and live trading.
 
 ## Contributing
 
