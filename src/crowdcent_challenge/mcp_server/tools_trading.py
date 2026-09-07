@@ -43,9 +43,10 @@ def register_trading_tools(mcp) -> None:
 
         Sleeve configs use the simulation vocabulary — deploy exactly what
         was backtested by passing the winning config_token. Sizing is the
-        mandate's: target_leverage (capped 3x) is the gross multiple and
-        the mandate's target_vol (0 = off) adapts it under that ceiling;
-        sizing knobs inside a sleeve config are ignored. Active sleeves
+        mandate's, the same top-level pair run_simulation takes: leverage
+        (capped 3x) is the gross multiple and target_vol (0 = off) adapts
+        it under that ceiling; a sleeve config that names them is
+        rejected. Active sleeves
         must agree on the stop ladder. ALWAYS show the user what you are
         about to deploy and get their confirmation first.
         """
@@ -57,8 +58,8 @@ def register_trading_tools(mcp) -> None:
     ) -> Dict[str, Any]:
         """The blended target book the mandate currently resolves to:
         natural-gross target holdings, ranking day, per-sleeve books, and
-        the one gross_multiplier the planner deploys (target_leverage, or
-        the smaller multiple the mandate's vol target picked under it)."""
+        the one gross_multiplier the planner deploys (the mandate's leverage,
+        or the smaller multiple its vol target picked under it)."""
         return client_for(challenge_slug).get_target_book(network=network)
 
     @mcp.tool

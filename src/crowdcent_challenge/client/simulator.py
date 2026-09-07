@@ -37,6 +37,8 @@ class SimulatorAPI:
         config_token: Optional[str] = None,
         include: Optional[List[str]] = None,
         benchmark_trials: int = 0,
+        leverage: float = 1.0,
+        target_vol: float = 0.0,
     ) -> Dict[str, Any]:
         """Backtests one portfolio configuration on the live meta-model.
 
@@ -63,12 +65,18 @@ class SimulatorAPI:
                 none, keeping responses compact.
             benchmark_trials: 0 to 100 — score the signal against that many
                 random-ranking portfolios with identical construction.
+            leverage: Gross book as a multiple of equity (0.25 to 3.0,
+                Contender tier). Sizing is the run's, never the config's:
+                a config that names it is rejected.
+            target_vol: Annualized vol target (0 = off, Contender tier) that
+                adapts the multiple under `leverage`, never above it.
 
         Returns:
-            A dictionary with the clamped `config` echo, `locked`,
-            `config_token`, `web_url` (the site pre-loaded with this exact
-            config), `as_of`, `n_days`, `stats`, `is_stats`, `oos_stats`,
-            plus any `include` extras and `benchmark` results.
+            A dictionary with the clamped `config` echo, the `sizing` pair
+            that ran, `locked`, `config_token`, `web_url` (the site
+            pre-loaded with this exact config and sizing), `as_of`,
+            `n_days`, `stats`, `is_stats`, `oos_stats`, plus any `include`
+            extras and `benchmark` results.
 
         Example:
             ```python
@@ -87,6 +95,10 @@ class SimulatorAPI:
             payload["include"] = include
         if benchmark_trials:
             payload["benchmark_trials"] = benchmark_trials
+        if leverage != 1.0:
+            payload["leverage"] = leverage
+        if target_vol:
+            payload["target_vol"] = target_vol
         response = self._request(
             "POST",
             f"/challenges/{self.challenge_slug}/simulator/run/",
@@ -153,26 +165,44 @@ class SimulatorAPI:
             offset = body["next_offset"]
         return {"total": total, "results": results}
 
-    def run_blend(self, sleeves: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def run_blend(
+        self,
+        sleeves: List[Dict[str, Any]],
+        *,
+        leverage: float = 1.0,
+        target_vol: float = 0.0,
+    ) -> Dict[str, Any]:
         """Blends weighted sleeves into one ensemble book and evaluates it.
 
-        Each sleeve runs once and the weighted blend is formed on
-        date-aligned daily returns. Fail-closed: any sleeve error fails the
-        whole blend. Sleeve count is capped by tier (5 at Contender, 3
-        below).
+        Each sleeve runs once at natural gross, the weighted blend is netted
+        into one book and that book is sized once by `leverage` and
+        `target_vol` (the blend's, never a sleeve's: weights shape the
+        blend, and a sleeve config that names sizing is rejected).
+        Fail-closed: any sleeve error fails the whole blend. Sleeve count is
+        capped by tier (5 at Contender, 3 below).
 
         Args:
             sleeves: A list of ``{"config": {...} | "config_token": "...",
                 "weight": float, "label": str?}`` dictionaries.
+            leverage: Gross book as a multiple of equity (0.25 to 3.0,
+                Contender tier).
+            target_vol: Annualized vol target (0 = off, Contender tier)
+                adapting the multiple under `leverage`.
 
         Returns:
-            A dictionary with blend `stats`/`is_stats`/`oos_stats`, the
-            sleeve `correlation` matrix, and per-sleeve stats (computed on
-            the aligned window so they are directly comparable).
+            A dictionary with the `sizing` pair that ran, blend
+            `stats`/`is_stats`/`oos_stats`, the sleeve `correlation`
+            matrix, and per-sleeve stats (computed on the aligned window so
+            they are directly comparable).
         """
+        payload: Dict[str, Any] = {"sleeves": sleeves}
+        if leverage != 1.0:
+            payload["leverage"] = leverage
+        if target_vol:
+            payload["target_vol"] = target_vol
         response = self._request(
             "POST",
             f"/challenges/{self.challenge_slug}/simulator/blend/",
-            json_data={"sleeves": sleeves},
+            json_data=payload,
         )
         return response.json()

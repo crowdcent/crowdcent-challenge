@@ -17,6 +17,8 @@ def register_simulation_tools(mcp) -> None:
         include_curve: bool = False,
         include_holdings: bool = False,
         benchmark_trials: int = 0,
+        leverage: float = 1.0,
+        target_vol: float = 0.0,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Backtest one portfolio config against the live meta-model.
@@ -42,11 +44,12 @@ def register_simulation_tools(mcp) -> None:
           include_funding: bool (default true)
         - signal_lag: 0-14 days; risk_lookback: 10-365 days in 5d steps,
           0 = the optimizer's own window (Challenger)
-        - leverage: 0.25-3.0 gross as a multiple of equity (default 1.0);
-          target_vol: 0-0.5 annualized (0 = off) adapts the multiple under
-          that leverage ceiling, never above it. Gross past 6x equity is
-          liquidated (stats.liquidated_on). impact_book: 0-1e9 USD gross
-          (0 = off). All Contender.
+        - impact_book: 0-1e9 USD gross (0 = off). Contender.
+        Sizing is NOT a config knob: pass `leverage` (0.25-3.0 gross as a
+        multiple of equity, default 1.0) and `target_vol` (0-0.5 annualized,
+        0 = off, adapts the multiple under that leverage ceiling, never
+        above it) as their own arguments; both Contender. Gross past 6x
+        equity is liquidated (stats.liquidated_on).
         - hedge_btc: bool and carry_penalty: 0-1.0 (Centurion);
           lw_shrinkage: bool. Continuous knobs snap to the step the
           capabilities listing reports (min/max/step per knob).
@@ -65,6 +68,8 @@ def register_simulation_tools(mcp) -> None:
             include_holdings: Also return the current simulated book.
             benchmark_trials: 0-100 random-ranking portfolios to score the
                 signal against.
+            leverage: Gross book as a multiple of equity (default 1.0).
+            target_vol: Annualized vol target under `leverage` (0 = off).
         """
         include: List[str] = []
         if include_curve:
@@ -75,6 +80,8 @@ def register_simulation_tools(mcp) -> None:
             config=config,
             include=include or None,
             benchmark_trials=benchmark_trials,
+            leverage=leverage,
+            target_vol=target_vol,
         )
 
     @mcp.tool
@@ -97,7 +104,7 @@ def register_simulation_tools(mcp) -> None:
                 {"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t"]}.
                 Sweepable: n_long, n_short, rebalance_days, optimizer, lw,
                 fee_bps, funding, lag, risk_lookback (Challenger),
-                leverage, target_vol, impact_book (Contender), carry (Centurion; only
+                impact_book (Contender), carry (Centurion; only
                 carry-aware optimizers such as min_var read it), hedge,
                 rank_by, and the factor-lens knobs. Continuous knobs take
                 any list of values inside the min/max the capabilities
@@ -110,14 +117,22 @@ def register_simulation_tools(mcp) -> None:
     @mcp.tool
     def blend_simulations(
         sleeves: List[Dict[str, Any]],
+        leverage: float = 1.0,
+        target_vol: float = 0.0,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Blend up to 3-5 weighted sleeves (tier-capped) into one ensemble
         book; returns blend stats plus the sleeve correlation matrix.
+        Sizing is the blend's, never a sleeve's: weights shape the blend,
+        and the netted book is sized once by leverage / target_vol.
 
         Args:
             sleeves: [{"config": {...} or "config_token": "...",
                 "weight": 1.0, "label": "fast"}, ...]. Low correlation
                 between sleeves is what makes a blend worth deploying.
+            leverage: Gross book as a multiple of equity (default 1.0).
+            target_vol: Annualized vol target under `leverage` (0 = off).
         """
-        return client_for(challenge_slug).run_blend(sleeves)
+        return client_for(challenge_slug).run_blend(
+            sleeves, leverage=leverage, target_vol=target_vol
+        )

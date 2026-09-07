@@ -54,13 +54,15 @@ class TradingAPI:
                 "label"?}, ...], ...execution knobs...}``. Sleeve configs use
                 the simulation vocabulary and validate through the same
                 parser and tier locks as the site. Optional execution knobs
-                (`order_type`, `target_leverage`, `schedule_enabled`,
+                (`order_type`, `leverage`, `schedule_enabled`,
                 `schedule_at_time`, `twap_minutes`, `stop_loss_pct`, ...)
-                clamp to the web's bounds. Sizing is the mandate's:
-                `target_leverage` is the gross multiple deployed
-                (server-capped) and `target_vol` (0 = off) adapts it under
-                that ceiling; sizing knobs inside a sleeve config are
-                ignored. Active sleeves must agree on the stop ladder.
+                clamp to the web's bounds. Sizing is the mandate's, the
+                same top-level pair the simulator takes: `leverage` is
+                the gross multiple deployed (server-capped) and
+                `target_vol` (0 = off) adapts it under that ceiling; a
+                sleeve config carries no sizing knobs and is rejected if
+                it names them. Active sleeves must agree on the stop
+                ladder.
             network: "testnet" (default) or "mainnet".
 
         Returns:

@@ -9,8 +9,8 @@ Hosted live trading is available to **Challenger-tier participants** (100+ CC Po
 Live trading operates under a **mandate**, which defines the portfolio composition and how target allocations are converted into exchange orders:
 
 - **Strategy sleeves**: One or more weighted Simulator configurations. Sleeves use the exact simulation parameter vocabulary (or `config_token` values from backtest runs).
-- **Execution policy**: Order execution type (`market`, `limit`, post-only `alo`, or `twap` with duration), target leverage, maximum slippage tolerance, protective stop-loss/take-profit triggers, and scheduled daily execution windows.
-- **Sizing**: The mandate sizes the book once. Sleeves are run at natural gross and netted; `target_leverage` is the multiple of account value deployed (server-capped at 3x), and the mandate's `target_vol` (0 = off) adapts that multiple under the leverage ceiling. Sizing knobs inside a sleeve config are ignored. The target book endpoint returns natural-gross weights and the one `gross_multiplier` the planner applies. The Trading tab's simulator mirror runs under the same sizing, liquidation line included.
+- **Execution policy**: Order execution type (`market`, `limit`, post-only `alo`, or `twap` with duration), leverage, maximum slippage tolerance, protective stop-loss/take-profit triggers, and scheduled daily execution windows.
+- **Sizing**: The mandate sizes the book once, with the same top-level `leverage` / `target_vol` pair the simulation API takes. Sleeves are run at natural gross and netted; `leverage` is the multiple of account value deployed (server-capped at 3x), and the mandate's `target_vol` (0 = off) adapts that multiple under the leverage ceiling. A sleeve config carries no sizing knobs and is rejected if it names them. The target book endpoint returns natural-gross weights and the one `gross_multiplier` the planner applies. The Trading tab's simulator mirror runs under the same sizing, liquidation line included.
 
 ## Non-custodial security
 
@@ -61,7 +61,7 @@ mandate = client.set_mandate(
         ],
         "order_type": "twap",
         "twap_minutes": 15,
-        "target_leverage": 1.0,
+        "leverage": 1.0,
         "schedule_enabled": True,
         "schedule_at_time": "14:00",
     },
