@@ -5,7 +5,6 @@ import logging
 import os
 import threading
 import time
-from functools import partial
 from typing import Any, Dict, IO, List, Optional
 
 import requests
@@ -25,24 +24,27 @@ logger.addHandler(logging.NullHandler())
 
 
 def _progress_bar(total_size: int, dest_path: str):
-    """A tqdm bar, retried once for sandboxed interpreters (Pyodide/WASM
-    notebooks): there multiprocessing locks are unavailable and tqdm's default
-    lock raises at construction, so hand it a plain threading lock through its
-    public set_lock API instead."""
+    """A tqdm bar that also works in sandboxed interpreters (Pyodide/WASM
+    notebooks), where multiprocessing locks are unavailable and tqdm's default
+    write lock raises while being built.
+
+    The lock is probed through the public ``get_lock`` classmethod *before*
+    any bar is constructed: if tqdm's default lock cannot be created, a plain
+    threading lock is installed via ``set_lock``. Letting the constructor fail
+    instead would leave a half-initialised instance behind, and its ``__del__``
+    then prints an ``AttributeError`` traceback to stderr on collection."""
     from tqdm import tqdm
 
-    make_bar = partial(
-        tqdm,
+    try:
+        tqdm.get_lock()
+    except RuntimeError:
+        tqdm.set_lock(threading.RLock())
+    return tqdm(
         total=total_size,
         unit="B",
         unit_scale=True,
         desc=f"Downloading {os.path.basename(dest_path)}",
     )
-    try:
-        return make_bar()
-    except RuntimeError:
-        tqdm.set_lock(threading.RLock())
-        return make_bar()
 
 
 class BaseClient:

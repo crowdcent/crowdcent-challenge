@@ -288,11 +288,16 @@ def test_download_training_dataset_success(client, tmp_path, monkeypatch):
     assert dest.read_bytes() == b"bytes"
 
 
+@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch):
     """Pyodide under marimo's WASM runtime: multiprocessing.RLock raises a
     RuntimeError subclass tqdm does not catch (plain Pyodide raises OSError,
-    which it does). The client retries via tqdm's public set_lock API and the
-    download completes with a working bar."""
+    which it does). The client swaps in a threading lock via tqdm's public
+    set_lock API before building the bar, so the download completes with a
+    working bar and no half-initialised tqdm instance is left behind to emit
+    an AttributeError from __del__ (the filterwarnings mark turns that into a
+    failure)."""
+    import gc
     import threading
 
     from tqdm.std import TqdmDefaultWriteLock
@@ -317,9 +322,10 @@ def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch)
     )
 
     client.download_training_dataset(version="1.0", dest_path=str(dest))
+    gc.collect()  # surface any __del__ noise inside this test, not a later one
 
     assert dest.read_bytes() == b"bytes"
-    # Proves the retry path engaged: the lock is now the plain threading lock
+    # Proves the fallback engaged: the lock is now the plain threading lock
     # the client installed, not tqdm's default composite lock.
     assert isinstance(tqdm_cls.get_lock(), type(threading.RLock()))
 
