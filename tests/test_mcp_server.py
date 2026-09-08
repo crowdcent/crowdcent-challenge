@@ -154,6 +154,8 @@ async def test_run_simulation_passes_through(monkeypatch):
         config={"n_long": 5, "optimizer": "hrp"},
         include=["curve"],
         benchmark_trials=0,
+        leverage=1.0,
+        target_vol=0.0,
     )
     # Clamp echo and locked list pass through untouched.
     assert result.data["locked"] == ["optimizer"]
