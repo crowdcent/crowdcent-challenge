@@ -30,6 +30,7 @@ def client():
 def mock_env_vars(monkeypatch):
     """Ensure no real API key is accidentally picked up from the environment."""
     monkeypatch.delenv("CROWDCENT_API_KEY", raising=False)
+    monkeypatch.delenv("CROWDCENT_API_URL", raising=False)
 
 
 # --- Authentication Tests ---
@@ -52,6 +53,17 @@ def test_client_init_with_env_var(monkeypatch):
     client = ChallengeClient(challenge_slug=TEST_SLUG, base_url=BASE_URL)
     assert client.api_key == "env_api_key"
     assert "Api-Key env_api_key" in client.session.headers["Authorization"]
+
+
+def test_client_base_url_from_env_var(monkeypatch):
+    """The API address comes from CROWDCENT_API_URL when the caller names none."""
+    monkeypatch.setenv("CROWDCENT_API_URL", "http://localhost:8080/api/")
+    client = ChallengeClient(challenge_slug=TEST_SLUG, api_key=TEST_API_KEY)
+    assert client.base_url == "http://localhost:8080/api"
+    explicit = ChallengeClient(
+        challenge_slug=TEST_SLUG, api_key=TEST_API_KEY, base_url=BASE_URL
+    )
+    assert explicit.base_url == BASE_URL
 
 
 @patch("crowdcent_challenge.client.base.load_dotenv")

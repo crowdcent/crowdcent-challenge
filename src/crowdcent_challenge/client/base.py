@@ -51,6 +51,7 @@ class BaseClient:
     DEFAULT_BASE_URL = "https://crowdcent.com/api"
     DEFAULT_CHALLENGE_SLUG = "hyperliquid-ranking"
     API_KEY_ENV_VAR = "CROWDCENT_API_KEY"
+    BASE_URL_ENV_VAR = "CROWDCENT_API_URL"
 
     def __init__(
         self,
@@ -67,8 +68,9 @@ class BaseClient:
             api_key: Your CrowdCent API key. If not provided, it will attempt
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
-            base_url: The base URL of the CrowdCent API. Defaults to
-                      https://crowdcent.com/api.
+            base_url: The base URL of the CrowdCent API. If not provided, it
+                      is read from the CROWDCENT_API_URL environment variable,
+                      and defaults to https://crowdcent.com/api.
         """
         load_dotenv()  # Load .env file if present
         self.api_key = api_key or os.getenv(self.API_KEY_ENV_VAR)
@@ -79,7 +81,9 @@ class BaseClient:
             )
 
         self.challenge_slug = challenge_slug
-        self.base_url = (base_url or self.DEFAULT_BASE_URL).rstrip("/")
+        self.base_url = (
+            base_url or os.getenv(self.BASE_URL_ENV_VAR) or self.DEFAULT_BASE_URL
+        ).rstrip("/")
         self.session = requests.Session()
         self.session.headers.update({"Authorization": f"Api-Key {self.api_key}"})
         logger.info(
@@ -249,8 +253,9 @@ class BaseClient:
             api_key: Your CrowdCent API key. If not provided, it will attempt
                      to load from the CROWDCENT_API_KEY environment variable
                      or a .env file.
-            base_url: The base URL of the CrowdCent API. Defaults to
-                      http://crowdcent.com/api.
+            base_url: The base URL of the CrowdCent API. If not provided, it
+                      is read from the CROWDCENT_API_URL environment variable,
+                      and defaults to https://crowdcent.com/api.
 
         Returns:
             A list of dictionaries, each representing an active challenge.
@@ -264,7 +269,9 @@ class BaseClient:
                 f"'{cls.API_KEY_ENV_VAR}' or .env file."
             )
 
-        base_url = (base_url or cls.DEFAULT_BASE_URL).rstrip("/")
+        base_url = (
+            base_url or os.getenv(cls.BASE_URL_ENV_VAR) or cls.DEFAULT_BASE_URL
+        ).rstrip("/")
         session = requests.Session()
         session.headers.update({"Authorization": f"Api-Key {api_key}"})
 
