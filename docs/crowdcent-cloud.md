@@ -23,8 +23,8 @@ Key features include:
 | **Version** | An immutable snapshot of your project's files and dependencies. Each save creates a new incremented version. | Web, API, MCP |
 | **Interactive session** | An active editing environment with a live kernel in your browser (WASM) or on a cloud instance (CPython). | Web only |
 | **Run** | An isolated, unattended execution of a specific saved version on dedicated hardware. | Web, API, MCP |
-| **Job** | One runnable file of a project. A folder of scripts is several jobs; each runs by name and can be chained after another. | Web, API, MCP |
-| **Schedule** | An automated trigger (daily, on inference data release, or after another job) that executes a verified run. | Web, API, MCP |
+| **File** | Every top-level `.py` file in a project runs by name (`entrypoint`) and can be chained after another; a folder of scripts is one project with several runnable files. | Web, API, MCP |
+| **Schedule** | An automated trigger (daily, weekly, monthly, on inference data release, or after another job) that executes a verified run. | Web, API, MCP |
 | **Recipe** | A reviewed starter notebook from the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook). | Web, API, MCP |
 | **Fork** | Creates a new project from a Cookbook recipe or GitHub repository. | Web, API, MCP |
 
@@ -55,11 +55,12 @@ The Cloud session runtime runs full CPython on hosted CrowdCent hardware with na
 - **Hourly billing.** Billed per started hour based on instance size. The rate is displayed before you start the session.
 - **Seamless switching.** Switching between Browser and Cloud runtimes transfers your code and restarts the kernel on the target instance.
 
-| Size | vCPU | Memory |
-|---|---|---|
-| S | 2 | 8 GiB |
-| M | 4 | 16 GiB |
-| L | 8 | 48 GiB |
+| Size | vCPU | Memory | Accelerator |
+|---|---|---|---|
+| S | 2 | 5 GiB | |
+| M | 4 | 16 GiB | |
+| L | 8 | 48 GiB | |
+| GPU | 3 | 11 GiB | one NVIDIA L4 24 GB |
 
 ### Session lifecycle and recovery
 
@@ -71,11 +72,14 @@ Interactive sessions do not have access to live trading credentials and cannot s
 
 Runs execute an immutable snapshot of your project in an isolated container. You can trigger a run manually from the workspace or programmatically via the API and MCP tools. Once queued, you can monitor execution status until completion.
 
-| Size | vCPU | Time budget |
-|---|---|---|
-| S | 2 | 10 minutes |
-| M | 4 | 20 minutes |
-| L | 8 | 60 minutes |
+| Size | vCPU | Memory | Accelerator |
+|---|---|---|---|
+| S | 2 | 8 GiB | |
+| M | 4 | 16 GiB | |
+| L | 8 | 32 GiB | |
+| GPU | 4 | 16 GiB | one NVIDIA L4 24 GB |
+
+Every size may run for up to a day; a time limit is a deadline you choose under that (see Hardware and time limits). A GPU run reaches its first line of code about three minutes after you press Run: the machine boots and installs its driver, then your declared packages install.
 
 ### Notebook buttons and forms
 
@@ -176,6 +180,8 @@ When you configure a schedule, it pins the exact version, environment settings, 
 ### Supported triggers
 
 - **Daily.** Runs every day at a specified `HH:MM` time in your chosen IANA timezone.
+- **Weekly.** Runs once a week on a weekday (`0`=Mon … `6`=Sun) at `HH:MM`.
+- **Monthly.** Runs once a month on day `1`–`28` at `HH:MM`.
 - **On inference release.** Runs automatically whenever the target challenge publishes a new inference dataset.
 - **After.** Runs once another job of the same project has succeeded — how a folder of scripts becomes a chain.
 
@@ -246,13 +252,17 @@ client.schedule_cloud_project(
     challenge="hyperliquid-ranking",
 )
 
-# Alternatively, schedule at a fixed daily time
+# Or on a clock: daily, weekly (weekday 0=Mon..6=Sun), or monthly (day 1..28)
 # client.schedule_cloud_project(
-#     project["id"],
-#     run["id"],
-#     trigger="daily",
-#     daily_at="13:30",
-#     timezone="UTC",
+#     project["id"], run["id"], trigger="daily", daily_at="13:30", timezone="UTC",
+# )
+# client.schedule_cloud_project(
+#     project["id"], run["id"],
+#     trigger="weekly", daily_at="02:00", weekday=0, timezone="UTC",
+# )
+# client.schedule_cloud_project(
+#     project["id"], run["id"],
+#     trigger="monthly", daily_at="07:30", day=15, timezone="UTC",
 # )
 ```
 
