@@ -536,3 +536,49 @@ def test_get_performance_includes_experimental_and_notes(client, requests_mock):
     assert by_slot[1]["notes"] == "baseline"
     assert by_slot[2]["is_experimental"] is True
     assert by_slot[2]["notes"] == "transformer trial"
+
+
+def test_download_to_a_csv_path_asks_for_csv(client, tmp_path, monkeypatch):
+    """The destination's extension is the whole switch: .csv asks the API for CSV."""
+    calls = []
+
+    def fake_request(method, endpoint, **kwargs):
+        calls.append(kwargs.get("params"))
+        return _DummyStreamResponse(b"id,pred_10d\n")
+
+    monkeypatch.setattr(client, "_request", fake_request)
+    client.download_training_dataset(
+        version="1.0", dest_path=str(tmp_path / "train.csv")
+    )
+    client.download_training_dataset(
+        version="1.0", dest_path=str(tmp_path / "train.parquet")
+    )
+
+    assert calls == [{"as": "csv"}, None]
+    assert (tmp_path / "train.csv").read_bytes() == b"id,pred_10d\n"
+
+
+def test_submit_dataframe_travels_as_csv_by_default(
+    client, requests_mock, tmp_path, monkeypatch
+):
+    """A dataframe submission is written as CSV, which every runtime can write."""
+    import polars as pl
+
+    monkeypatch.chdir(tmp_path)
+    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
+    requests_mock.post(
+        mock_url, json={"id": 1, "status": "pending", "slot": 1}, status_code=201
+    )
+    df = pl.DataFrame(
+        {"id": ["a", "b"], "pred_10d": [0.1, 0.2], "pred_30d": [0.3, 0.4]}
+    )
+
+    client.submit_predictions(df=df)
+    body = requests_mock.last_request.body
+    assert b'filename="submission.csv"' in body
+    assert b"id,pred_10d,pred_30d\na,0.1,0.3\n" in body
+    assert not (tmp_path / "submission.csv").exists()  # temp file cleaned up
+
+    client.submit_predictions(df=df, file_path=str(tmp_path / "preds.parquet"))
+    assert b'filename="preds.parquet"' in requests_mock.last_request.body
+    assert b"PAR1" in requests_mock.last_request.body

@@ -63,6 +63,11 @@ Access training datasets for a challenge, including listing available versions, 
     version = "latest" # or specify a version like `1.0`
     output_path = "data/training_data.parquet"
     client.download_training_dataset(version, output_path)
+
+    # Prefer CSV? Name the path .csv. Every download and submission in this
+    # guide works the same way with either extension. Training data is about
+    # five times larger as CSV.
+    client.download_training_dataset(version, "data/training_data.csv")
     ```
 
 === "CLI"

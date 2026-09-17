@@ -62,8 +62,12 @@ pip install crowdcent-challenge
    # Download inference data
    client.download_inference_data("current", "inference_data.parquet")
    
-   # Submit predictions
+   # Submit predictions, from a parquet or a CSV file
    client.submit_predictions(file_path="predictions.parquet")
+
+   # Every file comes and goes as CSV too: just name the path .csv
+   client.download_inference_data("current", "inference_data.csv")
+   client.submit_predictions(file_path="predictions.csv")
 
    # Or test a new model with an experimental submission + private note
    # (requires another slot to have a non-experimental submission)

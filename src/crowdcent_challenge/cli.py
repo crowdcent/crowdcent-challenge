@@ -265,7 +265,7 @@ def get_training_data(challenge_slug, version):
     "--output",
     "dest_path",
     default=None,
-    help="Output file path. Defaults to [challenge_slug]_training_v[version].parquet in current directory.",
+    help="Output file path; a .csv path downloads CSV. Defaults to [challenge_slug]_training_v[version].parquet in current directory.",
 )
 @handle_api_error
 def download_training_data(challenge_slug, version, dest_path):
@@ -334,7 +334,7 @@ def get_inference_data(challenge_slug, release_date):
     "--output",
     "dest_path",
     default=None,
-    help="Output file path. Defaults to [challenge_slug]_inference_[release_date].parquet in current directory.",
+    help="Output file path; a .csv path downloads CSV. Defaults to [challenge_slug]_inference_[release_date].parquet in current directory.",
 )
 # Polling controls
 @click.option(

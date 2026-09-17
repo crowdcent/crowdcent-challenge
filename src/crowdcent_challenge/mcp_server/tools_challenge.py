@@ -22,7 +22,7 @@ from .runtime import (
 
 def _coerced_path(dest_path: str, suffix: str = ".parquet") -> Path:
     path = Path(dest_path).expanduser().resolve()
-    if path.suffix != suffix:
+    if path.suffix not in (".parquet", ".csv"):
         path = path.with_suffix(suffix)
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
@@ -173,7 +173,7 @@ def register_challenge_tools(mcp) -> None:
     def download_training_dataset(
         version: str, dest_path: str, challenge_slug: str = DEFAULT_CHALLENGE
     ) -> str:
-        """Download a training dataset to a local parquet file.
+        """Download a training dataset to a local file, parquet or CSV by extension.
 
         Args:
             version: Dataset version, or 'latest'.
@@ -192,7 +192,7 @@ def register_challenge_tools(mcp) -> None:
         timeout: Optional[int] = 900,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> str:
-        """Download inference features to a local parquet file.
+        """Download inference features to a local file, parquet or CSV by extension.
 
         Args:
             release_date: YYYY-MM-DD, or 'current'.
@@ -215,7 +215,7 @@ def register_challenge_tools(mcp) -> None:
     def download_meta_model(
         dest_path: str, challenge_slug: str = DEFAULT_CHALLENGE
     ) -> str:
-        """Download the consolidated meta-model to a local parquet file."""
+        """Download the consolidated meta-model to a local file, parquet or CSV by extension."""
         path = _coerced_path(dest_path)
         client_for(challenge_slug).download_meta_model(str(path))
         return f"Meta-model downloaded to {path}"
@@ -224,10 +224,10 @@ def register_challenge_tools(mcp) -> None:
     def submit_predictions_from_file(
         file_path: str, slot: int = 1, challenge_slug: str = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
-        """Submit predictions from a local parquet file.
+        """Submit predictions from a local parquet or CSV file.
 
         Args:
-            file_path: Path to a parquet file with the required columns.
+            file_path: Path to a parquet or CSV file with the required columns.
             slot: Submission slot 1-5.
         """
         return client_for(challenge_slug).submit_predictions(

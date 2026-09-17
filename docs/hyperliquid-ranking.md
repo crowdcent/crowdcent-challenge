@@ -124,7 +124,7 @@ client.submit_predictions(file_path="submission.parquet", slot=2) # or a parquet
 
 !!! Note
     If you are submitting a dataframe, `id` must be a column in the dataframe, *not* the index.
-    If you are submitting a file, all submissions must be in parquet format.
+    If you are submitting a file, it can be parquet or CSV; the columns are the same either way.
 
 ## Scoring and Evaluation
 Before scoring, for each prediction timeframe, ids are uniform ranked [0, 1], and any missing ids are filled with 0.5.

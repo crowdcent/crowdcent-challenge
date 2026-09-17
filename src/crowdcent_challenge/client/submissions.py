@@ -56,7 +56,7 @@ class SubmissionsAPI:
     @nw.narwhalify
     def submit_predictions(
         self,
-        file_path: str = "submission.parquet",
+        file_path: str = "submission.csv",
         df: Optional[IntoFrameT] = None,
         slot: int = 1,
         queue_next: bool = True,
@@ -72,16 +72,18 @@ class SubmissionsAPI:
         If no window is open, the prediction is queued and will be automatically submitted
         when the next window opens.
 
-        You can provide either a file path to an existing Parquet file or a DataFrame
-        that will be temporarily saved as Parquet for submission.
+        You can provide either a file path to an existing parquet or CSV file, or a
+        DataFrame that will be temporarily saved for submission (as CSV, or as
+        parquet when ``file_path`` ends in ``.parquet``).
 
         The data must contain the required prediction columns specified by the challenge
         (e.g., id, pred_10d, pred_30d).
 
         Args:
-            file_path: Optional path to an existing prediction Parquet file.
+            file_path: Optional path to an existing prediction file, parquet or CSV.
             df: Optional DataFrame with the prediction columns. If provided,
-                it will be temporarily saved as Parquet for submission.
+                it is written to ``file_path`` for submission, in the format
+                its extension names.
             slot: Submission slot number (1-based).
             queue_next: Whether to also queue this submission for the next period
                 (auto-rollover). Defaults to True. When submitting during an open
@@ -121,8 +123,9 @@ class SubmissionsAPI:
             # Submit from a DataFrame
             client.submit_predictions(df=predictions_df)
 
-            # Submit from a file
+            # Submit from a file, parquet or CSV
             client.submit_predictions(file_path="predictions.parquet")
+            client.submit_predictions(file_path="predictions.csv")
 
             # Submit and opt-out of auto-queueing for next period
             client.submit_predictions(df=predictions_df, queue_next=False)
@@ -136,7 +139,10 @@ class SubmissionsAPI:
             )
         """
         if df is not None:
-            df.write_parquet(file_path)
+            if str(file_path).lower().endswith(".parquet"):
+                df.write_parquet(file_path)
+            else:
+                df.write_csv(file_path)
             logger.info(f"Wrote DataFrame to temporary file: {file_path}")
 
         logger.info(

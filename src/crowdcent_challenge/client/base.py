@@ -218,11 +218,13 @@ class BaseClient:
 
         Args:
             endpoint: API endpoint to download from.
-            dest_path: Local file path to save to.
+            dest_path: Local file path to save to. A ``.csv`` path asks the API
+                for the CSV copy of the file; anything else is parquet.
             description: Human-readable description for logging (e.g., "training data v1.0").
         """
         logger.info(f"Downloading {description} to {dest_path}")
-        response = self._request("GET", endpoint, stream=True)
+        params = {"as": "csv"} if str(dest_path).lower().endswith(".csv") else None
+        response = self._request("GET", endpoint, params=params, stream=True)
         total_size = int(response.headers.get("content-length", 0))
 
         try:
