@@ -29,8 +29,8 @@ class ChallengeClient(
     Handles authentication and provides methods for accessing challenge data,
     training datasets, inference data, and managing prediction submissions for
     a specific challenge identified by its slug — plus meta-model simulation,
-    live trading (Challenger tier and above), and CrowdCent Cloud hosted
-    notebooks (in pilot for members with a submission on the board).
+    live trading (Challenger tier and above), and CrowdCent Cloud projects,
+    Cloud Runs, and schedules (public preview for Challenger+ members).
     """
 
 

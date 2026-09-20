@@ -1,11 +1,11 @@
-"""CrowdCent Cloud: hosted notebook projects, batch runs, and automated schedules.
+"""CrowdCent Cloud: project files, Cloud Runs, and automated schedules.
 
 The remote execution workflow: create a project from source or a Cookbook
 recipe, run an exact frozen version on CrowdCent hardware, inspect the run
 report, and schedule successful runs daily or on each inference release.
 
-Interactive browser and cloud sessions are managed on the web at crowdcent.com.
-The Python client and MCP tools manage remote batch execution, project code
+Browser and Cloud Sessions are opened on the website at crowdcent.com.
+The Python client and MCP tools manage Cloud Runs, project code
 versions, recurring schedules, and billing.
 
 Requires an API key with the per-key "Allow CrowdCent Cloud" switch enabled
@@ -46,7 +46,7 @@ def _fresh_idempotency_key() -> str:
 
 
 class CloudAPI:
-    # --- CrowdCent Cloud (in pilot for members with a submission on the board) ---
+    # --- CrowdCent Cloud (public preview for Challenger+ members) ---
 
     def get_cloud_billing(self) -> Dict[str, Any]:
         """Gets your Cloud credits: what runs can spend right now, and prices.
@@ -115,9 +115,9 @@ class CloudAPI:
     ) -> Dict[str, Any]:
         """Creates a project from inline source or a Cookbook recipe.
 
-        Provide exactly one of `source` or `recipe`. Any Python script,
-        marimo notebook, or `.ipynb` is accepted; everything is normalized
-        to a marimo notebook and frozen as version 1. A folder of scripts is
+        Provide exactly one of `source` or `recipe`. Use a Python script or
+        marimo notebook saved as `.py`; the primary file is normalized to a
+        marimo notebook and frozen as version 1. A folder of scripts is
         one project: pass the others in `files`, and every top-level `.py`
         becomes its own job on the project's pipeline (run it by name with
         :py:meth:`run_cloud_project`; chain jobs with
@@ -126,8 +126,7 @@ class CloudAPI:
         Args:
             name: The project's name (unique among your projects).
             source: Notebook or script text.
-            filename: The source's filename; the extension decides how it
-                is read (`.py` or `.ipynb`).
+            filename: The source's `.py` filename.
             files: The project's other files, ``{relative path: text}``:
                 modules the entrypoint imports, more scripts, configuration.
             recipe: A reviewed Cookbook recipe slug (see
@@ -219,8 +218,11 @@ class CloudAPI:
         File edits require `base_version`, the `latest_version` read from
         the project. On 409 VERSION_CONFLICT, read and review the newer
         files before retrying. Nothing runs or changes an armed schedule.
-        `store_project` selects an account-owned shared output folder;
-        `share_store` and `publish_store` configure sharing/publication.
+        `store_project` selects a shared output folder from your account;
+        use this project's own ID to switch back to its folder. `share_store`
+        allows your other projects to use this project's folder.
+        `publish_store` controls whether future runs keep their writes in
+        the selected folder. These settings do not make files public.
         """
         payload = {key: value for key, value in {
             "name": name, "base_version": base_version, "filename": filename,
@@ -229,6 +231,18 @@ class CloudAPI:
             "publish_store": publish_store,
         }.items() if value is not None}
         return self._request("PATCH", f"/cloud/projects/{project_id}/", json_data=payload).json()
+
+    def archive_cloud_project(self, project_id: str) -> Dict[str, Any]:
+        """Archive a project, end its Cloud Sessions, and pause its schedules.
+
+        Files and run history are retained. Restore the project on the
+        website. Repeating the request is safe.
+
+        Returns:
+            ``{"archived": True}``.
+        """
+        self._request("DELETE", f"/cloud/projects/{project_id}/")
+        return {"archived": True}
 
     def run_cloud_project(
         self,
@@ -244,9 +258,10 @@ class CloudAPI:
         """Runs an exact frozen version now on CrowdCent's hardware.
 
         Returns immediately with a queued run; poll
-        :py:meth:`get_cloud_run` for progress. A run holds the most it can
-        cost (the shape's hourly rate for its time limit) and, when it
-        finishes, keeps only the minutes it ran. See
+        :py:meth:`get_cloud_run` for progress. A run reserves credits in
+        rolling holds of up to one hour, bounded by its time limit. It is
+        billed by the started minute; unused held credits are released
+        when it stops. See
         :py:meth:`get_cloud_billing` for the rates.
 
         Args:

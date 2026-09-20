@@ -314,6 +314,7 @@ def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch)
     failure)."""
     import gc
     import threading
+    from concurrent.futures import ThreadPoolExecutor
 
     from tqdm.std import TqdmDefaultWriteLock
     from tqdm.std import tqdm as tqdm_cls
@@ -326,23 +327,35 @@ def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch)
             "multiprocessing.RLock is not supported by the Pyodide WASM process adapter"
         )
 
-    # Drop tqdm's cached locks so construction goes through the failing path.
-    monkeypatch.delattr(tqdm_cls, "_lock", raising=False)
-    monkeypatch.delattr(TqdmDefaultWriteLock, "mp_lock", raising=False)
-    monkeypatch.setattr("multiprocessing.RLock", unsupported)
-
     dest = tmp_path / "train.parquet"
     monkeypatch.setattr(
         client, "_request", lambda *a, **k: _DummyStreamResponse(b"bytes")
     )
 
-    client.download_training_dataset(version="1.0", dest_path=str(dest))
-    gc.collect()  # surface any __del__ noise inside this test, not a later one
+    with monkeypatch.context() as patch:
+        # tqdm acquires th_lock before creating mp_lock and does not release it
+        # when that constructor raises. Isolate that deliberately broken lock;
+        # restoring the shared, still-held lock would deadlock later MCP workers.
+        patch.setattr(TqdmDefaultWriteLock, "th_lock", threading.RLock())
+        patch.delattr(tqdm_cls, "_lock", raising=False)
+        patch.delattr(TqdmDefaultWriteLock, "mp_lock", raising=False)
+        patch.setattr("multiprocessing.RLock", unsupported)
 
-    assert dest.read_bytes() == b"bytes"
-    # Proves the fallback engaged: the lock is now the plain threading lock
-    # the client installed, not tqdm's default composite lock.
-    assert isinstance(tqdm_cls.get_lock(), type(threading.RLock()))
+        client.download_training_dataset(version="1.0", dest_path=str(dest))
+        gc.collect()  # surface any __del__ noise inside this test, not a later one
+
+        assert dest.read_bytes() == b"bytes"
+        assert isinstance(tqdm_cls.get_lock(), type(threading.RLock()))
+
+    def other_thread_can_acquire():
+        lock = TqdmDefaultWriteLock.th_lock
+        acquired = lock.acquire(timeout=1)
+        if acquired:
+            lock.release()
+        return acquired
+
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        assert pool.submit(other_thread_can_acquire).result(timeout=2)
 
 
 def test_challenge_slug_defaults_to_hyperliquid_ranking(monkeypatch):

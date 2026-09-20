@@ -347,8 +347,8 @@ class BaseClient:
                 - `oms_access`: Whether the trading API is open to this user
                   at all (Challenger tier with active submission).
                 - `allow_cloud`: Whether this key may use CrowdCent Cloud
-                  (the per-key "Allow Cloud" switch; Cloud is in pilot for
-                  members with a submission on the board).
+                  (the per-key "Allow Cloud" switch). Calls also require
+                  account eligibility; public preview requires Challenger+.
 
         Raises:
             AuthenticationError: If the key is invalid or revoked.
