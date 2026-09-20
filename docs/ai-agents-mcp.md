@@ -111,16 +111,17 @@ The server ships two prompts, packaged versions of the asks above that encode th
 
 ## CrowdCent Cloud
 
-For Cloud-enabled keys, your assistant can run the whole [CrowdCent Cloud](crowdcent-cloud.md) loop: create a project from a Cookbook recipe or source it wrote, run it on CrowdCent hardware, read the run report (state, facts, logs), check the credit balance, and schedule the run that worked — daily, weekly, monthly, or on each inference release.
+For Cloud-enabled keys, your assistant can create a [CrowdCent Cloud](crowdcent-cloud.md) project from a Cookbook recipe or source it wrote, edit saved files, run code on CrowdCent hardware, read reports, and check credits. It can schedule saved code directly for daily, weekly, monthly, inference-release, or after-success execution. No previous run is required; a successful run is an optional way to reuse tested settings.
 
 The tools manage saved project files, Cloud Runs, schedules, and credit information. Live editing in the Browser or a Cloud Session is available on the website. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
 
 ```
-"Create a Cloud project from the hyperliquid-ranking recipe, run it, and
-tell me whether it submitted. If it worked, schedule it on each release."
+"Save optimize.py and predict.py in one project. Schedule optimization for
+Monday at 02:00 UTC on M hardware and prediction after it succeeds, using
+the saved model. Don't start a run now."
 ```
 
-Cloud tools appear when your API key has Cloud enabled (Settings → "Allow Cloud"). Runs and schedules spend your Cloud credits, and editing is guarded: partial file edits require the version the edit started from, so an assistant can never silently overwrite newer work. Keep Cloud and live trading on separate keys; an agent editing notebooks should never hold a credential that can trade.
+Cloud tools appear when your API key has Cloud enabled (Settings → "Allow Cloud"). Executing a run spends Cloud credits; creating a schedule starts no compute and reserves no credits. A schedule pins saved code and settings until you explicitly update it. Partial file edits require the version the edit started from, so stale edits return a conflict instead of overwriting newer work. Keep Cloud and live trading on separate keys; an agent editing notebooks should never hold a credential that can trade.
 
 ## Live trading
 

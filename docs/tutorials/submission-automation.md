@@ -6,20 +6,23 @@ CrowdCent Cloud is in public preview for Challenger+ members (100+ CC Points).
 
 ## Set up a schedule on the website
 
-1. Open **Tools → Cloud** and fork the **Hyperliquid Ranking** Cookbook recipe,
+1. Open **Cloud** and fork the **Hyperliquid Ranking** Cookbook recipe,
    or open your own project.
 2. Enable **Challenge access** so the code can download data and submit
    predictions with a temporary Challenge key.
-3. Start a **Cloud Run**. Check its report and the Challenge submissions page
-   to confirm that it produced an accepted submission.
-4. Schedule that successful run **on inference release**, or choose a daily,
-   weekly, or monthly time and timezone.
+3. Save your code and choose **Set schedule** for the file you want to automate.
+4. Choose **on inference release**, or a daily, weekly, or monthly time and
+   timezone. An earlier Cloud Run is optional.
 5. Check the schedule and credit balance. Cloud Runs consume credits, and a
    scheduled run needs enough available credit to start.
 
-The schedule pins the code, hardware, and parameters from the run you tested.
-Saving an edit does not change an armed schedule. Test the new code with another
-Cloud Run, then update the schedule to use it.
+The schedule pins saved code and execution settings. Creating it starts no
+compute and reserves no credits. Saving an edit does not change an armed
+schedule; update the schedule explicitly to use the new version.
+
+You can also start a Cloud Run first, inspect its report and the Challenge
+submissions page, then schedule that successful run's exact settings through
+Python or MCP.
 
 ## Use Python or an AI assistant
 
@@ -42,7 +45,26 @@ required to run a schedule.
 Keep `optimize.py` and `predict.py` in the same project. The optimizer can save
 `models/best.joblib`; the prediction script reads it from that path. Schedule
 optimization weekly and prediction daily, or start prediction after a successful
-optimization. Each file has its own tested code and schedule.
+optimization. Each file has its own pinned code and schedule. Neither needs to
+have run before you set this up:
+
+```python
+client.schedule_cloud_project(
+    project_id,
+    entrypoint="optimize.py",
+    envelope="m",
+    time_limit_minutes=90,
+    trigger="weekly",
+    weekday=0,
+    daily_at="02:00",
+)
+client.schedule_cloud_project(
+    project_id,
+    entrypoint="predict.py",
+    trigger="after",
+    after="optimize.py",
+)
+```
 
 Each Cloud Run reads the output snapshot current when the run is created.
 An after-success trigger starts a new run against the current snapshot; it does

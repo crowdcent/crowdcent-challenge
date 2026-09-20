@@ -1,8 +1,8 @@
 """CrowdCent Cloud: project files, Cloud Runs, and automated schedules.
 
 The remote execution workflow: create a project from source or a Cookbook
-recipe, run an exact frozen version on CrowdCent hardware, inspect the run
-report, and schedule successful runs daily or on each inference release.
+recipe, run saved code on CrowdCent hardware, inspect its report, or schedule
+saved code directly for a clock, inference release, or upstream success.
 
 Browser and Cloud Sessions are opened on the website at crowdcent.com.
 The Python client and MCP tools manage Cloud Runs, project code
@@ -330,7 +330,7 @@ class CloudAPI:
     def schedule_cloud_project(
         self,
         project_id: str,
-        run_id: str,
+        run_id: Optional[str] = None,
         trigger: str = "daily",
         daily_at: Optional[str] = None,
         timezone: str = "UTC",
@@ -338,49 +338,67 @@ class CloudAPI:
         day: Optional[int] = None,
         challenge: Optional[str] = None,
         after: Optional[str] = None,
+        version: Optional[int] = None,
+        entrypoint: Optional[str] = None,
+        envelope: Optional[str] = None,
+        time_limit_minutes: Optional[int] = None,
+        parameters: Optional[Dict[str, Any]] = None,
+        publish_store: Optional[bool] = None,
     ) -> Dict[str, Any]:
-        """Schedules a successful run's exact pinned contract.
+        """Schedule saved project code, or reuse a successful run's exact settings.
 
-        Cloud schedules the run you watched work — same version, same
-        environment, same network policy — never "the latest source".
-        Only a run whose `state` is `done` can be scheduled.
+        Without `run_id`, pin the selected saved version and file with these
+        execution settings and the project's network, Challenge-access, and
+        output settings. No prior run is required. Arming creates no run,
+        credit reservation, or compute; those begin when a trigger fires.
+
+        With `run_id`, reuse that successful run's exact tested contract.
+        Do not combine it with execution settings (`version`, `entrypoint`,
+        `envelope`, `time_limit_minutes`, `parameters`, or `publish_store`);
+        the API rejects mixed requests with HTTP 400.
+
+        Later edits do not change either kind of schedule. Schedule again
+        explicitly to pin another saved version or successful run.
 
         Args:
             project_id: The project's public ID.
-            run_id: A successful run of this project.
+            run_id: Optional successful run of this project (`state: done`).
             trigger: ``"daily"``, ``"weekly"``, or ``"monthly"`` (each needs
                 ``daily_at``; weekly also needs ``weekday``, monthly also
                 needs ``day``); ``"on_inference_release"`` (needs
-                ``challenge``); or ``"after"`` (needs ``after``): the run's
-                job fires only once another job of the project has
-                succeeded. A folder of scripts becomes a chain this way:
-                schedule the first on a clock, each next one ``"after"``
-                the previous.
+                ``challenge``); or ``"after"`` (needs ``after``).
             daily_at: 24-hour ``"HH:MM"`` for daily, weekly, and monthly.
             timezone: IANA timezone for clock triggers. Default UTC.
             weekday: For weekly: ``0``=Mon through ``6``=Sun.
-            day: For monthly: day of the month, ``1`` through ``28``.
-            challenge: Challenge slug whose inference releases fire the
-                release trigger.
-            after: The filename of the job this run's job also runs after.
+            day: For monthly: day of the month, ``1`` through ``31``.
+                Months without that date are skipped.
+            challenge: Challenge slug whose inference releases fire the job.
+            after: Filename of an upstream job in this project. Its success
+                can trigger this job even if this job has never run. When
+                combined with a clock, either trigger can start the job.
+            version: Saved code version; defaults to the current version.
+            entrypoint: File to schedule; defaults to the primary notebook.
+            envelope: Hardware size; defaults to ``"s"`` for saved code.
+            time_limit_minutes: Code runtime limit; omitted, up to a day.
+            parameters: Arguments passed to each scheduled execution.
+            publish_store: Keep generated files for subsequent runs;
+                defaults to the project's output-publication setting.
 
         Returns:
-            The armed schedule state: `armed`, `trigger`, `daily_at`,
-            `timezone`, `challenge`, `rule`, `after`, and `next_due`.
+            The armed schedule state, including its pinned `version`,
+            `entrypoint`, `rule`, `after`, and `next_due`.
         """
-        payload: Dict[str, Any] = {"run": run_id, "trigger": trigger}
-        if daily_at is not None:
-            payload["daily_at"] = daily_at
-        if trigger in ("daily", "weekly", "monthly"):
-            payload["timezone"] = timezone
-        if weekday is not None:
-            payload["weekday"] = weekday
-        if day is not None:
-            payload["day"] = day
-        if challenge is not None:
-            payload["challenge"] = challenge
-        if after:
-            payload["after"] = after
+        payload: Dict[str, Any] = {
+            key: value for key, value in {
+                "run": run_id, "trigger": trigger, "daily_at": daily_at,
+                "timezone": timezone if trigger in ("daily", "weekly", "monthly") else None,
+                "weekday": weekday, "day": day, "challenge": challenge,
+                "after": after or None, "version": version,
+                "entrypoint": entrypoint, "envelope": envelope,
+                "time_limit_minutes": time_limit_minutes,
+                "parameters": parameters, "publish_store": publish_store,
+            }.items() if value is not None
+        }
         response = self._request(
             "PUT", f"/cloud/projects/{project_id}/schedule/", json_data=payload
         )
@@ -390,7 +408,7 @@ class CloudAPI:
         """Pauses one file's schedule, or every schedule when entrypoint is omitted.
 
         Idempotent: pausing an unscheduled project is a no-op. Re-arm by
-        scheduling a successful run again.
+        scheduling saved code or a successful run again.
 
         Returns:
             ``{"paused": True}``.
