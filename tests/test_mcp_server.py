@@ -331,6 +331,54 @@ async def test_cloud_settings_and_archive_use_existing_rest_contract(requests_mo
     assert result.data == {"archived": True}
 
 
+async def test_cloud_schedule_saved_code_schema_and_transport(requests_mock):
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    schedule = requests_mock.put(
+        "http://api.test/api/cloud/projects/abc123/schedule/",
+        json={"armed": True, "version": 7, "entrypoint": "optimize.py"},
+    )
+    async with Client(build_server()) as client:
+        tool = next(tool for tool in await client.list_tools() if tool.name == "schedule_cloud_project")
+        assert tool.inputSchema["required"] == ["project_id"]
+        result = await client.call_tool("schedule_cloud_project", {
+            "project_id": "abc123", "version": 7, "entrypoint": "optimize.py",
+            "envelope": "m", "time_limit_minutes": 90, "parameters": {},
+            "publish_store": False, "trigger": "monthly", "day": 31, "daily_at": "02:00",
+        })
+    assert result.data["version"] == 7
+    assert schedule.last_request.json() == {
+        "version": 7, "entrypoint": "optimize.py", "envelope": "m",
+        "time_limit_minutes": 90, "parameters": {}, "publish_store": False,
+        "trigger": "monthly", "day": 31, "daily_at": "02:00", "timezone": "UTC",
+    }
+    assert [(request.method, request.path) for request in requests_mock.request_history] == [
+        ("PUT", "/api/cloud/projects/abc123/schedule/"),
+    ]
+
+
+@pytest.mark.parametrize("arguments,expected", [
+    (
+        {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
+        {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
+    ),
+    (
+        {"run_id": "run-uuid", "daily_at": "02:00"},
+        {"run": "run-uuid", "trigger": "daily", "daily_at": "02:00", "timezone": "UTC"},
+    ),
+])
+async def test_cloud_schedule_direct_chain_and_tested_run_remain_distinct(
+    requests_mock, arguments, expected,
+):
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    schedule = requests_mock.put(
+        "http://api.test/api/cloud/projects/abc123/schedule/", json={"armed": True},
+    )
+    async with Client(build_server()) as client:
+        await client.call_tool("schedule_cloud_project", {"project_id": "abc123", **arguments})
+    assert schedule.last_request.json() == expected
+    assert requests_mock.call_count == 1
+
+
 async def test_local_cloud_download_streams_pinned_bytes_to_requested_path(requests_mock, tmp_path):
     import hashlib
 

@@ -190,7 +190,7 @@ def register_cloud_tools(mcp) -> None:
     @mcp.tool
     def schedule_cloud_project(
         project_id: str,
-        run_id: str,
+        run_id: Optional[str] = None,
         trigger: str = "daily",
         daily_at: Optional[str] = None,
         timezone: str = "UTC",
@@ -198,18 +198,33 @@ def register_cloud_tools(mcp) -> None:
         day: Optional[int] = None,
         challenge: Optional[str] = None,
         after: Optional[str] = None,
+        version: Optional[int] = None,
+        entrypoint: Optional[str] = None,
+        envelope: Optional[str] = None,
+        time_limit_minutes: Optional[int] = None,
+        parameters: Optional[Dict[str, Any]] = None,
+        publish_store: Optional[bool] = None,
     ) -> Dict[str, Any]:
-        """MUTATING — arms unattended future runs. Schedules a SUCCESSFUL
-        run's exact pinned contract. Clock triggers: "daily", "weekly", or
-        "monthly" — each needs daily_at (24-hour "HH:MM") and an IANA
-        timezone; weekly also needs weekday (0=Mon..6=Sun); monthly also
-        needs day (1..28). "on_inference_release" needs the challenge slug
-        whose releases fire it. "after" needs after = the filename of
-        another job of this project, and fires this run's job only once
-        that one succeeds. A folder of scripts becomes a chain: the first
-        on a clock, each next one "after" the previous. Only a run that
-        finished done can be scheduled — run it and confirm success first,
-        and confirm the schedule with the user before arming it."""
+        """MUTATING — arms unattended future runs of saved project code.
+        No prior run is required: omit run_id to pin a saved version
+        (default current), entrypoint (default primary), and hardware
+        (default S). Optional execution settings set the code time limit,
+        parameters, and output publication. Project network, Challenge
+        access, and other output settings apply. Arming itself starts no
+        run or compute and reserves no credits.
+
+        Or provide a successful run_id to reuse its exact tested contract;
+        do not combine run_id with execution settings. Later edits never
+        repin an armed schedule; schedule again explicitly to change it.
+
+        Clock triggers: daily, weekly, or monthly need daily_at (HH:MM)
+        and an IANA timezone; weekly needs weekday (0=Mon..6=Sun), monthly
+        needs day (1..31; months without that date are skipped).
+        on_inference_release needs challenge. after
+        needs the upstream file name and fires when that job succeeds;
+        the downstream file need not have run before. A clock and after
+        are alternatives, not prerequisites for each other. Obtain user
+        authorization before arming unattended work."""
         return client_for().schedule_cloud_project(
             project_id,
             run_id,
@@ -220,6 +235,12 @@ def register_cloud_tools(mcp) -> None:
             day=day,
             challenge=challenge,
             after=after,
+            version=version,
+            entrypoint=entrypoint,
+            envelope=envelope,
+            time_limit_minutes=time_limit_minutes,
+            parameters=parameters,
+            publish_store=publish_store,
         )
 
     @mcp.tool

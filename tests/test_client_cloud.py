@@ -229,15 +229,80 @@ def test_schedule_weekly_and_monthly_bodies(client, requests_mock):
         "run-uuid",
         trigger="monthly",
         daily_at="07:30",
-        day=15,
+        day=31,
     )
     assert requests_mock.last_request.json() == {
         "run": "run-uuid",
         "trigger": "monthly",
         "daily_at": "07:30",
         "timezone": "UTC",
-        "day": 15,
+        "day": 31,
     }
+
+
+def test_schedule_saved_code_needs_only_the_existing_put(client, requests_mock):
+    schedule = requests_mock.put(
+        f"{BASE_URL}/cloud/projects/abc123/schedule/",
+        json={"armed": True, "version": 7, "entrypoint": "train.py"},
+    )
+
+    result = client.schedule_cloud_project("abc123", daily_at="02:00")
+
+    assert result["version"] == 7
+    assert schedule.last_request.json() == {
+        "trigger": "daily", "daily_at": "02:00", "timezone": "UTC",
+    }
+    # No preliminary lookup or run creation is needed to arm saved code.
+    assert [(request.method, request.path) for request in requests_mock.request_history] == [
+        ("PUT", "/api/cloud/projects/abc123/schedule/"),
+    ]
+
+
+def test_schedule_selected_code_preserves_false_and_empty_parameters(client, requests_mock):
+    schedule = requests_mock.put(
+        f"{BASE_URL}/cloud/projects/abc123/schedule/", json={"armed": True},
+    )
+
+    client.schedule_cloud_project(
+        "abc123", version=3, entrypoint="optimize.py", envelope="m",
+        time_limit_minutes=90, parameters={}, publish_store=False,
+        trigger="monthly", day=31, daily_at="02:00", timezone="Europe/London",
+    )
+
+    assert schedule.last_request.json() == {
+        "version": 3, "entrypoint": "optimize.py", "envelope": "m",
+        "time_limit_minutes": 90, "parameters": {}, "publish_store": False,
+        "trigger": "monthly", "day": 31, "daily_at": "02:00", "timezone": "Europe/London",
+    }
+
+
+def test_schedule_unrun_prediction_after_optimizer(client, requests_mock):
+    schedule = requests_mock.put(
+        f"{BASE_URL}/cloud/projects/abc123/schedule/", json={"armed": True},
+    )
+
+    client.schedule_cloud_project(
+        "abc123", entrypoint="predict.py", trigger="after", after="optimize.py",
+        parameters={"target": "30d", "submit": False},
+    )
+
+    assert schedule.last_request.json() == {
+        "entrypoint": "predict.py", "trigger": "after", "after": "optimize.py",
+        "parameters": {"target": "30d", "submit": False},
+    }
+    assert requests_mock.call_count == 1
+
+
+def test_schedule_mixed_mode_validation_surfaces_from_api(client, requests_mock):
+    requests_mock.put(
+        f"{BASE_URL}/cloud/projects/abc123/schedule/", status_code=400,
+        json={"run": ["Choose a successful run or saved-code settings, not both."]},
+    )
+
+    with pytest.raises(ClientError, match="Choose a successful run or saved-code settings"):
+        client.schedule_cloud_project(
+            "abc123", "run-uuid", daily_at="02:00", publish_store=False,
+        )
 
 
 def test_pause_schedule_returns_a_readable_ack(client, requests_mock):

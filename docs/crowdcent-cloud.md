@@ -6,13 +6,13 @@ CrowdCent Cloud is in **public preview for Challenger+ members (100+ CC Points)*
 
 ## Overview
 
-CrowdCent Cloud supports the standard competition workflow: develop a notebook, test execution on dedicated compute, and schedule automated runs on a daily cadence or whenever a challenge releases new inference data.
+CrowdCent Cloud supports the standard competition workflow: develop and save code, then run it on dedicated compute or schedule it for later. Train models periodically and generate predictions daily or whenever a challenge releases new inference data.
 
 Key features include:
 
 - **Python projects.** Use marimo notebooks saved as `.py` files, ordinary Python scripts, and supporting project files. Declare dependencies inside the file with PEP 723 script metadata.
 - **Choose how to work.** Edit interactively in the free Browser runtime or on hosted hardware with Cloud Sessions. Cloud Runs execute saved code unattended.
-- **Test before scheduling.** A schedule pins the code and settings from a successful Cloud Run. Later code edits take effect only when you test and select a new run.
+- **Schedule saved code.** Pin saved code and its execution settings without running it first, or reuse the settings from a successful Cloud Run. Later edits take effect only when you update the schedule explicitly.
 - **Sandboxed isolation.** Runs execute with default-deny network rules. Temporary, non-trading API credentials allow data downloads and prediction submissions without exposing account secrets.
 
 ## Core concepts
@@ -29,10 +29,10 @@ The website and API / Python / MCP share the saved-project and Cloud Run workflo
 |---|---|
 | **Project** | Your code, generated files, version history, Cloud Runs, and per-file schedules in one folder. |
 | **Version** | An immutable copy of saved project code and dependency declarations. A changed save creates the next version. |
-| **Output snapshot** | A recorded set of generated files, such as models and predictions. Output history is independent of code versions and subject to storage retention. |
+| **Output snapshot** | A record of the whole generated-output folder at a point in time, including models and predictions. Its history is independent of code versions. |
 | **Cloud Session** | A live Python kernel on hosted hardware, opened from the website. The free Browser runtime runs in your tab instead. |
 | **Cloud Run** | An unattended execution of a saved version and named file on selected hardware. |
-| **Schedule** | Clock, inference-release, or after-success triggers for a file's tested Cloud Run configuration. |
+| **Schedule** | Clock, inference-release, or after-success triggers for a file's pinned code and execution settings. |
 | **Recipe** | A starter notebook from the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook). Forking a recipe creates your own project. |
 
 ## Browser and Cloud Sessions
@@ -151,7 +151,7 @@ A status of `done` confirms that the script finished successfully within its tim
 
 Most runs need none. Parameters are for a notebook you launch several times with different settings, such as a tuning study.
 
-Parameters are named values a run is told when it starts: `trials=100 lr_max=0.2`. Set them under **Advanced** on the Run form, or pass `parameters` to `run_cloud_project`. The run's code receives them as command-line arguments, `--trials=100 --lr_max=0.2`, which a marimo notebook reads with `mo.cli_args()` and a plain script with `sys.argv`. Numbers, `true`/`false`, and text are typed the way marimo types them. A run takes up to 32 parameters, named with lowercase letters, digits, and underscores.
+Parameters are named values a run is told when it starts: `trials=100 lr_max=0.2`. Set them under **Advanced** on the Run form, or pass `parameters` to `run_cloud_project` or `schedule_cloud_project`. The run's code receives them as command-line arguments, `--trials=100 --lr_max=0.2`, which a marimo notebook reads with `mo.cli_args()` and a plain script with `sys.argv`. Numbers, `true`/`false`, and text are typed the way marimo types them. A run takes up to 32 parameters, named with lowercase letters, digits, and underscores.
 
 For a form with complete defaults, a Cloud Run can use those defaults without parameters. Define `DEFAULTS` in the notebook and use it to initialize the form, then read the selected settings in a later cell:
 
@@ -182,17 +182,19 @@ The executed notebook appears on the run report, and generated project files app
 
 ## Automated schedules
 
-You can automate recurring executions for any Cloud Run that completed successfully (`state: done`).
+Schedule any saved executable file directly; no earlier run is required. The schedule pins the selected code version, file, hardware, parameters, and project access settings. Creating it starts no compute and reserves no credits. A trigger starts a Cloud Run, whose compute usage is billed normally.
 
-When you configure a schedule, it pins the exact version, environment settings, hardware size, and parameters used by that successful run. Editing or saving new code in your project does not change what the active schedule runs. To deploy new code to an existing schedule, test it with a fresh Cloud Run and update the schedule to that new run.
+With the Python client or MCP, omit `run_id` to schedule saved code. The defaults are the current saved version, primary file, S hardware, and the project's network, Challenge-access, and output settings. Or supply a successful `run_id` (`state: done`) to reuse that run's exact tested settings; do not combine it with execution-setting arguments.
+
+Editing or saving new code does not change an active schedule. Call `schedule_cloud_project` again to explicitly pin another saved version or successful run.
 
 ### Supported triggers
 
 - **Daily.** Runs every day at a specified `HH:MM` time in your chosen IANA timezone.
 - **Weekly.** Runs once a week on a weekday (`0`=Mon … `6`=Sun) at `HH:MM`.
-- **Monthly.** Runs once a month on day `1`–`28` at `HH:MM`.
+- **Monthly.** Runs on day `1`–`31` at `HH:MM`. Months without that date are skipped; February 29 runs in leap years.
 - **On inference release.** Runs automatically whenever the target challenge publishes a new inference dataset.
-- **After.** Runs once another job of the same project has succeeded — how a folder of scripts becomes a chain.
+- **After.** Runs when another job in the same project succeeds. The downstream file does not need an earlier run of its own.
 
 Schedules can be paused and resumed at any time without needing to recreate the configuration.
 
@@ -210,7 +212,8 @@ balance if you enable paid asks after its included allowance.
 |---|---:|---:|
 | Challenger | 100+ | $10 |
 | Contender | 500+ | $25 |
-| Centurion and Sovereign | 1,500+ | $50 |
+| Centurion | 1,500+ | $50 |
+| Sovereign | 5,000+ | $100 |
 
 Included credits reset on the first of each month at 00:00 UTC and do not roll
 over. The month's allowance is set when you first reserve included credits that
@@ -227,7 +230,7 @@ billing["prices"]                       # Per size: hourly_cents, run_max_second
 
 ## Creating and managing projects
 
-In the web interface, open **Tools → Cloud** to manage your projects.
+In the web interface, open **Cloud** to manage your projects.
 
 - **New project.** Create a blank project in the Browser or Cloud runtime, import a repository from GitHub, fork a recipe from the Cookbook, or generate a starting point using Centaur.
 - **Cookbook recipes.** Browse reviewed templates (such as `hyperliquid-ranking` or `numerai-dashboard`) to preview code or fork into your account.
@@ -245,50 +248,41 @@ Complete method documentation is available in the [Cloud API reference](api-refe
 ### Python quickstart
 
 ```python
-import time
 from crowdcent_challenge import ChallengeClient
 
 client = ChallengeClient("hyperliquid-ranking")
 
-# Create a project from a Cookbook recipe
+# Create a tuning project from a Cookbook recipe
 project = client.create_cloud_project(
-    "Daily submitter",
-    recipe="hyperliquid-ranking",
+    "Weekly model optimization",
+    recipe="optuna-tuning",
     challenge_access=True,
 )
 
-# Start a Cloud Run and wait for completion
-run = client.run_cloud_project(project["id"])
-while True:
-    run = client.get_cloud_run(run["id"])
-    if not run["live"]:
-        break
-    time.sleep(30)
-
-print(f"Run completed with status: {run['state']} - {run['detail']}")
-if run["state"] != "done":
-    raise RuntimeError("Inspect the failed run before scheduling it.")
-
-# Schedule the verified run on every new inference release
+# Pin saved code for Monday at 02:00 UTC; no training runs now.
 client.schedule_cloud_project(
     project["id"],
-    run["id"],
-    trigger="on_inference_release",
-    challenge="hyperliquid-ranking",
+    entrypoint=project["filename"],
+    envelope="m",
+    time_limit_minutes=90,
+    parameters={"trials": 100},
+    trigger="weekly",
+    weekday=0,
+    daily_at="02:00",
+    timezone="UTC",
 )
+```
 
-# Or on a clock: daily, weekly (weekday 0=Mon..6=Sun), or monthly (day 1..28)
-# client.schedule_cloud_project(
-#     project["id"], run["id"], trigger="daily", daily_at="13:30", timezone="UTC",
-# )
-# client.schedule_cloud_project(
-#     project["id"], run["id"],
-#     trigger="weekly", daily_at="02:00", weekday=0, timezone="UTC",
-# )
-# client.schedule_cloud_project(
-#     project["id"], run["id"],
-#     trigger="monthly", daily_at="07:30", day=15, timezone="UTC",
-# )
+If you have already tested a Cloud Run and want to reuse its exact settings,
+pass its ID instead of execution settings:
+
+```python
+run = client.get_cloud_run(successful_run_id)
+assert run["state"] == "done"
+client.schedule_cloud_project(
+    run["project"], run["id"],
+    trigger="weekly", weekday=0, daily_at="02:00", timezone="UTC",
+)
 ```
 
 ### Safe updates and concurrency
@@ -311,7 +305,7 @@ binary inputs, remain unchanged. A rename is a deletion and addition in one edit
 Use `filename` when changing which file is the primary notebook.
 
 Code versions and generated-output snapshots are independent. A saved schedule
-pins its tested code; each occurrence reads the output snapshot current when the
+pins saved code; each occurrence reads the output snapshot current when the
 run is created. An optimizer can write `models/best.joblib`, and a later prediction
 script can load it from the same path. Clock and `after` triggers are alternatives:
 either can start the job. They do not mean “wait for both.” An `after` run reads the
