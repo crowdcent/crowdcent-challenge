@@ -13,7 +13,7 @@ Key features include:
 - **Python projects.** Use marimo notebooks saved as `.py` files, ordinary Python scripts, and supporting project files. Declare dependencies inside the file with PEP 723 script metadata.
 - **Choose how to work.** Edit interactively in the free Browser runtime or on hosted hardware with Cloud Sessions. Cloud Runs execute saved code unattended.
 - **Schedule saved code.** Pin saved code and its execution settings without running it first, or reuse the settings from a successful Cloud Run. Later edits take effect only when you update the schedule explicitly.
-- **Sandboxed isolation.** Runs execute with default-deny network rules. Temporary, non-trading API credentials allow data downloads and prediction submissions without exposing account secrets.
+- **Sandboxed isolation.** Common public APIs, package indexes, and model downloads are available automatically over HTTPS; other destinations require approval. Temporary, non-trading API credentials allow Challenge data downloads and prediction submissions without exposing account secrets.
 
 ## Core concepts
 
@@ -69,6 +69,8 @@ Cloud Sessions run native Python on hosted CrowdCent hardware with the marimo ed
 | L | 8 | 48 GiB | |
 | GPU | 3 | 11 GiB | one NVIDIA L4 24 GB |
 
+GPU Cloud Sessions provide a 64 GiB temporary disk cache at `~/.cache`, deleted when the session ends. This is separate from the GPU's 24 GB of video memory and the session's system memory; downloading a model does not guarantee it will fit in memory.
+
 ### Session lifecycle and recovery
 
 Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. For Challenger tier and above, the defaults are 60 minutes idle and 12 hours total; the workspace shows its current limits. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
@@ -103,7 +105,15 @@ The Cookbook's `hyperliquid_ranking` recipe uses this pattern to submit automati
 
 ### Network and access control
 
-Runs execute with default-deny outbound networking. Projects created from Cookbook recipes include pre-approved public endpoints, such as third-party market data feeds.
+Browser notebooks, Cloud Sessions, and Cloud Runs share a reviewed catalog of public HTTPS destinations. Common services such as GitHub, Hugging Face model and dataset downloads, Python package indexes, and market-data APIs are available automatically on port 443. You do not need to add those hosts to each project. A service may still require its own API key.
+
+Request other destinations under **Environment → Network**. Private-network addresses and unapproved destinations remain blocked. Generic hosting and temporary tunnel domains are not approved as a whole; a specific endpoint can be reviewed separately.
+
+Each Cloud Run or Cloud Session normally has a **64 GiB network-transfer budget**, counting downloads and uploads, including dependency installation. Its budget is reduced to the account's remaining monthly network allowance: 200 GiB for Challenger, 500 GiB for Contender, and 1,000 GiB for Centurion and Sovereign. Runs and sessions share that allowance, which resets on the first of the month at 00:00 UTC; active sessions reserve their authorized capacity until usage is measured or the session ends.
+
+Browser notebooks use the same public-host catalog, with smaller request limits: 16 MiB uploads and 256 MiB responses through the Browser relay, plus your device's memory limits. Use a Cloud Session or Cloud Run for larger downloads.
+
+Temporary downloads are separate from saved-project storage. A working dataset in a temporary directory uses runtime disk space and network allowance; saving it as a project file also subjects it to the [saved-file and output limits](#safe-updates-and-concurrency). A 64 GiB transfer budget does not make a 64 GiB file saveable or guarantee that it fits in the selected runtime.
 
 When the **Challenge access** option is enabled, the run receives a scoped, short-lived Challenge API key valid only for the duration of the run. This allows the notebook to fetch new inference data and post predictions to the challenge.
 
