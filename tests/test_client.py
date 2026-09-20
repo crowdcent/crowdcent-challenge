@@ -280,6 +280,9 @@ class _DummyStreamResponse:
     def iter_content(self, chunk_size: int = 8192):  # noqa: D401 – simple generator
         yield self._content
 
+    def close(self):
+        pass
+
     # The client never calls `.json()` on streaming download responses, but we
     # include it to avoid accidental AttributeErrors in other cases.
     def json(self):  # pragma: no cover – not used in current tests

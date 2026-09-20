@@ -13,7 +13,7 @@ from fastmcp.server.auth import AccessToken, TokenVerifier
 from fastmcp.server.middleware import Middleware
 
 from . import runtime
-from .runtime import TRADING_TOOL_NAMES
+from .runtime import CLOUD_TOOL_NAMES, TRADING_TOOL_NAMES
 
 
 class CrowdCentTokenVerifier(TokenVerifier):
@@ -63,14 +63,15 @@ class CrowdCentTokenVerifier(TokenVerifier):
         data = await anyio.to_thread.run_sync(self._check_key, token)
         if not isinstance(data, dict) or "username" not in data:
             return None
+        scopes = []
+        if data.get("allow_trading") and data.get("oms_access"):
+            scopes.append("trading")
+        if data.get("allow_cloud"):
+            scopes.append("cloud")
         access = AccessToken(
             token=token,
             client_id=str(data.get("username")),
-            scopes=(
-                ["trading"]
-                if data.get("allow_trading") and data.get("oms_access")
-                else []
-            ),
+            scopes=scopes,
             expires_at=None,
             claims=data,
         )
@@ -108,3 +109,17 @@ class TradingVisibilityMiddleware(Middleware):
         if runtime.request_allows_trading():
             return tools
         return [tool for tool in tools if tool.name not in TRADING_TOOL_NAMES]
+
+
+class CloudVisibilityMiddleware(Middleware):
+    """Hide Cloud tools from keys without the allow_cloud flag.
+
+    Same shape and same caveat as trading visibility: the CrowdCent API
+    enforces the key flag, the account gate, and owner scoping on every
+    call regardless of what list_tools showed."""
+
+    async def on_list_tools(self, context, call_next):
+        tools = await call_next(context)
+        if runtime.request_allows_cloud():
+            return tools
+        return [tool for tool in tools if tool.name not in CLOUD_TOOL_NAMES]

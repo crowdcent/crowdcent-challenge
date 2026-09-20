@@ -1,8 +1,10 @@
 """Client plumbing: auth/session setup, the request/download/redirect
 helpers, and account-level calls shared by every API area."""
 
+import hashlib
 import logging
 import os
+import tempfile
 import threading
 import time
 from typing import Any, Dict, IO, List, Optional
@@ -102,6 +104,7 @@ class BaseClient:
         max_retries: int = 3,
         retry_delay: float = 1.0,
         allow_redirects: bool = True,
+        headers: Optional[Dict[str, str]] = None,
     ) -> requests.Response:
         """
         Internal helper method to make authenticated API requests.
@@ -116,6 +119,8 @@ class BaseClient:
             data: Dictionary of form data to send with multipart requests.
             max_retries: Maximum number of retry attempts for connection errors.
             retry_delay: Initial delay between retries (seconds). Will use exponential backoff.
+            headers: Extra per-request headers (e.g. Idempotency-Key), merged
+                over the session's auth header by requests.
 
         Returns:
             The requests.Response object.
@@ -144,6 +149,7 @@ class BaseClient:
                     stream=stream,
                     data=data,
                     allow_redirects=allow_redirects,
+                    headers=headers,
                 )
                 response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
                 logger.debug(f"Response: {response.status_code}")
@@ -213,7 +219,7 @@ class BaseClient:
                 logger.error(f"Request failed: {e} for {method} {url}")
                 raise CrowdCentAPIError(f"Request failed: {e}") from e
 
-    def _download_file(self, endpoint: str, dest_path: str, description: str) -> None:
+    def _download_file(self, endpoint: str, dest_path: str, description: str, *, params=None) -> None:
         """Download a file from the API with progress bar.
 
         Args:
@@ -223,22 +229,36 @@ class BaseClient:
             description: Human-readable description for logging (e.g., "training data v1.0").
         """
         logger.info(f"Downloading {description} to {dest_path}")
-        params = {"as": "csv"} if str(dest_path).lower().endswith(".csv") else None
+        if params is None:
+            params = {"as": "csv"} if str(dest_path).lower().endswith(".csv") else None
         response = self._request("GET", endpoint, params=params, stream=True)
-        total_size = int(response.headers.get("content-length", 0))
-
+        temporary = None
         try:
+            total_size = int(response.headers.get("content-length", 0))
+            digest = hashlib.sha256()
             with (
-                open(dest_path, "wb") as f,
+                tempfile.NamedTemporaryFile(
+                    mode="wb", dir=os.path.dirname(os.path.abspath(dest_path)),
+                    prefix=".crowdcent-download-", delete=False,
+                ) as f,
                 _progress_bar(total_size, dest_path) as pbar,
             ):
+                temporary = f.name
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
+                    digest.update(chunk)
                     pbar.update(len(chunk))
+            expected = (params or {}).get("sha256")
+            if expected and digest.hexdigest() != expected:
+                raise CrowdCentAPIError("Downloaded file does not match the requested SHA-256.")
+            os.replace(temporary, dest_path)
             logger.info(f"Successfully downloaded {description} to {dest_path}")
         except IOError as e:
-            logger.error(f"Failed to write to {dest_path}: {e}")
-            raise CrowdCentAPIError(f"Failed to write file: {e}") from e
+            raise CrowdCentAPIError(f"Could not download file: {e}") from e
+        finally:
+            response.close()
+            if temporary and os.path.exists(temporary):
+                os.unlink(temporary)
 
     # --- Class Method for Listing All Challenges ---
 
@@ -326,6 +346,9 @@ class BaseClient:
                   endpoints (the per-key "Allow live trading" switch).
                 - `oms_access`: Whether the trading API is open to this user
                   at all (Challenger tier with active submission).
+                - `allow_cloud`: Whether this key may use CrowdCent Cloud
+                  (the per-key "Allow Cloud" switch; Cloud is in pilot for
+                  members with a submission on the board).
 
         Raises:
             AuthenticationError: If the key is invalid or revoked.

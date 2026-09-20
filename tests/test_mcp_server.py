@@ -13,7 +13,10 @@ import narwhals as nw
 import pytest
 
 from crowdcent_challenge.mcp_server import runtime
-from crowdcent_challenge.mcp_server.runtime import TRADING_TOOL_NAMES
+from crowdcent_challenge.mcp_server.runtime import (
+    CLOUD_TOOL_NAMES,
+    TRADING_TOOL_NAMES,
+)
 
 fastmcp = pytest.importorskip("fastmcp")
 from fastmcp import Client  # noqa: E402
@@ -28,8 +31,8 @@ def _clean_env(monkeypatch):
     monkeypatch.delenv("CROWDCENT_MCP_MODE", raising=False)
     monkeypatch.setenv("CROWDCENT_API_KEY", "test_key")
     monkeypatch.setenv("CROWDCENT_API_URL", "http://api.test/api")
-    # Default: no trading capability without an explicit auth/check mock.
-    runtime._stdio_trading_cache = ("test_key", float("inf"), False)
+    # Default: no capabilities without an explicit auth/check mock.
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {})
 
 
 async def _tool_names(server):
@@ -40,33 +43,36 @@ async def _tool_names(server):
 # ------------------------------------------------------------ trading gates
 
 
-def _mock_auth_check(requests_mock, *, allow_trading=False, oms_access=False):
+def _mock_auth_check(
+    requests_mock, *, allow_trading=False, oms_access=False, allow_cloud=False
+):
     requests_mock.get(
         "http://api.test/api/auth/check/",
         json={
             "username": "dana",
             "allow_trading": allow_trading,
             "oms_access": oms_access,
+            "allow_cloud": allow_cloud,
         },
     )
 
 
 async def test_trading_tools_hidden_without_capability(requests_mock):
-    runtime._stdio_trading_cache = None
+    runtime._stdio_claims_cache = None
     _mock_auth_check(requests_mock)
     names = await _tool_names(build_server())
     assert not (names & TRADING_TOOL_NAMES)
 
 
 async def test_trading_tools_visible_with_capability(requests_mock):
-    runtime._stdio_trading_cache = None
+    runtime._stdio_claims_cache = None
     _mock_auth_check(requests_mock, allow_trading=True, oms_access=True)
     names = await _tool_names(build_server())
     assert TRADING_TOOL_NAMES <= names
 
 
 async def test_stdio_visibility_uses_check_auth(requests_mock):
-    runtime._stdio_trading_cache = None
+    runtime._stdio_claims_cache = None
     _mock_auth_check(requests_mock, allow_trading=True, oms_access=True)
     names = await _tool_names(build_server())
     assert TRADING_TOOL_NAMES <= names
@@ -83,6 +89,46 @@ async def test_hosted_visibility_filters_per_request(monkeypatch):
     monkeypatch.setattr(runtime, "request_allows_trading", lambda: True)
     names = await _tool_names(server)
     assert TRADING_TOOL_NAMES <= names
+
+
+# ------------------------------------------------------------- cloud gates
+
+
+async def test_cloud_tools_hidden_without_the_key_flag(requests_mock):
+    runtime._stdio_claims_cache = None
+    _mock_auth_check(requests_mock)
+    names = await _tool_names(build_server())
+    assert not (names & CLOUD_TOOL_NAMES)
+
+
+async def test_cloud_tools_visible_with_the_key_flag(requests_mock):
+    runtime._stdio_claims_cache = None
+    _mock_auth_check(requests_mock, allow_cloud=True)
+    names = await _tool_names(build_server())
+    assert CLOUD_TOOL_NAMES <= names
+    # The flag is cloud-only: trading tools stay hidden.
+    assert not (names & TRADING_TOOL_NAMES)
+
+
+async def test_one_auth_check_answers_both_visibility_filters(requests_mock):
+    runtime._stdio_claims_cache = None
+    _mock_auth_check(
+        requests_mock, allow_trading=True, oms_access=True, allow_cloud=True
+    )
+    names = await _tool_names(build_server())
+    assert CLOUD_TOOL_NAMES <= names
+    assert TRADING_TOOL_NAMES <= names
+    assert requests_mock.call_count == 1
+
+
+async def test_hosted_cloud_visibility_filters_per_request(monkeypatch):
+    monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
+    server = build_server()
+    names = await _tool_names(server)
+    assert not (names & CLOUD_TOOL_NAMES)
+    monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
+    names = await _tool_names(server)
+    assert CLOUD_TOOL_NAMES <= names
 
 
 # ------------------------------------------------------------ mode awareness
@@ -206,6 +252,44 @@ async def test_execute_rebalance_surfaces_errors_verbatim(monkeypatch):
     async with Client(server) as client:
         with pytest.raises(ToolError, match="ACCOUNT_BUSY"):
             await client.call_tool("execute_rebalance", {"plan_hash": "deadbeef"})
+
+
+async def test_cloud_tools_pass_through_and_surface_conflicts(monkeypatch):
+    from crowdcent_challenge import ClientError
+    from crowdcent_challenge.mcp_server import tools_cloud
+
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    fake = MagicMock()
+    fake.run_cloud_project.return_value = {"id": "run-uuid", "state": "queued"}
+    fake.update_cloud_project.side_effect = ClientError(
+        "Client error (409): This project is at version 3, not version 1. "
+        "[VERSION_CONFLICT]"
+    )
+    monkeypatch.setattr(tools_cloud, "client_for", lambda: fake)
+    server = build_server()
+
+    async with Client(server) as client:
+        result = await client.call_tool(
+            "run_cloud_project",
+            {"project_id": "abc123", "envelope": "m", "idempotency_key": "run-1"},
+        )
+        with pytest.raises(ToolError, match="VERSION_CONFLICT"):
+            await client.call_tool(
+                "update_cloud_project",
+                {"project_id": "abc123", "files": {"notebook.py": "x"}, "base_version": 1},
+            )
+
+    fake.run_cloud_project.assert_called_once_with(
+        "abc123",
+        version=None,
+        envelope="m",
+        time_limit_minutes=None,
+        entrypoint="",
+        publish_store=None,
+        idempotency_key="run-1",
+        parameters=None,
+    )
+    assert result.data["state"] == "queued"
 
 
 # ------------------------------------------------------- base-install safety
