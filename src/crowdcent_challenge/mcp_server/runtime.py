@@ -7,9 +7,10 @@ Two modes for one codebase:
 - **hosted** (`CROWDCENT_MCP_MODE=hosted`): multi-tenant behind bearer auth;
   the API key is the request's bearer token.
 
-Trading tools are always registered; visibility in ``list_tools`` follows the
-presenting key's capabilities (``allow_trading`` + ``oms_access`` from
-``/auth/check/``). The CrowdCent API enforces every gate server-side.
+Trading and Cloud tools are always registered; visibility in ``list_tools``
+follows the presenting key's capabilities (``allow_trading`` + ``oms_access``
+and ``allow_cloud`` from ``/auth/check/``). The CrowdCent API enforces every
+gate server-side.
 """
 
 from __future__ import annotations
@@ -39,7 +40,23 @@ TRADING_TOOL_NAMES = frozenset(
     }
 )
 
-_stdio_trading_cache: tuple[str, float, bool] | None = None
+CLOUD_TOOL_NAMES = frozenset(
+    {
+        "get_cloud_billing",
+        "list_cloud_recipes",
+        "list_cloud_projects",
+        "get_cloud_project",
+        "get_cloud_project_files",
+        "create_cloud_project",
+        "update_cloud_project",
+        "run_cloud_project",
+        "get_cloud_run",
+        "schedule_cloud_project",
+        "pause_cloud_project_schedule",
+    }
+)
+
+_stdio_claims_cache: tuple[str, float, dict] | None = None
 
 
 def is_hosted() -> bool:
@@ -86,41 +103,55 @@ def _claims_allow_trading(claims: dict) -> bool:
     return bool(claims.get("allow_trading")) and bool(claims.get("oms_access"))
 
 
-def _stdio_trading_allowed() -> bool:
-    global _stdio_trading_cache
+def _claims_allow_cloud(claims: dict) -> bool:
+    return bool(claims.get("allow_cloud"))
+
+
+def _stdio_claims() -> dict:
+    """The stdio key's /auth/check/ capabilities, cached briefly."""
+    global _stdio_claims_cache
 
     api_key = os.getenv("CROWDCENT_API_KEY")
     if not api_key:
-        return False
+        return {}
     now = time.monotonic()
     if (
-        _stdio_trading_cache is not None
-        and _stdio_trading_cache[0] == api_key
-        and _stdio_trading_cache[1] > now
+        _stdio_claims_cache is not None
+        and _stdio_claims_cache[0] == api_key
+        and _stdio_claims_cache[1] > now
     ):
-        return _stdio_trading_cache[2]
+        return _stdio_claims_cache[2]
     try:
         claims = ChallengeClient(
             DEFAULT_CHALLENGE,
             api_key=api_key,
             base_url=api_base_url(),
         ).check_auth()
-        allowed = _claims_allow_trading(claims)
     except Exception:
-        allowed = False
-    _stdio_trading_cache = (api_key, now + _CAP_CHECK_TTL_S, allowed)
-    return allowed
+        claims = {}
+    _stdio_claims_cache = (api_key, now + _CAP_CHECK_TTL_S, claims)
+    return claims
 
 
-def request_allows_trading() -> bool:
-    """Whether trading tools should appear for the presenting key."""
+def _request_claims() -> dict:
+    """This request's key capabilities: token claims (hosted) or the
+    cached /auth/check/ answer (stdio)."""
     if is_hosted():
         try:
             from fastmcp.server.dependencies import get_access_token
 
             token = get_access_token()
-            claims = (token.claims or {}) if token is not None else {}
-            return _claims_allow_trading(claims)
+            return (token.claims or {}) if token is not None else {}
         except Exception:
-            return False
-    return _stdio_trading_allowed()
+            return {}
+    return _stdio_claims()
+
+
+def request_allows_trading() -> bool:
+    """Whether trading tools should appear for the presenting key."""
+    return _claims_allow_trading(_request_claims())
+
+
+def request_allows_cloud() -> bool:
+    """Whether Cloud tools should appear for the presenting key."""
+    return _claims_allow_cloud(_request_claims())

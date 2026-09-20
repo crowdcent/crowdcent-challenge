@@ -275,10 +275,47 @@ project = client.get_cloud_project(project["id"])
 
 client.update_cloud_project(
     project["id"],
-    source=new_source,
-    base_version=project["source"]["version"],
+    files={project["filename"]: new_source, "helpers/features.py": helper_source},
+    base_version=project["latest_version"],
 )
 ```
+
+Read files with `get_cloud_project_files(project_id, path="helpers/features.py")`.
+`files` updates only the named paths; use `None` to delete. Other files, including
+binary inputs, remain unchanged. A rename is a deletion and addition in one edit.
+Use `filename` when changing which file is the primary notebook.
+
+Code versions and generated-output snapshots are independent. A saved schedule
+pins its tested code; each occurrence reads the output snapshot current when the
+run is created. An optimizer can write `models/best.joblib`, and a later prediction
+script can load it from the same path. Clock and `after` triggers are alternatives:
+either can start the job. They do not mean “wait for both.” An `after` run reads the
+current output snapshot, which may include a newer publication than its triggering run.
+
+File listings return immutable `version` or `snapshot` selectors. Supply one when
+reading or downloading a model to reproduce the listed bytes:
+
+```python
+files = client.get_cloud_project_files(project["id"])
+model = next(item for item in files["files"] if item["path"] == "models/best.joblib")
+client.download_cloud_project_file(
+    project["id"], model["path"], "best.joblib", snapshot=model["snapshot"],
+)
+```
+
+Cloud sessions and runs support output files up to 4 GiB and output snapshots up
+to 8 GiB, subject to the account's retained-storage allowance. Browser sessions
+have a smaller transfer budget and name files they cannot carry. Current output
+paths remain available; superseded snapshots follow retention limits, so history
+is not permanent model retention. Keep separately named model files when both
+models must remain in the current folder.
+
+An open Browser or Cloud workspace retains its own files when the API saves a
+new version. Its saved status offers **Save my workspace**, **Load saved version**,
+and **Review differences**. Loading preserves the local code in history first;
+overwriting still checks that the reviewed remote version has not changed again.
+Unchanged local model files never republish over newer remote models. Conflicting
+output edits are retained in a snapshot without moving the current output folder.
 
 ### Idempotent requests
 

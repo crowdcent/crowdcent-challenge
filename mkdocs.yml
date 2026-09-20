@@ -12,6 +12,7 @@ nav:
       - Points System: points-system.md
       - Simulator: simulator.md
       - Live Trading: live-trading.md
+      - CrowdCent Cloud: crowdcent-cloud.md
       - FAQ: faq.md
       - Challenges:
           - Hyperliquid Ranking: hyperliquid-ranking.md
@@ -37,6 +38,7 @@ nav:
   - API Reference:
       - Python: api-reference/python.md
       - CLI: api-reference/cli.md
+      - CrowdCent Cloud: api-reference/cloud.md
       - OpenAPI: https://crowdcent.com/api/swagger-ui/
   - Challenge App: https://crowdcent.com/challenge
 

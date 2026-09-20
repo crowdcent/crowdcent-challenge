@@ -109,6 +109,19 @@ The server ships two prompts, packaged versions of the asks above that encode th
 - **`sweep_and_summarize`**: runs a sweep, tables in-sample and out-of-sample Sharpe, identifies the stable plateau rather than the single best cell, recommends one configuration from inside it, and hands you the site deep link.
 - **`morning_briefing`**: pulls your recent scores, account state, last rebalance results, and working orders, then narrates what needs your attention. Built for trading-enabled accounts; anyone can use it for the scoring summary.
 
+## CrowdCent Cloud
+
+For Cloud-enabled keys, your assistant can run the whole [CrowdCent Cloud](crowdcent-cloud.md) loop: create a project from a Cookbook recipe or source it wrote, run it on CrowdCent hardware, read the run report (state, facts, logs), check the credit balance, and schedule the run that worked — daily, weekly, monthly, or on each inference release.
+
+The tools manage project files, batch runs, automated schedules, and billing. They do not manage interactive browser or cloud sessions, and there are no endpoints for secrets, host grants, or publication. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
+
+```
+"Create a Cloud project from the hyperliquid-ranking recipe, run it, and
+tell me whether it submitted. If it worked, schedule it on each release."
+```
+
+Cloud tools appear when your API key has Cloud enabled (Settings → "Allow Cloud"). Runs and schedules spend your Cloud credits, and editing is guarded: partial file edits require the version the edit started from, so an assistant can never silently overwrite newer work. Keep Cloud and live trading on separate keys; an agent editing notebooks should never hold a credential that can trade.
+
 ## Live trading
 
 For trading-enabled accounts, the same tools that power the site's Trading tab: inspect the mandate and target book, preview a rebalance, execute it after your explicit confirmation, flatten, pause, and read the run and order audit trail. The concepts (mandates, custody, the consent flow) are covered in [Live Trading](live-trading.md).
@@ -124,5 +137,6 @@ Trading tools appear when your API key has live trading enabled (Settings → "A
 
 - **"API key not provided"**: set `CROWDCENT_API_KEY` in the server's `env` block (local) or the `Authorization` header (hosted).
 - **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading requires Challenger tier (100+ CC Points) and an active submission in the last 30 days — without eligibility, tools stay hidden and API calls return 403.
+- **Cloud tools missing**: enable "Allow Cloud" on your key in profile settings. Cloud is in pilot for members with a submission on the board; without Cloud access on your account, tools stay hidden and API calls would fail anyway.
 - **A knob didn't take effect**: simulation knobs above your points tier are clamped to your tier, and the response's `locked` list names which ones. Error messages state the tier and points needed to unlock.
 - **Submission format**: predictions need the challenge's required columns (for `hyperliquid-ranking`: `id`, `pred_10d`, `pred_30d`), and submissions are only open during the challenge's submission window.
