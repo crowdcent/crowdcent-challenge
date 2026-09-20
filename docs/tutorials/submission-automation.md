@@ -1,28 +1,51 @@
-## Scheduling a Kaggle notebook
-If you're just starting out, we recommend using Kaggle Notebooks to schedule your submissions.
+# Automate prediction submissions
 
-1. **Settings (⚙) → Schedule a notebook run → On**  
-2. Choose **Frequency** (daily / weekly / monthly), **Start date**, **Runs ≤ 10** → **Save**  
-3. A clock icon appears; each run writes a new **Version** with full logs & outputs  
-4. Limits: **CPU-only • ≤ 9 h per run • 1 private / 5 public schedules active**  
-5. Pause or delete the job anytime from the same Settings card  
+Use **Cloud Runs** to generate predictions and submit them on a schedule. Your
+project keeps the code, model files, run reports, and schedule together.
+CrowdCent Cloud is in public preview for Challenger+ members (100+ CC Points).
 
-<sub>Need GPUs? Trigger notebook commits with the Kaggle API from cron/GitHub Actions.</sub>
+## Set up a schedule on the website
 
-## Scheduling a Google Colab (Vertex AI) notebook
-https://www.youtube.com/watch?v=ypGah2gRYck
+1. Open **Tools → Cloud** and fork the **Hyperliquid Ranking** Cookbook recipe,
+   or open your own project.
+2. Enable **Challenge access** so the code can download data and submit
+   predictions with a temporary Challenge key.
+3. Start a **Cloud Run**. Check its report and the Challenge submissions page
+   to confirm that it produced an accepted submission.
+4. Schedule that successful run **on inference release**, or choose a daily,
+   weekly, or monthly time and timezone.
+5. Check the schedule and credit balance. Cloud Runs consume credits, and a
+   scheduled run needs enough available credit to start.
 
-1. **Create a Google Cloud account** if you don't have one already
-2. **Go to [Google Colab Notebooks in Vertex AI](https://console.cloud.google.com/vertex-ai/colab/notebooks)**
-3. **Set up a schedule:**
-   - Open your notebook in Colab
-   - Click **Runtime → Manage sessions**
-   - Select **Recurring** and configure your schedule
-   - Set frequency (daily/weekly/monthly) and duration
-   - Click **Save**
-4. **Authentication options:**
-   - Use service account keys stored securely
-   - Set up environment variables in the Vertex AI console
-   - Use Google Cloud's Secret Manager for API keys
+The schedule pins the code, hardware, and parameters from the run you tested.
+Saving an edit does not change an armed schedule. Test the new code with another
+Cloud Run, then update the schedule to use it.
 
-<sub>Note: Scheduled Colab notebooks run on Google Cloud and may incur charges based on your usage.</sub>
+## Use Python or an AI assistant
+
+The Python client and MCP tools use the same project and scheduling API. Enable
+**Allow Cloud** on your API key, then follow the
+[Python quickstart](../crowdcent-cloud.md#python-quickstart).
+
+An MCP-connected assistant can handle the workflow:
+
+> Create a Cloud project from the Hyperliquid Ranking recipe, run it, and check
+> whether the predictions were accepted. If they were, schedule it on each
+> inference release.
+
+Cloud Runs continue independently of your browser or local computer. Browser
+and Cloud Sessions are for interactive development; opening a session is not
+required to run a schedule.
+
+## Separate training from prediction
+
+Keep `optimize.py` and `predict.py` in the same project. The optimizer can save
+`models/best.joblib`; the prediction script reads it from that path. Schedule
+optimization weekly and prediction daily, or start prediction after a successful
+optimization. Each file has its own tested code and schedule.
+
+Each Cloud Run reads the output snapshot current when the run is created.
+An after-success trigger starts a new run against the current snapshot; it does
+not lock the folder to the triggering run's output if something newer has been
+published. See [safe updates and concurrency](../crowdcent-cloud.md#safe-updates-and-concurrency)
+for versioning, model retention, and concurrent editing.

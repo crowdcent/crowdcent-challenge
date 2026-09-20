@@ -1,8 +1,8 @@
 # CrowdCent Cloud
 
-CrowdCent Cloud is a hosted development and scheduled execution workspace for the CrowdCent Challenge. You can edit notebooks directly in your browser or on cloud instances, save versioned snapshots, run batch jobs in sandboxed compute environments, and schedule recurring submissions without maintaining your own cron infrastructure.
+CrowdCent Cloud brings your code, saved models, and automated workflows into one project. Develop marimo notebooks and Python scripts in the Browser or a **Cloud Session**, then use **Cloud Runs** to execute saved code on demand or on a schedule.
 
-CrowdCent Cloud is in pilot for members with a submission on the board: if you have submitted to a challenge, you can enable Cloud on an API key and bring the code you already run.
+CrowdCent Cloud is in **public preview for Challenger+ members (100+ CC Points)**. Enable **Allow Cloud** on an API key to use the Python client or MCP tools.
 
 ## Overview
 
@@ -10,50 +10,57 @@ CrowdCent Cloud supports the standard competition workflow: develop a notebook, 
 
 Key features include:
 
-- **Self-contained notebooks.** Projects use marimo notebooks by default, with native support for Jupyter notebooks and Python scripts. Dependencies are declared directly inside the file using standard PEP 723 script metadata.
-- **Interactive sessions and runs.** Develop interactively using free in-browser WebAssembly kernels or on-demand CPython cloud instances. Batch executions run separately in isolated sandboxes.
-- **Deterministic scheduling.** Schedules link directly to a specific successful batch run rather than whatever code is currently in your editor. Updating code will not alter an active schedule until you test the new version and choose to reschedule.
+- **Python projects.** Use marimo notebooks saved as `.py` files, ordinary Python scripts, and supporting project files. Declare dependencies inside the file with PEP 723 script metadata.
+- **Choose how to work.** Edit interactively in the free Browser runtime or on hosted hardware with Cloud Sessions. Cloud Runs execute saved code unattended.
+- **Test before scheduling.** A schedule pins the code and settings from a successful Cloud Run. Later code edits take effect only when you test and select a new run.
 - **Sandboxed isolation.** Runs execute with default-deny network rules. Temporary, non-trading API credentials allow data downloads and prediction submissions without exposing account secrets.
 
 ## Core concepts
 
-| Term | Description | Access |
-|---|---|---|
-| **Project** | The permanent container for your notebook, saved versions, run history, and schedule. | Web, API, MCP |
-| **Version** | An immutable snapshot of your project's files and dependencies. Each save creates a new incremented version. | Web, API, MCP |
-| **Interactive session** | An active editing environment with a live kernel in your browser (WASM) or on a cloud instance (CPython). | Web only |
-| **Run** | An isolated, unattended execution of a specific saved version on dedicated hardware. | Web, API, MCP |
-| **File** | Every top-level `.py` file in a project runs by name (`entrypoint`) and can be chained after another; a folder of scripts is one project with several runnable files. | Web, API, MCP |
-| **Schedule** | An automated trigger (daily, weekly, monthly, on inference data release, or after another job) that executes a verified run. | Web, API, MCP |
-| **Recipe** | A reviewed starter notebook from the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook). | Web, API, MCP |
-| **Fork** | Creates a new project from a Cookbook recipe or GitHub repository. | Web, API, MCP |
+The website and API / Python / MCP share the saved-project and Cloud Run workflow. Use the website for live editing:
 
-## Interactive sessions
+| Workflow | Website | API / Python / MCP |
+|---|:---:|:---:|
+| Projects, saved files, and versions | ✓ | ✓ |
+| Cloud Runs and schedules | ✓ | ✓ |
+| Live editing | ✓ | — |
 
-Interactive sessions are available exclusively through the web interface at crowdcent.com. They provide a live development environment where you can write and test code interactively in your browser.
+| Concept | What it means |
+|---|---|
+| **Project** | Your code, generated files, version history, Cloud Runs, and per-file schedules in one folder. |
+| **Version** | An immutable copy of saved project code and dependency declarations. A changed save creates the next version. |
+| **Output snapshot** | A recorded set of generated files, such as models and predictions. Output history is independent of code versions and subject to storage retention. |
+| **Cloud Session** | A live Python kernel on hosted hardware, opened from the website. The free Browser runtime runs in your tab instead. |
+| **Cloud Run** | An unattended execution of a saved version and named file on selected hardware. |
+| **Schedule** | Clock, inference-release, or after-success triggers for a file's tested Cloud Run configuration. |
+| **Recipe** | A starter notebook from the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook). Forking a recipe creates your own project. |
 
-When working locally or using an AI assistant via MCP, you can iterate in your local environment, then use the Python client or MCP tools to push code, trigger remote  runs, and configure automated schedules.
+## Browser and Cloud Sessions
 
-When you open a project on the web, you enter the editor. The **Runtime** menu in the workspace lets you choose where the kernel executes, switch hardware, or end your session.
+Open a project on crowdcent.com to edit and execute its marimo notebook. Launch support covers marimo `.py` notebooks and Python scripts; Jupyter notebooks and JupyterLab are outside the launch scope.
+
+When working locally or using an AI assistant via MCP, use your local development environment, then save files, start Cloud Runs, and configure schedules through the project API.
+
+Use the menu beside **Edit code** to choose Browser or Cloud Session, switch hardware, or end your session.
 
 ### Browser runtime
 
 The Browser runtime executes Python directly in your browser tab using WebAssembly via Pyodide and marimo.
 
-- **Instant and free.** Starts immediately without consuming cloud credits.
-- **Dependency installation.** Packages declared in your notebook install directly in the browser environment.
+- **Free compute.** Runs on your device without consuming Cloud compute credits.
+- **Dependency installation.** Browser-compatible packages declared in your notebook install in the tab. Packages that require native Python may need a Cloud Session or Cloud Run.
 - **Challenge data access.** Enabling the **Challenge access** toggle grants the session a temporary, short-lived token to read challenge datasets without exposing account credentials.
 
 !!! warning "Browser memory and compute limits"
-    Because the Browser runtime runs inside your browser tab using WebAssembly, it is constrained by browser memory limits (typically 2 to 4 GB) and single-threaded execution. Downloading full datasets, heavy data transformations, and model training will quickly exhaust tab memory or crash the kernel. Use a **Cloud session** or trigger a **Batch run** for workloads that need dedicated memory and CPython performance.
+    The Browser runtime uses your device's CPU and browser memory. Large datasets and model training can exceed those limits. Use a **Cloud Session** or **Cloud Run** for workloads that need more memory or native Python packages.
 
-### Cloud session runtime
+### Cloud Sessions
 
-The Cloud session runtime runs full CPython on hosted CrowdCent hardware with native support for both marimo and JupyterLab.
+Cloud Sessions run native Python on hosted CrowdCent hardware with the marimo editor.
 
 - **Dedicated compute.** Suitable for heavier data transformations and local model training.
-- **Hourly billing.** Billed per started hour based on instance size. The rate is displayed before you start the session.
-- **Seamless switching.** Switching between Browser and Cloud runtimes transfers your code and restarts the kernel on the target instance.
+- **Usage billing.** Billed by the started minute at the selected size's hourly rate. The rate is displayed before you start.
+- **Runtime switching.** Your project files move with you; the kernel restarts, so rerun cells to recreate in-memory variables. Files beyond the Browser transfer limits stay saved in the project.
 
 | Size | vCPU | Memory | Accelerator |
 |---|---|---|---|
@@ -64,11 +71,11 @@ The Cloud session runtime runs full CPython on hosted CrowdCent hardware with na
 
 ### Session lifecycle and recovery
 
-Sessions automatically save your work when you click **End**, or when an idle timeout triggers (30 minutes idle or 2 hours total on the Starter tier; 60 minutes idle or 12 hours total on Challenger tier and above). If a session closes due to inactivity, a recovery snapshot is preserved so you can restore your progress when you reopen the project.
+Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. For Challenger tier and above, the defaults are 60 minutes idle and 12 hours total; the workspace shows its current limits. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
 
-Interactive sessions do not have access to live trading credentials and cannot submit predictions directly. Submissions and scheduled automations run through runs.
+With **Challenge access** enabled, Browser and Cloud Sessions can download Challenge data and submit predictions using a temporary key. Those keys cannot trade or start other Cloud resources. Use Cloud Runs for unattended submissions and scheduled workflows.
 
-## Runs
+## Cloud Runs
 
 Runs execute an immutable snapshot of your project in an isolated container. You can trigger a run manually from the workspace or programmatically via the API and MCP tools. Once queued, you can monitor execution status until completion.
 
@@ -79,11 +86,11 @@ Runs execute an immutable snapshot of your project in an isolated container. You
 | L | 8 | 32 GiB | |
 | GPU | 4 | 16 GiB | one NVIDIA L4 24 GB |
 
-Every size may run for up to a day; a time limit is a deadline you choose under that (see Hardware and time limits). A GPU run reaches its first line of code about three minutes after you press Run: the machine boots and installs its driver, then your declared packages install.
+Every size may run for up to a day; you can choose a shorter deadline. Startup time includes preparing hardware and installing declared dependencies, and varies with the workload.
 
 ### Notebook buttons and forms
 
-Every manual or scheduled Cloud *run* receives `CROWDCENT_RUN_ID` in its environment, but interactive notebook sessions do not. So, a recipe intended to submit unattended during a run can use this to pass its button gate during a run:
+Every manual or scheduled Cloud Run receives `CROWDCENT_RUN_ID` in its environment, but interactive notebook sessions do not. So, a recipe intended to submit unattended during a run can use this to pass its button gate during a run:
 
 ```python
 import os
@@ -92,7 +99,7 @@ import os
 mo.stop(not os.environ.get("CROWDCENT_RUN_ID") and not submit.value)
 ```
 
-The Cookbook's `hyperliquid_ranking` recipe uses this pattern to submit automatically to slot 1 during Cloud runs. Cloud executes marimo notebooks with `marimo export html`; in the current runtime, `mo.running_in_notebook()` returns `True` and `mo.app_meta().mode` is `"edit"` even during a run. Use the run ID to distinguish unattended Cloud execution.
+The Cookbook's `hyperliquid_ranking` recipe uses this pattern to submit automatically to slot 1 during Cloud Runs. Cloud executes marimo notebooks with `marimo export html`; in the current runtime, `mo.running_in_notebook()` returns `True` and `mo.app_meta().mode` is `"edit"` even during a run. Use the run ID to distinguish unattended Cloud execution.
 
 ### Network and access control
 
@@ -114,7 +121,7 @@ Dependencies are declared at the top of your script or notebook using [PEP 723 i
 # ///
 ```
 
-Both interactive sessions and batch runners read this block to install pinned wheels in the environment. The machine already carries the common stack — numpy, pandas, polars, pyarrow, scipy, scikit-learn, lightgbm, xgboost, optuna, joblib, altair, python-dotenv, and `crowdcent-challenge` — so a script that needs only those declares nothing and installs nothing.
+Declare the packages your notebook imports so its environment can be recreated. Cloud Runs and Cloud Sessions read this metadata when preparing the notebook environment. Browser execution also requires those packages to be available for its browser-based Python runtime.
 
 ### A folder of scripts
 
@@ -122,13 +129,15 @@ A project is a tree of files, not one notebook. Pass the other files beside the 
 
 ### Hardware and time limits
 
-Every run names a hardware size: `s` (2 vCPU, 8 GB), `m` (4 vCPU, 16 GB), `l` (8 vCPU, 32 GB), or `gpu_s` (4 vCPU, 16 GB, one NVIDIA L4 24 GB). A Cloud session offers the same four sizes at the same rates. Every run may live a day; a time limit is a deadline you choose under that, never a price paid up front, and without one the day applies. Starting a run needs an hour at the size's rate available (or the whole time limit, when shorter); the run then covers itself an hour at a time and pays only for the minutes it used. A run stopped at its limit, stopped by you, or stopped because your credits ran out keeps what it had written to the project folder; a run that crashes keeps nothing.
+Choose `s`, `m`, `l`, or `gpu_s`; the tables above show the resources for Cloud Runs and Cloud Sessions separately. Each size has the same hourly rate across both, with usage billed by the started minute.
+
+A Cloud Run can run for up to 24 hours. You can set a shorter deadline. Starting requires enough available credits for an hour at the selected rate, or the chosen deadline if shorter; more credit is reserved as the run continues. Runs stop at their deadline or last funded minute. A stopped run can preserve its latest valid output checkpoint; check its report to see what was retained.
 
 A GPU notebook declares its framework like any other dependency, `jax[cuda12]` for Keras on JAX (the `centimators` sequence models) or `torch`; the `gpu_s` machine carries the NVIDIA driver, and its own `xgboost` trains on the GPU with `device="cuda"` with nothing declared.
 
 ### Run reports
 
-When a batch run finishes, it produces an execution report containing:
+When a Cloud Run finishes, it produces an execution report containing:
 
 - **State.** Current execution phase (`queued`, `running`, `done`, or `failed`).
 - **Facts.** Recorded metadata including project version, hardware environment, and API permissions used.
@@ -144,7 +153,7 @@ Most runs need none. Parameters are for a notebook you launch several times with
 
 Parameters are named values a run is told when it starts: `trials=100 lr_max=0.2`. Set them under **Advanced** on the Run form, or pass `parameters` to `run_cloud_project`. The run's code receives them as command-line arguments, `--trials=100 --lr_max=0.2`, which a marimo notebook reads with `mo.cli_args()` and a plain script with `sys.argv`. Numbers, `true`/`false`, and text are typed the way marimo types them. A run takes up to 32 parameters, named with lowercase letters, digits, and underscores.
 
-For a form with complete defaults, a Cloud run can use those defaults without parameters. Define `DEFAULTS` in the notebook and use it to initialize the form, then read the selected settings in a later cell:
+For a form with complete defaults, a Cloud Run can use those defaults without parameters. Define `DEFAULTS` in the notebook and use it to initialize the form, then read the selected settings in a later cell:
 
 ```python
 import os
@@ -157,7 +166,7 @@ mo.stop(
 search = {**DEFAULTS, **(answered or {})}
 ```
 
-A Cloud run with no parameters uses the defaults; a run told `trials=100` overrides that setting. An interactive notebook without arguments waits for the form. Runs use defaults saved in the code, not widget values changed in an interactive session. A run's parameters show on its report and beside it under History, scheduling the run keeps them, and `get_cloud_run` returns them as `parameters`.
+A Cloud Run with no parameters uses the defaults; a run told `trials=100` overrides that setting. An interactive notebook without arguments waits for the form. Runs use defaults saved in the code, not widget values changed in an interactive session. A run's parameters show on its report and beside it under History, scheduling the run keeps them, and `get_cloud_run` returns them as `parameters`.
 
 ```python
 for trials, lr_max in [(60, 0.1), (60, 0.3), (120, 0.1)]:
@@ -169,13 +178,13 @@ for trials, lr_max in [(60, 0.1), (60, 0.3), (120, 0.1)]:
     )
 ```
 
-What a run finds is ordinary output: the executed notebook on its report shows it, and files it writes to the project folder appear under History for the next run to read. The `optuna_tuning` recipe in the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook) is a complete example. One Optuna study is one run: its trials run in parallel across the machine's cores, so a bigger machine runs more of them at once.
+The executed notebook appears on the run report, and generated project files appear under History for later runs to read. The `optuna_tuning` recipe in the [CrowdCent Cookbook](https://github.com/crowdcent/crowdcent-cookbook) is a complete example. It runs up to two Optuna trials concurrently. Choose parallelism in your code to suit the selected hardware.
 
 ## Automated schedules
 
-You can automate recurring executions for any batch run that completed successfully (`state: done`).
+You can automate recurring executions for any Cloud Run that completed successfully (`state: done`).
 
-When you configure a schedule, it pins the exact version, environment settings, hardware size, and parameters used by that successful run. Editing or saving new code in your project does not change what the active schedule runs. To deploy new code to an existing schedule, test it with a fresh batch run and update the schedule to that new run.
+When you configure a schedule, it pins the exact version, environment settings, hardware size, and parameters used by that successful run. Editing or saving new code in your project does not change what the active schedule runs. To deploy new code to an existing schedule, test it with a fresh Cloud Run and update the schedule to that new run.
 
 ### Supported triggers
 
@@ -189,12 +198,25 @@ Schedules can be paused and resumed at any time without needing to recreate the 
 
 ## Credits and billing
 
-Interactive Cloud sessions and runs consume Cloud credits.
+Cloud Sessions and Cloud Runs consume Cloud credits. Centaur also uses this
+balance if you enable paid asks after its included allowance.
 
 - **Unified credit balance.** Accounts maintain a balance measured in integer cents (`available_cents`).
-- **Included tier allowance.** Accounts receive a monthly credit allowance based on their tier. Included credits are consumed before any purchased prepaid balance.
-- **One rate per machine.** Each shape has an hourly rate, the same whether it runs a notebook for you or hosts a live session, billed by the started minute. Runs and sessions both bill as they go, an hour at a time, and stop at the last funded minute if the balance runs out.
-- **Low balance handling.** If an account lacks sufficient credits to start a run or session, the request returns HTTP `402 CREDITS_REQUIRED` with a direct URL to add credits.
+- **Included tier allowance.** Accounts receive a monthly credit allowance based on their tier. A reservation uses included credits when they cover it; otherwise it uses purchased credits.
+- **One rate per machine.** Each size has the same hourly rate for Cloud Runs and Cloud Sessions, billed by the started minute. Credits are reserved up to an hour ahead of use; unused reservations are released when compute stops.
+- **Low balance handling.** Insufficient credits prevent new compute. The API returns HTTP `402 CREDITS_REQUIRED` with a direct URL to add credits.
+
+| Tier | CC Points | Included credits per month |
+|---|---:|---:|
+| Challenger | 100+ | $10 |
+| Contender | 500+ | $25 |
+| Centurion and Sovereign | 1,500+ | $50 |
+
+Included credits reset on the first of each month at 00:00 UTC and do not roll
+over. The month's allowance is set when you first reserve included credits that
+month; later tier changes apply to the next month's allowance. Your current
+allowance and remaining balance are shown under **Billing**. Purchased credits
+are tracked separately from the monthly allowance.
 
 ```python
 billing = client.get_cloud_billing()
@@ -209,14 +231,14 @@ In the web interface, open **Tools → Cloud** to manage your projects.
 
 - **New project.** Create a blank project in the Browser or Cloud runtime, import a repository from GitHub, fork a recipe from the Cookbook, or generate a starting point using Centaur.
 - **Cookbook recipes.** Browse reviewed templates (such as `hyperliquid-ranking` or `numerai-dashboard`) to preview code or fork into your account.
-- **Archiving projects.** Archiving a project hides it from your active list and automatically pauses any associated schedules and active sessions. Archived projects can be restored at any time.
-- **Deleting projects.** Projects without billed compute history can be permanently deleted. Projects that have executed paid runs or sessions can be archived to preserve historical accounting records.
+- **Archiving projects.** Archiving hides a project from your active list, pauses its schedules, and ends its Cloud Sessions. Restoring it leaves schedules paused until you resume them.
+- **Deleting projects.** Projects with recorded run history or billed session time must be archived to preserve their records. A project with no retained execution evidence can be deleted if no other project uses its output store.
 
 ## Python client and MCP tools
 
-The Python client and MCP tools are designed for **remote batch execution and automated scheduling**. They allow you to programmatically create projects, push code versions, trigger remote runs on dedicated hardware, monitor execution, and configure recurring schedules.
+The Python client and MCP tools manage **project files, Cloud Runs, and schedules**. Create projects, read and edit saved files, download models, execute saved code, inspect results, and automate the next run.
 
-The API and MCP tools do not open or manage interactive browser/cloud sessions. Interactive sessions are meant for manual experimentation on the web, whereas AI agents can already handle interactive development locally.
+Open live Browser and Cloud Sessions on the website. Centaur can work in that live workspace; an external API or MCP agent works with saved project files and Cloud Runs.
 
 Complete method documentation is available in the [Cloud API reference](api-reference/cloud.md) and the [AI Agents (MCP) guide](ai-agents-mcp.md). REST endpoints are documented under the `cloud` tag in the [OpenAPI specification](https://crowdcent.com/api/swagger-ui/#/cloud).
 
@@ -232,9 +254,10 @@ client = ChallengeClient("hyperliquid-ranking")
 project = client.create_cloud_project(
     "Daily submitter",
     recipe="hyperliquid-ranking",
+    challenge_access=True,
 )
 
-# Start a batch run and wait for completion
+# Start a Cloud Run and wait for completion
 run = client.run_cloud_project(project["id"])
 while True:
     run = client.get_cloud_run(run["id"])
@@ -243,6 +266,8 @@ while True:
     time.sleep(30)
 
 print(f"Run completed with status: {run['state']} - {run['detail']}")
+if run["state"] != "done":
+    raise RuntimeError("Inspect the failed run before scheduling it.")
 
 # Schedule the verified run on every new inference release
 client.schedule_cloud_project(
@@ -268,7 +293,7 @@ client.schedule_cloud_project(
 
 ### Safe updates and concurrency
 
-Saving updates via `update_cloud_project` requires specifying `base_version`, the version number your edit was based on. If another user, session, or automated process has saved a newer version, the request returns HTTP `409 VERSION_CONFLICT`. This prevents unintended overwrites.
+Saving file edits via `update_cloud_project` requires specifying `base_version`, the version number your edit was based on. If another session or agent has saved a newer version, the request returns HTTP `409 VERSION_CONFLICT`. This prevents unintended overwrites.
 
 ```python
 project = client.get_cloud_project(project["id"])
@@ -303,9 +328,9 @@ client.download_cloud_project_file(
 )
 ```
 
-Cloud sessions and runs support output files up to 4 GiB and output snapshots up
-to 8 GiB, subject to the account's retained-storage allowance. Browser sessions
-have a smaller transfer budget and name files they cannot carry. Current output
+Cloud Sessions and Cloud Runs support output files up to 4 GiB and output snapshots up
+to 8 GiB, subject to the account's retained-storage allowance. The Browser runtime
+has a smaller transfer budget and identifies files it cannot carry. Current output
 paths remain available; superseded snapshots follow retention limits, so history
 is not permanent model retention. Keep separately named model files when both
 models must remain in the current folder.
@@ -325,26 +350,34 @@ Calls to `create_cloud_project` and `run_cloud_project` include an auto-generate
 
 AI tools connected via the CrowdCent MCP server can manage the Cloud workflow through matching tool names (`create_cloud_project`, `run_cloud_project`, `get_cloud_run`, etc.).
 
+The hosted MCP server reads project text and file metadata. To download a binary
+model to your computer, use Python, REST, or the local MCP server's
+`download_cloud_project_file` tool.
+
 ```
 "Create a Cloud project from the hyperliquid-ranking recipe, run it, and verify the output. If the run succeeds, schedule it on each inference release."
 ```
 
 ### Centaur in Cloud
 
-Centaur is the assistant inside Cloud. It works through the same API your key does, as you, and it can do nothing you could not do yourself. The panel's empty state says what it can do where you are:
+Centaur helps you edit notebooks and project files, run code, inspect results,
+and manage Cloud Runs and schedules. In an open notebook, it works in your live
+workspace; **Save version** preserves those edits.
 
 | | |
 |---|---|
-| **On its own** | reads your projects, runs, data and trading; edits notebooks and files; creates and archives projects |
-| **Asks first** | paid runs (runs, schedules) · submissions (predictions, your Challenge key) · trading (real money, always asks) |
-| **Never** | buy credits, change your login or keys, reach the internet |
+| **On its own** | reads your projects, runs, data and trading; edits notebooks and files; creates and archives projects; configures schedules when asked |
+| **Asks first** | launches paid Cloud Runs · submissions (predictions, your Challenge key) · trading (real money, always asks) |
+| **Never** | buy credits or change your login or API keys |
 
-Each kind under *Asks first* is a switch in the panel. Lit, it runs without asking; unlit, it shows a card in the conversation and Centaur waits. Unanswered for 90 seconds, a card is skipped and nothing runs. A card can also be told "don't ask again for this kind". Submissions start lit, since the Challenge key a project gets is short-lived and only downloads data and submits; trading always asks. The panel also says what is off in the current place, such as a project whose Challenge access is disabled or an account with no live trading account.
+Cloud Run launches and submissions have approval switches in the panel. When enabled, that action can proceed without another card; otherwise Centaur waits for your response. Unanswered cards expire without executing the action. Submissions are enabled by default; trading always requires confirmation. The panel also shows capabilities that are unavailable, such as Challenge access disabled for the project.
+
+Scheduled Cloud Runs consume credits when they execute; configuring a schedule does not show a separate approval card. Code Centaur executes in an attached workspace has that workspace's filesystem and permitted network access.
 
 ## Security and permissions
 
-Access to Cloud features requires an API key with the **Allow Cloud** permission enabled in [profile settings](https://crowdcent.com/profile/settings/).
+Python/REST API and MCP access requires an API key with **Allow Cloud** enabled in [profile settings](https://crowdcent.com/profile/settings/). On the website, sign in with an eligible account.
 
-- **Privilege separation.** Cloud API credentials and execution tokens cannot place trades or access wallet funds. Keep live trading keys separate from development and automation keys.
+- **Privilege separation.** Temporary keys issued to Cloud Runs and sessions cannot place trades. Keep your own development and automation API keys separate from trading-enabled keys.
 - **Recursive prevention.** Scoped tokens provisioned for runs and interactive sessions cannot spawn secondary Cloud resources or modify billing settings.
 - **Authentication check.** Call `client.check_auth()` to inspect the capabilities enabled on your current API key.

@@ -113,7 +113,7 @@ The server ships two prompts, packaged versions of the asks above that encode th
 
 For Cloud-enabled keys, your assistant can run the whole [CrowdCent Cloud](crowdcent-cloud.md) loop: create a project from a Cookbook recipe or source it wrote, run it on CrowdCent hardware, read the run report (state, facts, logs), check the credit balance, and schedule the run that worked — daily, weekly, monthly, or on each inference release.
 
-The tools manage project files, batch runs, automated schedules, and billing. They do not manage interactive browser or cloud sessions, and there are no endpoints for secrets, host grants, or publication. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
+The tools manage saved project files, Cloud Runs, schedules, and credit information. Live editing in the Browser or a Cloud Session is available on the website. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
 
 ```
 "Create a Cloud project from the hyperliquid-ranking recipe, run it, and
@@ -137,6 +137,6 @@ Trading tools appear when your API key has live trading enabled (Settings → "A
 
 - **"API key not provided"**: set `CROWDCENT_API_KEY` in the server's `env` block (local) or the `Authorization` header (hosted).
 - **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading requires Challenger tier (100+ CC Points) and an active submission in the last 30 days — without eligibility, tools stay hidden and API calls return 403.
-- **Cloud tools missing**: enable "Allow Cloud" on your key in profile settings. Cloud is in pilot for members with a submission on the board; without Cloud access on your account, tools stay hidden and API calls would fail anyway.
+- **Cloud tools missing**: enable "Allow Cloud" on your key in profile settings to expose the tools. Calls also require an eligible account: the public preview is for Challenger+ members (100+ CC Points).
 - **A knob didn't take effect**: simulation knobs above your points tier are clamped to your tier, and the response's `locked` list names which ones. Error messages state the tier and points needed to unlock.
 - **Submission format**: predictions need the challenge's required columns (for `hyperliquid-ranking`: `id`, `pred_10d`, `pred_30d`), and submissions are only open during the challenge's submission window.

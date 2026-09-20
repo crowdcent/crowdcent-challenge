@@ -1,4 +1,4 @@
-"""Mocked-transport tests for the CloudAPI client area: the ten Cloud
+"""Mocked-transport tests for the CloudAPI client area: Cloud
 operations, idempotency headers, the base_version concurrency token, and
 error-code mapping (VERSION_CONFLICT and friends surface verbatim)."""
 
@@ -89,6 +89,20 @@ def test_update_sends_the_base_version_token(client, requests_mock):
     assert requests_mock.last_request.json() == {
         "files": {"notebook.py": "print('v2')\n"},
         "base_version": 1,
+    }
+
+
+def test_archive_project_uses_existing_delete_without_decoding_empty_body(client, requests_mock):
+    request = requests_mock.delete(f"{BASE_URL}/cloud/projects/abc123/", status_code=204)
+    assert client.archive_cloud_project("abc123") == {"archived": True}
+    assert request.last_request.body is None
+
+
+def test_output_folder_settings_preserve_explicit_false(client, requests_mock):
+    requests_mock.patch(f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123"})
+    client.update_cloud_project("abc123", store_project="models", share_store=False, publish_store=False)
+    assert requests_mock.last_request.json() == {
+        "store_project": "models", "share_store": False, "publish_store": False,
     }
 
 

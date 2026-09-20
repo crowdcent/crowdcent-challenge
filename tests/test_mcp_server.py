@@ -128,12 +128,13 @@ async def test_hosted_cloud_visibility_filters_per_request(monkeypatch):
     assert not (names & CLOUD_TOOL_NAMES)
     monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
     names = await _tool_names(server)
-    assert CLOUD_TOOL_NAMES <= names
+    assert (CLOUD_TOOL_NAMES - LOCAL_FS_TOOLS) <= names
 
 
 # ------------------------------------------------------------ mode awareness
 
 LOCAL_FS_TOOLS = {
+    "download_cloud_project_file",
     "download_training_dataset",
     "download_inference_data",
     "download_meta_model",
@@ -146,7 +147,8 @@ URL_TWINS = {
 }
 
 
-async def test_stdio_has_file_tools_and_url_twins():
+async def test_stdio_has_file_tools_and_url_twins(monkeypatch):
+    monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
     names = await _tool_names(build_server())
     assert LOCAL_FS_TOOLS <= names
     assert URL_TWINS <= names
@@ -154,10 +156,28 @@ async def test_stdio_has_file_tools_and_url_twins():
 
 async def test_hosted_drops_file_tools_keeps_url_twins(monkeypatch):
     monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
+    monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
     names = await _tool_names(build_server())
     assert not (names & LOCAL_FS_TOOLS)
     assert URL_TWINS <= names
     assert "submit_predictions_from_dataframe" in names  # data travels inline
+
+
+async def test_hosted_cannot_invoke_cloud_download_or_write_server_files(monkeypatch, tmp_path):
+    from crowdcent_challenge.mcp_server import tools_cloud
+
+    monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
+    monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
+    fake = MagicMock()
+    monkeypatch.setattr(tools_cloud, "client_for", fake)
+    destination = tmp_path / "models" / "best.joblib"
+    async with Client(build_server()) as client:
+        with pytest.raises(ToolError, match="[Uu]nknown tool|[Nn]ot found"):
+            await client.call_tool("download_cloud_project_file", {
+                "project_id": "abc123", "path": "models/best.joblib", "dest_path": str(destination),
+            })
+    fake.assert_not_called()
+    assert not destination.parent.exists()
 
 
 def test_api_key_resolution_stdio(monkeypatch):
@@ -290,6 +310,46 @@ async def test_cloud_tools_pass_through_and_surface_conflicts(monkeypatch):
         parameters=None,
     )
     assert result.data["state"] == "queued"
+
+
+async def test_cloud_settings_and_archive_use_existing_rest_contract(requests_mock):
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    patch = requests_mock.patch("http://api.test/api/cloud/projects/abc123/", json={"id": "abc123"})
+    archive = requests_mock.delete("http://api.test/api/cloud/projects/abc123/", status_code=204)
+    async with Client(build_server()) as client:
+        await client.call_tool("update_cloud_project", {
+            "project_id": "abc123", "store_project": "models", "share_store": False,
+            "publish_store": False, "base_version": 7,
+            "files": {"old.py": None, "predict.py": "print('ready')\n"},
+        })
+        result = await client.call_tool("archive_cloud_project", {"project_id": "abc123"})
+    assert patch.last_request.json() == {
+        "store_project": "models", "share_store": False, "publish_store": False,
+        "base_version": 7, "files": {"old.py": None, "predict.py": "print('ready')\n"},
+    }
+    assert archive.call_count == 1
+    assert result.data == {"archived": True}
+
+
+async def test_local_cloud_download_streams_pinned_bytes_to_requested_path(requests_mock, tmp_path):
+    import hashlib
+
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    body = b"saved model bytes"
+    digest = hashlib.sha256(body).hexdigest()
+    request = requests_mock.get("http://api.test/api/cloud/projects/abc123/files/", content=body)
+    destination = tmp_path / "models" / "best.joblib"
+    async with Client(build_server()) as client:
+        result = await client.call_tool("download_cloud_project_file", {
+            "project_id": "abc123", "path": "models/best.joblib", "dest_path": str(destination),
+            "snapshot": 12, "sha256": digest,
+        })
+    assert destination.read_bytes() == body
+    assert request.last_request.qs == {
+        "path": ["models/best.joblib"], "snapshot": ["12"], "sha256": [digest], "download": ["1"],
+    }
+    assert str(destination) in result.data
+    assert list(destination.parent.iterdir()) == [destination]
 
 
 # ------------------------------------------------------- base-install safety
