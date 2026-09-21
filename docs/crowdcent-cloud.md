@@ -111,11 +111,11 @@ Existing schedules and schedules copied from a completed Cloud Run keep their sa
 
 Request other destinations under **Environment → Network**. Private-network addresses and unapproved destinations remain blocked. Generic hosting and temporary tunnel domains are not approved as a whole; a specific endpoint can be reviewed separately.
 
-Each Cloud Run or Cloud Session normally has a **64 GiB network-transfer budget**, counting downloads and uploads, including dependency installation. Its budget is reduced to the account's remaining monthly network allowance: 200 GiB for Challenger, 500 GiB for Contender, and 1,000 GiB for Centurion and Sovereign. Runs and sessions share that allowance, which resets on the first of the month at 00:00 UTC; active sessions reserve their authorized capacity until usage is measured or the session ends.
+Each Cloud Run normally has a **64 GiB network-transfer budget**; each Cloud Session has **128 GiB**. Both count your code's downloads and uploads, including dependency installation. In Cloud Runs, saving and restoring project files is handled by CrowdCent and does not use this budget. In Cloud Sessions, saving and restoring project files also counts. Each budget is reduced to the account's remaining monthly network allowance: 200 GiB for Challenger, 500 GiB for Contender, and 1,000 GiB for Centurion and Sovereign. Runs and sessions share that allowance, which resets on the first of the month at 00:00 UTC; active sessions reserve their authorized capacity until usage is measured or the session ends.
 
 Browser notebooks use the same public-host catalog, with smaller request limits: 16 MiB uploads and 256 MiB responses through the Browser relay, plus your device's memory limits. Use a Cloud Session or Cloud Run for larger downloads.
 
-Temporary downloads are separate from saved-project storage. A working dataset in a temporary directory uses runtime disk space and network allowance; saving it as a project file also subjects it to the [saved-file and output limits](#safe-updates-and-concurrency). A 64 GiB transfer budget does not make a 64 GiB file saveable or guarantee that it fits in the selected runtime.
+Temporary downloads are separate from saved-project storage. A working dataset in a temporary directory or runtime cache uses disk space and network allowance, and is discarded when that runtime ends. Saving it as a project file also subjects it to the [saved-file and output limits](#safe-updates-and-concurrency). Transfer budgets do not increase saved-file limits or guarantee that a model fits in memory.
 
 When the **Challenge access** option is enabled, the run receives a scoped, short-lived Challenge API key valid only for the duration of the run. This allows the notebook to fetch new inference data and post predictions to the challenge.
 
@@ -334,10 +334,13 @@ client.download_cloud_project_file(
 )
 ```
 
-Cloud Sessions and Cloud Runs support output files up to 4 GiB and output snapshots up
-to 8 GiB, subject to the account's retained-storage allowance. The Browser runtime
-has a smaller transfer budget and identifies files it cannot carry. Current output
-paths remain available; superseded snapshots follow retention limits, so history
+Cloud Sessions and Cloud Runs support output files up to **50 GiB**, with at most
+**50 GiB across all files in one output snapshot**, subject to the account's
+retained-storage allowance. Cloud Session saves and restores also use the session's
+remaining transfer budget. Browser workspace
+transfers remain limited to 25 MB per file and 100 MB total; larger files stay saved
+in the project and are identified as unavailable in that Browser workspace. Current
+output paths remain available; superseded snapshots follow retention limits, so history
 is not permanent model retention. Keep separately named model files when both
 models must remain in the current folder.
 
@@ -347,6 +350,56 @@ and **Review differences**. Loading preserves the local code in history first;
 overwriting still checks that the reviewed remote version has not changed again.
 Unchanged local model files never republish over newer remote models. Conflicting
 output edits are retained in a snapshot without moving the current output folder.
+
+### Project storage
+
+`get_cloud_project(project_id)["storage"]` reports retained bytes for that project.
+`get_cloud_billing()["storage"]` reports the account's `used_bytes`, `limit_bytes`,
+`included_bytes`, `remaining_bytes`, and a `projects` breakdown, including archived projects.
+Archiving preserves files and does not free storage.
+
+Project `used_bytes` is `source_bytes + output_bytes`. Each distinct saved source
+archive counts by its stored size. Identical output blobs count once within a
+project, even when several paths or snapshots reference them. `current_output_bytes`
+counts outputs referenced by current snapshots; `history_bytes` counts the remaining
+retained output bytes, excluding code archives. Browser memory and runtime disk
+space are separate from this saved-project allowance.
+
+Included retained storage is 10 GiB for Challenger, 25 GiB for Contender, 50 GiB
+for Centurion, and 100 GiB for Sovereign. You can explicitly enable
+extra storage, up to 200 GiB across the account, with a monthly spending cap:
+
+```python
+billing = client.update_cloud_billing(storage_monthly_limit_cents=500)  # $5 cap
+print(billing["storage"]["billing"])
+```
+
+Extra bytes cost $0.05 per GiB per 30 days, prorated by size and elapsed time.
+Charges use included credits first, then purchased credits; fractional cents
+carry between billing checkpoints. The spending cap resets on the first of each
+month at 00:00 UTC. When the cap or available credits are exhausted, new storage
+growth is blocked; existing files remain available to read, download, or prune.
+Unfunded time does not become a debt charged after a later top-up.
+
+The matching `update_cloud_billing` MCP tool and `PATCH /cloud/billing/` accept
+the same `storage_monthly_limit_cents` value. These settings never buy credits.
+To disable extra storage, first reduce usage to the included allowance, then
+set the limit to zero. The response's `storage.billing` reports the current cap,
+charges, rate, and any reason growth is blocked.
+
+To permanently remove unused output history, explicitly request pruning through
+the existing project-update method or matching MCP tool:
+
+```python
+project = client.update_cloud_project(project_id, prune_history=True)
+print(project["storage"])
+```
+
+Send `prune_history=True` without other update fields. Pruning retains current
+outputs, all code versions, and outputs needed by active runs, so `history_bytes`
+is not necessarily the amount it can reclaim. End Cloud Sessions using the output
+folder first; pruning is refused while they are active. Ordinary saves and updates
+do not trigger this destructive cleanup automatically.
 
 ### Idempotent requests
 

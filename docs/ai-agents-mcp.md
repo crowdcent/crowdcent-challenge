@@ -115,6 +115,12 @@ For Cloud-enabled keys, your assistant can create a [CrowdCent Cloud](crowdcent-
 
 The tools manage saved project files, Cloud Runs, schedules, and credit information. Live editing in the Browser or a Cloud Session is available on the website. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
 
+For storage, `get_cloud_billing` reports usage and `update_cloud_billing` sets an
+explicit monthly cap for extra storage charges. It does not buy credits.
+`update_cloud_project(prune_history=True)` permanently removes eligible old
+outputs while preserving current files and saved code. Both require your explicit
+request; assistants should not raise caps or prune history just to make a save fit.
+
 ```
 "Save optimize.py and predict.py in one project. Schedule optimization for
 Monday at 02:00 UTC on M hardware and prediction after it succeeds, using

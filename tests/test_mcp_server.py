@@ -331,6 +331,37 @@ async def test_cloud_settings_and_archive_use_existing_rest_contract(requests_mo
     assert result.data == {"archived": True}
 
 
+async def test_cloud_prune_history_is_explicit_in_schema_and_existing_patch(requests_mock):
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    storage = {"used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
+               "current_output_bytes": 100, "history_bytes": 0}
+    patch = requests_mock.patch("http://api.test/api/cloud/projects/abc123/", json={"id": "abc123", "storage": storage})
+    async with Client(build_server()) as client:
+        tool = next(tool for tool in await client.list_tools() if tool.name == "update_cloud_project")
+        assert tool.inputSchema["required"] == ["project_id"]
+        assert tool.inputSchema["properties"]["prune_history"]["default"] is None
+        result = await client.call_tool("update_cloud_project", {"project_id": "abc123", "prune_history": True})
+        assert patch.last_request.json() == {"prune_history": True}
+        assert result.data["storage"] == storage
+        await client.call_tool("update_cloud_project", {"project_id": "abc123", "name": "Keep history"})
+    assert patch.last_request.json() == {"name": "Keep history"}
+
+
+async def test_cloud_storage_billing_requires_explicit_cap_and_uses_existing_patch(requests_mock):
+    runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
+    patch = requests_mock.patch("http://api.test/api/cloud/billing/", json={
+        "storage": {"billing": {"monthly_limit_cents": 500, "enabled": True}},
+    })
+    async with Client(build_server()) as client:
+        tool = next(tool for tool in await client.list_tools() if tool.name == "update_cloud_billing")
+        assert tool.inputSchema["required"] == ["storage_monthly_limit_cents"]
+        result = await client.call_tool("update_cloud_billing", {"storage_monthly_limit_cents": 500})
+        assert result.data["storage"]["billing"]["monthly_limit_cents"] == 500
+        assert patch.last_request.json() == {"storage_monthly_limit_cents": 500}
+        await client.call_tool("update_cloud_billing", {"storage_monthly_limit_cents": 0})
+        assert patch.last_request.json() == {"storage_monthly_limit_cents": 0}
+
+
 async def test_cloud_schedule_saved_code_schema_and_transport(requests_mock):
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
     schedule = requests_mock.put(

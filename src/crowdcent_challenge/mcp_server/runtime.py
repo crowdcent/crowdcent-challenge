@@ -43,6 +43,7 @@ TRADING_TOOL_NAMES = frozenset(
 CLOUD_TOOL_NAMES = frozenset(
     {
         "get_cloud_billing",
+        "update_cloud_billing",
         "list_cloud_recipes",
         "list_cloud_projects",
         "get_cloud_project",

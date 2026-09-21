@@ -106,6 +106,26 @@ def test_output_folder_settings_preserve_explicit_false(client, requests_mock):
     }
 
 
+def test_history_pruning_is_an_explicit_update_and_preserves_usage_response(client, requests_mock):
+    storage = {"used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
+               "current_output_bytes": 100, "history_bytes": 0}
+    requests_mock.patch(f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123", "storage": storage})
+    result = client.update_cloud_project("abc123", prune_history=True)
+    assert requests_mock.last_request.json() == {"prune_history": True}
+    assert result["storage"] == storage
+    client.update_cloud_project("abc123", name="Keep history")
+    assert requests_mock.last_request.json() == {"name": "Keep history"}
+
+
+def test_billing_forwards_account_storage_and_archived_project_usage(client, requests_mock):
+    storage = {"used_bytes": 140, "limit_bytes": 1024, "remaining_bytes": 884,
+               "projects": [{"id": "abc123", "name": "Archived model", "archived": True,
+                             "used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
+                             "current_output_bytes": 60, "history_bytes": 40}]}
+    requests_mock.get(f"{BASE_URL}/cloud/billing/", json={"available_cents": 1000, "storage": storage})
+    assert client.get_cloud_billing()["storage"] == storage
+
+
 def test_a_stale_save_surfaces_version_conflict_verbatim(client, requests_mock):
     requests_mock.patch(
         f"{BASE_URL}/cloud/projects/abc123/",
@@ -319,6 +339,24 @@ def test_get_cloud_billing_is_a_plain_read(client, requests_mock):
     assert requests_mock.last_request.method == "GET"
 
 
+@pytest.mark.parametrize("limit", [500, 0])
+def test_update_cloud_billing_uses_existing_endpoint_and_preserves_zero(client, requests_mock, limit):
+    doc = {"storage": {"billing": {"monthly_limit_cents": limit, "enabled": bool(limit)}}}
+    patch = requests_mock.patch(f"{BASE_URL}/cloud/billing/", json=doc)
+    assert client.update_cloud_billing(storage_monthly_limit_cents=limit) == doc
+    assert patch.last_request.json() == {"storage_monthly_limit_cents": limit}
+
+
+def test_storage_disable_refusal_surfaces_without_retrying_a_different_cap(client, requests_mock):
+    patch = requests_mock.patch(f"{BASE_URL}/cloud/billing/", status_code=409, json={
+        "detail": "Reduce stored files to your included allowance before turning off extra storage.",
+        "code": "STORE_BOUND_EXCEEDED",
+    })
+    with pytest.raises(ClientError, match="included allowance"):
+        client.update_cloud_billing(storage_monthly_limit_cents=0)
+    assert patch.call_count == 1
+
+
 def test_a_folder_of_scripts_runs_by_name_and_chains(client, requests_mock):
     """Roo's repository: three scripts, one project; each runs by name with a
     time limit, and the schedule chains them in the folder's order."""
@@ -362,6 +400,26 @@ def test_read_and_download_pinned_project_files(client, requests_mock, tmp_path)
     assert destination.read_bytes() == b"model bytes"
     assert requests_mock.last_request.qs["snapshot"] == ["12"]
     assert requests_mock.last_request.qs["download"] == ["1"]
+
+
+def test_signed_file_redirect_streams_without_forwarding_api_credentials(client, requests_mock, tmp_path):
+    import hashlib
+
+    body = b"signed immutable model bytes"
+    digest = hashlib.sha256(body).hexdigest()
+    endpoint = f"{BASE_URL}/cloud/projects/p1/files/"
+    signed_url = "https://owned-bucket.storage.googleapis.com/blobs/digest?X-Goog-Signature=test"
+    authorize = requests_mock.get(endpoint, status_code=302, headers={"Location": signed_url})
+    download = requests_mock.get(signed_url, content=body, headers={"Content-Length": str(len(body))})
+    destination = tmp_path / "model.joblib"
+    client.download_cloud_project_file("p1", "models/model.joblib", str(destination), snapshot=12, sha256=digest)
+    assert authorize.last_request.headers["Authorization"] == f"Api-Key {TEST_API_KEY}"
+    assert authorize.last_request.qs["snapshot"] == ["12"]
+    assert "Authorization" not in download.last_request.headers
+    assert download.last_request.qs == {"x-goog-signature": ["test"]}
+    assert destination.read_bytes() == body
+    assert list(tmp_path.iterdir()) == [destination]
+    assert client.session.headers["Authorization"] == f"Api-Key {TEST_API_KEY}"
 
 
 def test_delete_edits_and_single_schedule_pause(client, requests_mock):

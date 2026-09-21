@@ -49,9 +49,10 @@ class CloudAPI:
     # --- CrowdCent Cloud (public preview for Challenger+ members) ---
 
     def get_cloud_billing(self) -> Dict[str, Any]:
-        """Gets your Cloud credits: what runs can spend right now, and prices.
+        """Gets your Cloud credits, prices, and retained project storage usage.
 
-        Every amount is an integer number of cents. Read-only: buying credits
+        Monetary amounts are integer cents; storage amounts are bytes.
+        Read-only: buying credits
         is a human surface, so hand the user `billing_url` when the balance
         will not cover the run you want to start.
 
@@ -63,8 +64,35 @@ class CloudAPI:
             `purchased` (`available_cents`/`reserved_cents`), `prices` (per
             size: `hourly_cents`, one rate for runs and sessions alike, and
             `run_max_seconds`, the day every run gets), and `billing_url`.
+            `storage` contains `used_bytes`, `limit_bytes`, `included_bytes`,
+            `remaining_bytes`, per-project usage in `projects` (including
+            archived projects), and opt-in extra-storage settings in `billing`.
         """
         response = self._request("GET", "/cloud/billing/")
+        return response.json()
+
+    def update_cloud_billing(self, *, storage_monthly_limit_cents: int) -> Dict[str, Any]:
+        """Sets the monthly credit-spending cap for extra retained storage.
+
+        This explicitly opts into storage charges from existing Cloud credits;
+        it does not buy credits. Charges reflect bytes above included storage
+        and elapsed time, carrying fractional cents instead of rounding daily.
+        A positive limit enables extra storage up to the account capacity cap.
+        Zero disables it once retained storage fits the included allowance;
+        otherwise the server refuses without deleting files. The spending cap
+        resets each UTC calendar month. Prices and current settings are in
+        ``get_cloud_billing()["storage"]["billing"]``.
+
+        Args:
+            storage_monthly_limit_cents: Explicit monthly cap in integer cents;
+                for example, 500 permits at most $5 of storage charges a month.
+
+        Returns:
+            The same complete billing document as :py:meth:`get_cloud_billing`.
+        """
+        response = self._request("PATCH", "/cloud/billing/", json_data={
+            "storage_monthly_limit_cents": storage_monthly_limit_cents,
+        })
         return response.json()
 
     def list_cloud_recipes(self) -> List[Dict[str, Any]]:
@@ -97,7 +125,9 @@ class CloudAPI:
 
         Returns:
             The project detail: everything the summary carries plus
-            `filename`, `schedules`, and `recent_runs`. Read file content with
+            `filename`, `schedules`, `recent_runs`, and `storage` (byte counts
+            for saved source archives, current outputs, and output history).
+            Read file content with
             :py:meth:`get_cloud_project_files`.
         """
         response = self._request("GET", f"/cloud/projects/{project_id}/")
@@ -209,6 +239,7 @@ class CloudAPI:
         challenge_access: Optional[bool] = None,
         store_project: Optional[str] = None, share_store: Optional[bool] = None,
         publish_store: Optional[bool] = None,
+        prune_history: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Update settings or save partial text-file edits as one immutable version.
 
@@ -223,19 +254,25 @@ class CloudAPI:
         allows your other projects to use this project's folder.
         `publish_store` controls whether future runs keep their writes in
         the selected folder. These settings do not make files public.
+
+        `prune_history=True`, sent without any other update fields, permanently
+        deletes unused output history. Current outputs, code versions, and
+        outputs needed by active runs are retained. End Cloud Sessions using
+        the folder first. Pruning is explicit; ordinary updates never prune.
         """
         payload = {key: value for key, value in {
             "name": name, "base_version": base_version, "filename": filename,
             "files": files, "challenge_access": challenge_access,
             "store_project": store_project, "share_store": share_store,
-            "publish_store": publish_store,
+            "publish_store": publish_store, "prune_history": prune_history,
         }.items() if value is not None}
         return self._request("PATCH", f"/cloud/projects/{project_id}/", json_data=payload).json()
 
     def archive_cloud_project(self, project_id: str) -> Dict[str, Any]:
         """Archive a project, end its Cloud Sessions, and pause its schedules.
 
-        Files and run history are retained. Restore the project on the
+        Files and run history are retained and still count toward storage.
+        Restore the project on the
         website. Repeating the request is safe.
 
         Returns:
