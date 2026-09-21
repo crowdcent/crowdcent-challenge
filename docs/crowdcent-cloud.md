@@ -107,6 +107,8 @@ The Cookbook's `hyperliquid_ranking` recipe uses this pattern to submit automati
 
 Browser notebooks, Cloud Sessions, and Cloud Runs share a reviewed catalog of public HTTPS destinations. Common services such as GitHub, Hugging Face model and dataset downloads, Python package indexes, and market-data APIs are available automatically on port 443. You do not need to add those hosts to each project. A service may still require its own API key.
 
+Existing schedules and schedules copied from a completed Cloud Run keep their saved network permissions; setting a schedule from saved code adopts the current defaults.
+
 Request other destinations under **Environment → Network**. Private-network addresses and unapproved destinations remain blocked. Generic hosting and temporary tunnel domains are not approved as a whole; a specific endpoint can be reviewed separately.
 
 Each Cloud Run or Cloud Session normally has a **64 GiB network-transfer budget**, counting downloads and uploads, including dependency installation. Its budget is reduced to the account's remaining monthly network allowance: 200 GiB for Challenger, 500 GiB for Contender, and 1,000 GiB for Centurion and Sovereign. Runs and sessions share that allowance, which resets on the first of the month at 00:00 UTC; active sessions reserve their authorized capacity until usage is measured or the session ends.
