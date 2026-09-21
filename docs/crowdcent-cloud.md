@@ -426,10 +426,10 @@ workspace; **Save version** preserves those edits.
 | | |
 |---|---|
 | **On its own** | reads your projects, runs, data and trading; edits notebooks and files; creates and archives projects; configures schedules when asked |
-| **Asks first** | launches paid Cloud Runs · submissions (predictions, your Challenge key) · trading (real money, always asks) |
+| **Asks first** | launches paid Cloud Runs · submissions (predictions, your Challenge key) · storage spending and permanent history removal (always asks) · trading (real money, always asks) |
 | **Never** | buy credits or change your login or API keys |
 
-Cloud Run launches and submissions have approval switches in the panel. When enabled, that action can proceed without another card; otherwise Centaur waits for your response. Unanswered cards expire without executing the action. Submissions are enabled by default; trading always requires confirmation. The panel also shows capabilities that are unavailable, such as Challenge access disabled for the project.
+Cloud Run launches and submissions have approval switches in the panel. When enabled, that action can proceed without another card; otherwise Centaur waits for your response. Unanswered cards expire without executing the action. Submissions are enabled by default. Trading, changes to storage spending, and permanent removal of output history always require confirmation. The panel also shows capabilities that are unavailable, such as Challenge access disabled for the project.
 
 Scheduled Cloud Runs consume credits when they execute; configuring a schedule does not show a separate approval card. Code Centaur executes in an attached workspace has that workspace's filesystem and permitted network access.
 
