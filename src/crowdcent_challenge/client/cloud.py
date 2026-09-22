@@ -295,6 +295,7 @@ class CloudAPI:
         store_project: Optional[str] = None, share_store: Optional[bool] = None,
         publish_store: Optional[bool] = None,
         prune_history: Optional[bool] = None,
+        history_keep: Any = ...,
     ) -> Dict[str, Any]:
         """Update settings or save partial text-file edits as one immutable version.
 
@@ -310,6 +311,11 @@ class CloudAPI:
         `publish_store` controls whether future runs keep their writes in
         the selected folder. These settings do not make files public.
 
+        `history_keep` is how many previous copies of each data file the folder
+        keeps beyond the current one: 1 (default), 5, 10, or ``None`` for
+        everything. Files a running Run or Session uses and the last 24 hours
+        are kept regardless; code versions are always kept.
+
         `prune_history=True`, sent without any other update fields, permanently
         deletes unused output history. Current outputs, code versions, and
         outputs needed by active runs are retained. End Cloud Sessions using
@@ -321,6 +327,8 @@ class CloudAPI:
             "store_project": store_project, "share_store": share_store,
             "publish_store": publish_store, "prune_history": prune_history,
         }.items() if value is not None}
+        if history_keep is not ...:
+            payload["history_keep"] = history_keep
         return self._request("PATCH", f"/cloud/projects/{project_id}/", json_data=payload).json()
 
     def archive_cloud_project(self, project_id: str) -> Dict[str, Any]:
@@ -436,6 +444,7 @@ class CloudAPI:
         time_limit_minutes: Optional[int] = None,
         parameters: Optional[Dict[str, Any]] = None,
         publish_store: Optional[bool] = None,
+        follow_head: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """Schedule saved project code, or reuse a successful run's exact settings.
 
@@ -475,10 +484,16 @@ class CloudAPI:
             parameters: Arguments passed to each scheduled execution.
             publish_store: Keep generated files for subsequent runs;
                 defaults to the project's output-publication setting.
+            follow_head: ``True`` makes every fire run the project's newest
+                saved version (the pin moves first); ``False`` holds the
+                version scheduled here until you schedule again. Omit to
+                leave the setting as it is. Data files are never pinned:
+                every run reads the folder as it stands.
 
         Returns:
             The armed schedule state, including its pinned `version`,
-            `entrypoint`, `rule`, `after`, and `next_due`.
+            `behind` (a newer save exists and the schedule does not follow
+            it), `follow_head`, `entrypoint`, `rule`, `after`, and `next_due`.
         """
         payload: Dict[str, Any] = {
             key: value for key, value in {
@@ -489,6 +504,7 @@ class CloudAPI:
                 "entrypoint": entrypoint, "envelope": envelope,
                 "time_limit_minutes": time_limit_minutes,
                 "parameters": parameters, "publish_store": publish_store,
+                "follow_head": follow_head,
             }.items() if value is not None
         }
         response = self._request(

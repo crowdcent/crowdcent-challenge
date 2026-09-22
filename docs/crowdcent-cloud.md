@@ -208,7 +208,14 @@ Schedule any saved executable file directly; no earlier run is required. The sch
 
 With the Python client or MCP, omit `run_id` to schedule saved code. The defaults are the current saved version, primary file, S hardware, and the project's network, Challenge-access, and output settings. Or supply a successful `run_id` (`state: done`) to reuse that run's exact tested settings; do not combine it with execution-setting arguments.
 
-Editing or saving new code does not change an active schedule. Call `schedule_cloud_project` again to explicitly pin another saved version or successful run.
+A schedule holds the code version it was set with. Editing or saving new code does not
+change it; the project's schedule state then reads `behind: true`, and the website shows
+**Use vN** beside the rule. Either call `schedule_cloud_project` again to pin the newer
+version, or set `follow_head=True` (the website's **Always run my newest save** switch) so
+every fire runs the newest saved version. Data files are never pinned: every run reads
+the project folder as it stands when it starts, so a model the optimizer wrote an hour
+ago is what the inference job loads. `get_cloud_project` lists every runnable file under
+`jobs`, whether or not it has run yet.
 
 On the website, open **Run & schedule** in the project toolbar. Choose **On release** under **Runs**, select the challenge, review the hardware, and use **Set schedule** to save the rule.
 
@@ -438,6 +445,13 @@ outputs, all code versions, and outputs needed by active runs, so `history_bytes
 is not necessarily the amount it can reclaim. End Cloud Sessions using the output
 folder first; pruning is refused while they are active. Ordinary saves and updates
 do not trigger this destructive cleanup automatically.
+
+Between cleanups, history keeps **each file's current copy and its previous one**, so a
+daily job that rewrites a 100 MB parquet holds 200 MB of history, not thirty copies.
+`update_cloud_project(project_id, history_keep=5)` keeps the last five copies of each
+file, `history_keep=None` keeps everything; the website has the same choice under
+**Files & history → Storage & file settings → History keeps**. Files a running Run or
+Session uses and the last 24 hours are kept regardless, and code versions always are.
 
 ### Idempotent requests
 

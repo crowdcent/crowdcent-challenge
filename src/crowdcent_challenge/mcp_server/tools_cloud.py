@@ -227,6 +227,7 @@ def register_cloud_tools(mcp) -> None:
         time_limit_minutes: Optional[int] = None,
         parameters: Optional[Dict[str, Any]] = None,
         publish_store: Optional[bool] = None,
+        follow_head: Optional[bool] = None,
     ) -> Dict[str, Any]:
         """MUTATING — arms unattended future runs of saved project code.
         No prior run is required: omit run_id to pin a saved version
@@ -238,7 +239,9 @@ def register_cloud_tools(mcp) -> None:
 
         Or provide a successful run_id to reuse its exact tested contract;
         do not combine run_id with execution settings. Later edits never
-        repin an armed schedule; schedule again explicitly to change it.
+        repin an armed schedule (its state says behind: true); schedule
+        again explicitly to change it, or set follow_head=True so every
+        fire runs the newest save. Data files are never pinned.
 
         Clock triggers: daily, weekly, or monthly need daily_at (HH:MM)
         and an IANA timezone; weekly needs weekday (0=Mon..6=Sun), monthly
@@ -264,6 +267,7 @@ def register_cloud_tools(mcp) -> None:
             time_limit_minutes=time_limit_minutes,
             parameters=parameters,
             publish_store=publish_store,
+            follow_head=follow_head,
         )
 
     @mcp.tool

@@ -489,3 +489,18 @@ def test_upload_data_files_go_straight_to_storage_until_done(client, requests_mo
     assert put.call_count == 1 and put.last_request.body == body
     assert put.last_request.headers["Content-MD5"] == entry["md5"]
     assert "Authorization" not in put.last_request.headers
+
+
+def test_follow_head_and_history_keep_ride_their_requests(client, requests_mock):
+    schedule = requests_mock.put(f"{BASE_URL}/cloud/projects/p1/schedule/", json={"version": 3, "follow_head": True, "behind": False})
+    client.schedule_cloud_project("p1", trigger="daily", daily_at="13:00", follow_head=True)
+    assert schedule.last_request.json()["follow_head"] is True
+    client.schedule_cloud_project("p1", trigger="daily", daily_at="13:00")
+    assert "follow_head" not in schedule.last_request.json()
+    patch = requests_mock.patch(f"{BASE_URL}/cloud/projects/p1/", json={"store": {"history_keep": None}})
+    client.update_cloud_project("p1", history_keep=None)
+    assert patch.last_request.json() == {"history_keep": None}
+    client.update_cloud_project("p1", history_keep=5)
+    assert patch.last_request.json() == {"history_keep": 5}
+    client.update_cloud_project("p1", name="x")
+    assert "history_keep" not in patch.last_request.json()
