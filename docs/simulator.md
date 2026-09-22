@@ -4,6 +4,17 @@ The [Simulator](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/s
 
 You can use the Simulator interactively in your browser without writing code, or programmatically through the Python client and MCP tools.
 
+## Run your first backtest in the browser
+
+1. Open the meta-model’s **Simulation** tab and stay on **Strategy**.
+2. Choose a **Signal**, the number of **Longs** and **Shorts**, a **Rebalance** cadence, and an **Optimizer**. Review fees and funding before running.
+3. Select **Run**, then read the performance chart together with its date range, drawdown, and costs. The chain-link icon beside **Strategy Simulator** copies a link to your configuration.
+
+<figure class="doc-screenshot" markdown>
+[![Strategy Simulator setup with signal horizon, long and short counts, rebalance cadence, optimizer, fees, funding, and stops](assets/images/screenshots/simulator-setup.png){ loading=lazy width="1110" height="438" }](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/simulation/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>Set the signal, long and short counts, rebalance cadence, and optimizer. Review fees, funding, and stops before selecting <strong>Run</strong>.</figcaption>
+</figure>
+
 ## Portfolio construction knobs
 
 The simulator supports several configuration parameters:
@@ -16,6 +27,11 @@ The simulator supports several configuration parameters:
 - **Risk and liquidity filters**: Optimizer risk window (`risk_lookback`: 10 to 365 days of trailing returns, 0 = per-optimizer default), signal lag (`signal_lag`, 0 to 14 days), minimum open interest (`min_oi`), and minimum daily trading volume (`min_volume`). Continuous knobs snap to the step the capabilities listing reports.
 
 ## Evaluation metrics and reports
+
+<figure class="doc-screenshot" markdown>
+[![Simulated performance card with return and drawdown charts, headline statistics, random benchmark comparison, and historical dates](assets/images/screenshots/simulator-results.png){ loading=lazy width="1110" height="795" }](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/simulation/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>Read <strong>Sharpe</strong> alongside <strong>Max drawdown</strong>, the return path, and the random-portfolio comparison. These are hypothetical results on the displayed historical window, not live trading returns.</figcaption>
+</figure>
 
 Every backtest produces performance metrics split between full-period, in-sample (`is_stats`), and out-of-sample holdout (`oos_stats`) data:
 

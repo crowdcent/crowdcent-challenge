@@ -161,23 +161,6 @@
         color: var(--brand-accent);
     }
 
-    /* Content Tabs */
-    .md-typeset .tabbed-labels > label {
-        color: var(--dark-text-secondary);
-    }
-    .md-typeset .tabbed-labels > label:hover {
-        color: var(--brand-accent);
-    }
-    .md-typeset .tabbed-labels > input:checked + label {
-        color: var(--brand-accent);
-        border-color: var(--brand-accent);
-    }
-    .md-typeset .tabbed-content { /* Ensure tab content bg is dark */
-        background-color: var(--dark-bg-secondary);
-        border: 1px solid var(--dark-border-color);
-    }
-
-
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
         width: 8px;
@@ -331,22 +314,6 @@
        color: var(--brand-primary); /* Use brand blue for H1 */
     }
 
-    /* Content Tabs */
-    .md-typeset .tabbed-labels > label {
-        color: var(--light-text-secondary);
-    }
-    .md-typeset .tabbed-labels > label:hover {
-        color: var(--brand-primary);
-    }
-    .md-typeset .tabbed-labels > input:checked + label {
-        color: var(--brand-primary);
-        border-color: var(--brand-primary);
-    }
-    .md-typeset .tabbed-content { /* Ensure tab content bg is light */
-        background-color: var(--light-bg-primary);
-        border: 1px solid var(--light-border-color);
-    }
-
     /* Custom Scrollbar (Optional: Light mode scrollbar) */
     /* You can keep the dark scrollbar or define a light one */
     ::-webkit-scrollbar-track {
@@ -372,6 +339,45 @@
 /*=========================================================================
   4. Shared Styles (Apply regardless of scheme)
 =========================================================================*/
+
+/* A compact reading size, with the theme's responsive scaling and leading. */
+.md-typeset {
+    font-size: 0.75rem;
+}
+.md-typeset ul > li:not(:last-child),
+.md-typeset ol > li:not(:last-child) {
+    margin-bottom: 0.35em;
+}
+/* Keep code examples at their original size as the surrounding prose shrinks. */
+.md-typeset pre > code {
+    font-size: 0.68rem;
+}
+
+/* Content tabs sit on the page; only code and images have their own frame. */
+.md-typeset .tabbed-labels {
+    /* Material uses this token for the selected label and moving underline.
+       Keep the accent scoped to the strip so panel text stays readable. */
+    --md-default-fg-color: var(--md-accent-fg-color);
+}
+.md-typeset .tabbed-labels > label {
+    font-weight: 600;
+}
+.md-typeset .tabbed-content {
+    background: transparent;
+    border: 0;
+    padding-top: 0.8rem;
+}
+.md-typeset .tabbed-block > :first-child {
+    margin-top: 0;
+}
+.md-typeset .tabbed-block > :last-child {
+    margin-bottom: 0;
+}
+/* Raw HTML in a Markdown tab can leave empty paragraphs around the figure. */
+.md-typeset .tabbed-block > p:empty,
+.md-typeset .tabbed-block > figure.doc-screenshot {
+    margin: 0;
+}
 
 /* Header is always dark with a bottom border */
 .md-header {
@@ -681,4 +687,42 @@ body:has(.jupyter-wrapper) .md-grid {
 .jupyter-wrapper .vega-embed svg,
 .jupyter-wrapper .vega-embed canvas {
     max-width: none !important;
+}
+
+/* Product screenshots: readable crops, links into CrowdCent, and quiet captions. */
+.md-typeset figure.doc-screenshot {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 1.5rem 0;
+    text-align: left;
+}
+.md-typeset figure.doc-screenshot--compact {
+    max-width: 25rem;
+}
+.md-typeset .doc-screenshot > p {
+    margin: 0;
+}
+.md-typeset .doc-screenshot a {
+    display: block;
+}
+.md-typeset .doc-screenshot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    border: 1px solid var(--md-typeset-table-color);
+    border-radius: 0;
+}
+.md-typeset .doc-screenshot a:focus-visible {
+    outline: 2px solid var(--md-accent-fg-color);
+    outline-offset: 3px;
+}
+.md-typeset .doc-screenshot figcaption {
+    max-width: none;
+    margin: 0.6rem 0 0;
+    color: var(--md-default-fg-color--light);
+    font-size: 0.72rem;
+    font-style: normal;
+    line-height: 1.6;
 }

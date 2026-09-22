@@ -10,6 +10,11 @@ The CrowdCent Points (CC Points) system rewards consistent participation and hig
 
 ---
 
+<figure class="doc-screenshot" markdown>
+[![CC Points leaderboard with total points, best streak, 30-day progress, and tier badges](assets/images/screenshots/points-leaderboard.png){ loading=lazy width="1110" height="442" }](https://crowdcent.com/leaderboard/points/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>The <strong>CC Points leaderboard</strong> puts accumulated points beside your <strong>Best Streak</strong> and <strong>30d</strong> progress. Select a participant to explore their profile.</figcaption>
+</figure>
+
 ## Daily Base Credit
 
 You earn a guaranteed **0.5 points** just for participating, provided you make at least one valid submission during the daily window.

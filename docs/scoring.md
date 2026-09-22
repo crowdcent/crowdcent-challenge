@@ -10,6 +10,24 @@ from crowdcent_challenge.scoring import *
 !!! note "CC Points and uniqueness"
     The [CC Points performance adjustment](points-system.md#performance-adjustment-the-core-driver) blends each slot's composite percentile and unique composite percentile equally. Experimental submissions remain excluded from CC Points.
 
+## Find these metrics on the website
+
+Open the [score leaderboard](https://crowdcent.com/leaderboard/). Keep the date range, minimum submissions, and user/slot view the same when switching between **Raw** and **Unique**.
+
+=== "Raw: absolute scores"
+
+    <figure class="doc-screenshot" markdown>
+    [![Raw leaderboard showing Spearman, NDCG at 40, and composite percentile columns](assets/images/screenshots/leaderboard-raw.png){ loading=lazy width="1110" height="668" }](https://crowdcent.com/leaderboard/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+    <figcaption><strong>Raw</strong> compares predictions with outcomes. Click a metric heading to sort; the histograms show how participants are distributed.</figcaption>
+    </figure>
+
+=== "Unique: different and accurate"
+
+    <figure class="doc-screenshot" markdown>
+    [![Unique leaderboard showing unique Spearman, unique NDCG at 40, and unique composite columns](assets/images/screenshots/leaderboard-unique.png){ loading=lazy width="1110" height="666" }](https://crowdcent.com/leaderboard/?challenge=hyperliquid-ranking&view=users&metric_group=unique){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+    <figcaption><strong>Unique</strong> evaluates the part of a model’s signal left after removing its overlap with the meta-model. A strong Raw score and a strong Unique score measure different things.</figcaption>
+    </figure>
+
 ## Raw Metrics
 
 These metrics measure how well your predictions match the actual outcomes, without considering the meta-model.

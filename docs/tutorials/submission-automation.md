@@ -10,11 +10,16 @@ CrowdCent Cloud is in public preview for Challenger+ members (100+ CC Points).
    or open your own project.
 2. Enable **Challenge access** so the code can download data and submit
    predictions with a temporary Challenge key.
-3. Save your code and choose **Set schedule** for the file you want to automate.
-4. Choose **on inference release**, or a daily, weekly, or monthly time and
+3. Save your code, open **Run & schedule**, and select the file you want to automate.
+4. Choose **On release**, or a daily, weekly, or monthly time and
    timezone. An earlier Cloud Run is optional.
-5. Check the schedule and credit balance. Cloud Runs consume credits, and a
+5. Check the rule, hardware, and credit balance, then select **Set schedule**. Cloud Runs consume credits, and a
    scheduled run needs enough available credit to start.
+
+<figure class="doc-screenshot" markdown>
+[![Schedule form with the inference-release trigger, challenge selector, hardware, and Set schedule button](../assets/images/screenshots/cloud-schedule.png){ loading=lazy width="1280" height="355" }](https://crowdcent.com/cloud/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>In the project’s <strong>Run &amp; schedule</strong> drawer, choose <strong>On release</strong> and the target challenge, then <strong>Set schedule</strong>.</figcaption>
+</figure>
 
 The schedule pins saved code and execution settings. Creating it starts no
 compute and reserves no credits. Saving an edit does not change an armed

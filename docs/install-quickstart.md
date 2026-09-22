@@ -13,9 +13,12 @@
 
 ## Get an API Key
 
-You need an API key to use the CrowdCent Challenge API. Go to your [profile settings](https://crowdcent.com/profile/settings/), open the **API Keys** card, click **New Key**, enter a name, and click **Create**. Write it down, as you won't be able to access it after you leave the page.
+You need an API key to use the CrowdCent Challenge API. Go to your [profile settings](https://crowdcent.com/profile/settings/), open the **API credentials** panel, click **New Key**, enter a name, and click **Create**. Write it down, as you won't be able to access it after you leave the page.
 
-[![API keys](overrides/assets/images/api_keys.png)](https://crowdcent.com/profile/settings/){:target="_blank"}
+<figure class="doc-screenshot" markdown>
+[![API credentials panel with the New Key form open and Notebook entered as the key name](assets/images/screenshots/api-key-create.png){ loading=lazy width="1110" height="202" }](https://crowdcent.com/profile/settings/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>After <strong>New Key</strong>, give the credential a recognizable name and select <strong>Create</strong>. Copy the generated secret when it appears; it is shown only once.</figcaption>
+</figure>
 
 ## Authenticate and Initialize the Client
 

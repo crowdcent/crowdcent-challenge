@@ -38,7 +38,6 @@ nav:
   - API Reference:
       - Python: api-reference/python.md
       - CLI: api-reference/cli.md
-      - CrowdCent Cloud: api-reference/cloud.md
       - OpenAPI: https://crowdcent.com/api/swagger-ui/
   - Challenge App: https://crowdcent.com/challenge
 

@@ -15,6 +15,11 @@ Key features include:
 - **Schedule saved code.** Pin saved code and its execution settings without running it first, or reuse the settings from a successful Cloud Run. Later edits take effect only when you update the schedule explicitly.
 - **Sandboxed isolation.** Common public APIs, package indexes, and model downloads are available automatically over HTTPS; other destinations require approval. Temporary, non-trading API credentials allow Challenge data downloads and prediction submissions without exposing account secrets.
 
+<figure class="doc-screenshot" markdown>
+[![CrowdCent Cloud Cookbook with recipe cards, Edit code, and Fork to projects actions](assets/images/screenshots/cloud-cookbook.png){ loading=lazy width="1134" height="671" }](https://crowdcent.com/cloud/recipes/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>Open <strong>Cloud → Cookbook</strong> to start from a working example. <strong>Edit code</strong> opens a recipe; <strong>Fork to projects</strong> saves your own copy. The Hyperliquid baseline is marked <strong>Start here</strong>.</figcaption>
+</figure>
+
 ## Core concepts
 
 The website and API / Python / MCP share the saved-project and Cloud Run workflow. Use the website for live editing:
@@ -42,6 +47,11 @@ Open a project on crowdcent.com to edit and execute its marimo notebook. Launch 
 When working locally or using an AI assistant via MCP, use your local development environment, then save files, start Cloud Runs, and configure schedules through the project API.
 
 Use the menu beside **Edit code** to choose Browser or Cloud Session, switch hardware, or end your session.
+
+<figure class="doc-screenshot" markdown>
+[![Saved Hyperliquid Ranking demo project with the notebook editor, Browser runtime, Files and history, Environment, and Run & schedule controls](assets/images/screenshots/cloud-workspace.png){ loading=lazy width="1280" height="680" }](https://crowdcent.com/cloud/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption>The project workspace puts code in the editor, the runtime beside <strong>Edit code</strong>, and <strong>Files &amp; history</strong> plus <strong>Run &amp; schedule</strong> on the right.</figcaption>
+</figure>
 
 ### Browser runtime
 
@@ -200,6 +210,13 @@ With the Python client or MCP, omit `run_id` to schedule saved code. The default
 
 Editing or saving new code does not change an active schedule. Call `schedule_cloud_project` again to explicitly pin another saved version or successful run.
 
+On the website, open **Run & schedule** in the project toolbar. Choose **On release** under **Runs**, select the challenge, review the hardware, and use **Set schedule** to save the rule.
+
+<figure class="doc-screenshot" markdown>
+[![Cloud scheduling drawer with On release selected, Hyperliquid Ranking as the challenge, hardware, and Set schedule action](assets/images/screenshots/cloud-schedule.png){ loading=lazy width="1280" height="355" }](https://crowdcent.com/cloud/){ target="_blank" rel="noopener" title="Open this page on CrowdCent" }
+<figcaption><strong>Set schedule</strong> arms future runs; <strong>Run</strong> starts compute immediately. Review the selected file, trigger, and hardware before choosing either.</figcaption>
+</figure>
+
 ### Supported triggers
 
 - **Daily.** Runs every day at a specified `HH:MM` time in your chosen IANA timezone.
@@ -255,7 +272,7 @@ The Python client and MCP tools manage **project files, Cloud Runs, and schedule
 
 Open live Browser and Cloud Sessions on the website. Centaur can work in that live workspace; an external API or MCP agent works with saved project files and Cloud Runs.
 
-Complete method documentation is available in the [Cloud API reference](api-reference/cloud.md) and the [AI Agents (MCP) guide](ai-agents-mcp.md). REST endpoints are documented under the `cloud` tag in the [OpenAPI specification](https://crowdcent.com/api/swagger-ui/#/cloud).
+Complete method documentation is available in the [Python API reference](api-reference/python.md) and the [AI Agents (MCP) guide](ai-agents-mcp.md). REST endpoints are documented under the `cloud` tag in the [OpenAPI specification](https://crowdcent.com/api/swagger-ui/#/cloud).
 
 ### Python quickstart
 
