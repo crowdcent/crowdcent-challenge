@@ -54,6 +54,8 @@ CLOUD_TOOL_NAMES = frozenset(
         "update_cloud_project",
         "archive_cloud_project",
         "run_cloud_project",
+        "list_cloud_runs",
+        "stop_cloud_run",
         "get_cloud_run",
         "schedule_cloud_project",
         "pause_cloud_project_schedule",

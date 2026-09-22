@@ -504,3 +504,29 @@ def test_follow_head_and_history_keep_ride_their_requests(client, requests_mock)
     assert patch.last_request.json() == {"history_keep": 5}
     client.update_cloud_project("p1", name="x")
     assert "history_keep" not in patch.last_request.json()
+
+
+def test_errors_carry_status_code_fields_and_the_field_detail_in_the_message(client, requests_mock):
+    from crowdcent_challenge.exceptions import AuthenticationError, ClientError
+
+    requests_mock.post(f"{BASE_URL}/cloud/projects/p1/files/uploads/", status_code=400, json={
+        "error": {"code": "VALIDATION_ERROR", "message": "Validation failed.",
+                  "fields": {"entries": ["hack.py: code goes through the files field of PATCH projects/<id>/, not the folder."]}},
+    })
+    with pytest.raises(ClientError) as raised:
+        client.upload_cloud_project_files("p1", {"hack.py": b"x = 1\n"})
+    err = raised.value
+    assert err.status_code == 400 and err.code == "VALIDATION_ERROR"
+    assert err.fields["entries"][0].startswith("hack.py: code goes through")
+    assert "hack.py: code goes through" in str(err)
+    requests_mock.get(f"{BASE_URL}/cloud/projects/", status_code=403, json={"error": {"code": "KEY_NOT_CLOUD_ENABLED", "message": "Turn on Cloud for this key."}})
+    with pytest.raises(AuthenticationError) as raised:
+        client.list_cloud_projects()
+    assert raised.value.code == "KEY_NOT_CLOUD_ENABLED"
+
+
+def test_runs_can_be_listed_and_stopped(client, requests_mock):
+    listed = requests_mock.get(f"{BASE_URL}/cloud/projects/p1/runs/", json=[{"id": "r1", "state": "starting"}])
+    assert client.list_cloud_runs("p1", limit=5)[0]["id"] == "r1" and listed.last_request.qs["limit"] == ["5"]
+    requests_mock.delete(f"{BASE_URL}/cloud/runs/r1/", json={"id": "r1", "state": "canceled"})
+    assert client.stop_cloud_run("r1")["state"] == "canceled"

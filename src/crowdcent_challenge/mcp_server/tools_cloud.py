@@ -202,6 +202,20 @@ def register_cloud_tools(mcp) -> None:
         )
 
     @mcp.tool
+    def list_cloud_runs(project_id: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """The project's runs, newest first: id, state, detail, entrypoint,
+        version, facts. Use get_cloud_run for the log tail and artifacts."""
+        return client_for().list_cloud_runs(project_id, limit=limit)
+
+    @mcp.tool
+    def stop_cloud_run(run_id: str) -> Dict[str, Any]:
+        """MUTATING — stop a run. Not started: cancelled at once, nothing
+        charged. Running: asked to stop; settles as stopped within a minute
+        or two, keeping what it checkpointed. Poll get_cloud_run until the
+        state is terminal."""
+        return client_for().stop_cloud_run(run_id)
+
+    @mcp.tool
     def get_cloud_run(run_id: str) -> Dict[str, Any]:
         """One run: state, a plain-language detail, facts (what it used,
         whether it held a Challenge key), failure_detail, a bounded log

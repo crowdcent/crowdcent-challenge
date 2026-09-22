@@ -157,44 +157,53 @@ class BaseClient:
             except requests_exceptions.HTTPError as e:
                 status_code = e.response.status_code
 
-                # Try to parse standardized error format: {"error": {"code": "ERROR_CODE", "message": "Description"}}
+                # The standardized error body: {"error": {"code", "message", "fields"?}, ...}
+                fields, payload = {}, {}
                 try:
-                    error_data = e.response.json()
-                    if "error" in error_data and isinstance(error_data["error"], dict):
-                        error_code = error_data["error"].get("code", "UNKNOWN_ERROR")
-                        error_message = error_data["error"].get(
-                            "message", e.response.text
-                        )
+                    payload = e.response.json()
+                    error = payload.get("error") if isinstance(payload, dict) else None
+                    if isinstance(error, dict):
+                        error_code = error.get("code", "UNKNOWN_ERROR")
+                        error_message = error.get("message", e.response.text)
+                        fields = error.get("fields") or {}
                     else:
                         error_code = "API_ERROR"
                         error_message = e.response.text
                 except requests_exceptions.JSONDecodeError:
                     error_code = "API_ERROR"
                     error_message = e.response.text
+                if fields:
+                    # The field detail is the actionable part of a validation error.
+                    detail = "; ".join(
+                        f"{name}: {' '.join(str(m) for m in (msgs if isinstance(msgs, list) else [msgs]))}"
+                        for name, msgs in fields.items()
+                    )
+                    error_message = f"{error_message} {detail}".strip()
 
                 logger.error(
                     f"API Error ({status_code}): {error_code} - {error_message} for {method} {url}"
                 )
+                details = {"status_code": status_code, "code": error_code, "fields": fields, "payload": payload}
 
-                if status_code == 401:
+                if status_code == 401 or (status_code == 403 and error_code in ("NOT_AUTHENTICATED", "KEY_NOT_CLOUD_ENABLED")):
                     raise AuthenticationError(
-                        f"Authentication failed (401): {error_message} [{error_code}]"
+                        f"Authentication failed ({status_code}): {error_message} [{error_code}]", **details
                     ) from e
                 elif status_code == 404:
                     raise NotFoundError(
-                        f"Resource not found (404): {error_message} [{error_code}]"
+                        f"Resource not found (404): {error_message} [{error_code}]", **details
                     ) from e
                 elif 400 <= status_code < 500:
                     raise ClientError(
-                        f"Client error ({status_code}): {error_message} [{error_code}]"
+                        f"Client error ({status_code}): {error_message} [{error_code}]", **details
                     ) from e
                 elif 500 <= status_code < 600:
                     raise ServerError(
-                        f"Server error ({status_code}): {error_message} [{error_code}]"
+                        f"Server error ({status_code}): {error_message} [{error_code}]", **details
                     ) from e
                 else:
                     raise CrowdCentAPIError(
-                        f"HTTP error ({status_code}): {error_message} [{error_code}]"
+                        f"HTTP error ({status_code}): {error_message} [{error_code}]", **details
                     ) from e
             except (
                 requests_exceptions.ConnectionError,

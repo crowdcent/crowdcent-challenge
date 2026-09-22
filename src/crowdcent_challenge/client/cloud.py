@@ -411,6 +411,17 @@ class CloudAPI:
         )
         return response.json()
 
+    def list_cloud_runs(self, project_id: str, *, limit: int = 20) -> List[Dict[str, Any]]:
+        """The project's runs, newest first (1-100), in the run summary shape."""
+        return self._request("GET", f"/cloud/projects/{project_id}/runs/", params={"limit": limit}).json()
+
+    def stop_cloud_run(self, run_id: str) -> Dict[str, Any]:
+        """Stop a run. One that has not started is cancelled at once, nothing charged;
+        a running one is asked to stop and settles as stopped within a minute or two,
+        keeping what it had checkpointed. Poll `get_cloud_run` until its state is
+        terminal. A finished run raises ClientError with code RUN_FINISHED."""
+        return self._request("DELETE", f"/cloud/runs/{run_id}/").json()
+
     def get_cloud_run(self, run_id: str) -> Dict[str, Any]:
         """Gets one run: status, log tail, failure detail, artifacts.
 

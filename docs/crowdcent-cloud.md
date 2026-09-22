@@ -215,7 +215,20 @@ version, or set `follow_head=True` (the website's **Always run my newest save** 
 every fire runs the newest saved version. Data files are never pinned: every run reads
 the project folder as it stands when it starts, so a model the optimizer wrote an hour
 ago is what the inference job loads. `get_cloud_project` lists every runnable file under
-`jobs`, whether or not it has run yet.
+`jobs`, whether or not it has run yet. `behind` is per file: editing `predict.py` does not
+put `train.py`'s schedule behind.
+
+Runs move through `queued` or `preparing` (before a machine), `starting` (the machine
+coming up, usually one to three minutes), `running` (your code), then `done`, `failed`,
+`timed_out` or `canceled`; `detail` says the same in words. `list_cloud_runs(project_id)`
+lists them newest first; `stop_cloud_run(run_id)` cancels one that has not started at once
+(nothing charged) or asks a running one to stop. Repeating `run_cloud_project` with the same
+`idempotency_key` returns the original run and is never throttled; only new runs count
+against the ten-a-minute run budget.
+
+Every client exception carries `status_code`, `code` (the API's error code, such as
+`VERSION_CONFLICT` or `FILES_CONFLICT`), `fields` (per-field validation detail) and
+`payload`; the field detail is also in the message.
 
 On the website, open **Run & schedule** in the project toolbar. Choose **On release** under **Runs**, select the challenge, review the hardware, and use **Set schedule** to save the rule.
 
