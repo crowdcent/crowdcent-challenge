@@ -113,7 +113,7 @@ The server ships two prompts, packaged versions of the asks above that encode th
 
 For Cloud-enabled keys, your assistant can create a [CrowdCent Cloud](crowdcent-cloud.md) project from a Cookbook recipe or source it wrote, edit saved files, run code on CrowdCent hardware, read reports, and check credits. It can schedule saved code directly for daily, weekly, monthly, inference-release, or after-success execution. No previous run is required; a successful run is an optional way to reuse tested settings.
 
-The tools manage saved project files, Cloud Runs, schedules, and credit information. Live editing in the Browser or a Cloud Session is available on the website. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
+The tools manage saved project files, Cloud Runs, schedules, and credit information. In local stdio mode, `upload_cloud_project_files` puts data files from your machine (a trained model, a parquet) into a project's folder, and `download_cloud_project_file` brings one back; the bytes go straight to storage, never through the assistant. Live editing in the Browser or a Cloud Session is available on the website. The tools use the same project API as the Python client; arguments and return shapes are detailed in the [Cloud API reference](api-reference/cloud.md).
 
 For storage, `get_cloud_billing` reports usage and `update_cloud_billing` sets an
 explicit monthly cap for extra storage charges. It does not buy credits.

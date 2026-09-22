@@ -458,3 +458,34 @@ def test_failed_model_download_keeps_existing_file(client, tmp_path, monkeypatch
     assert destination.read_bytes() == b"previous model"
     assert response.closed
     assert list(tmp_path.iterdir()) == [destination]
+
+
+def test_upload_data_files_go_straight_to_storage_until_done(client, requests_mock, tmp_path):
+    """One call repeated: the first answer signs a PUT, the bytes go to the signed
+    URL with exactly its headers and no API key, the second answer is the snapshot."""
+    import base64
+    import hashlib
+
+    model = tmp_path / "model.joblib"
+    model.write_bytes(b"\x80\x04model")
+    body = model.read_bytes()
+    entry = {"sha256": hashlib.sha256(body).hexdigest(), "md5": base64.b64encode(hashlib.md5(body).digest()).decode(), "size_bytes": len(body)}
+    signed = "https://bucket.storage.googleapis.com/blobs/" + entry["sha256"] + "?signed"
+    uploads = requests_mock.post(
+        f"{BASE_URL}/cloud/projects/p1/files/uploads/",
+        [{"json": {"uploads": [{"path": "models/m.joblib", "url": signed, "headers": {"Content-MD5": entry["md5"], "x-goog-if-generation-match": "0"}}], "snapshot": None, "files": {}}},
+         {"json": {"uploads": [], "snapshot": 7, "files": {"models/m.joblib": {"sha256": entry["sha256"], "size_bytes": len(body)}}}}],
+    )
+    put = requests_mock.put(signed, status_code=200)
+
+    answer = client.upload_cloud_project_files("p1", {"models/m.joblib": model, "data/raw.bin": b"\x00\x01"}, deleted=["old.csv"])
+
+    assert answer["snapshot"] == 7
+    assert uploads.call_count == 2
+    sent = uploads.request_history[0].json()
+    assert sent["entries"]["models/m.joblib"] == entry and sent["deleted"] == ["old.csv"] and "baseline" not in sent
+    assert sent["entries"]["data/raw.bin"]["size_bytes"] == 2
+    assert uploads.request_history[1].json() == sent
+    assert put.call_count == 1 and put.last_request.body == body
+    assert put.last_request.headers["Content-MD5"] == entry["md5"]
+    assert "Authorization" not in put.last_request.headers

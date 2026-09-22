@@ -334,13 +334,34 @@ client.download_cloud_project_file(
 )
 ```
 
+Put data files into the project folder without the bytes passing through the API.
+Give `upload_cloud_project_files` local paths (or `bytes`) keyed by their project
+path; it describes the files, uploads what the folder does not hold yet straight to
+storage, and returns once they are recorded. Code (`.py`/`.ipynb`) is refused here:
+save it with `update_cloud_project(files=...)`.
+
+```python
+answer = client.upload_cloud_project_files(
+    project["id"], {"models/best.joblib": "best.joblib", "data/features.parquet": "features.parquet"},
+)
+print(answer["snapshot"], answer["files"])
+```
+
+Without `baseline` the upload writes over the folder's current copy. Pass
+`baseline={path: sha256}` from a listing to be refused (`409 FILES_CONFLICT`) if a
+file changed since you read it. `deleted=[...]` removes folder paths. The REST shape
+is one endpoint, `POST /api/cloud/projects/{id}/files/uploads/`, called until its
+`uploads` list is empty; the MCP tool of the same name takes local paths and is
+available in local stdio only. On the website, **Files & history → Upload…** does the
+same for files on your computer.
+
 Cloud Sessions and Cloud Runs support output files up to **50 GiB**, with at most
 **50 GiB across all files in one output snapshot**, subject to the account's
 retained-storage allowance. Cloud Session saves and restores also use the session's
-remaining transfer budget. Browser workspace
-transfers remain limited to 25 MB per file and 100 MB total; larger files stay saved
-in the project and are identified as unavailable in that Browser workspace. Current
-output paths remain available; superseded snapshots follow retention limits, so history
+remaining transfer budget. The Browser workspace holds data files up to 32 MB each
+(200 MB in all) in the tab; larger files stay in the project folder for runs and
+sessions and are marked **Cloud only** in that workspace. Current output paths remain
+available; superseded snapshots follow retention limits, so history
 is not permanent model retention. Keep separately named model files when both
 models must remain in the current folder.
 

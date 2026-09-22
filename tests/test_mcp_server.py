@@ -135,6 +135,7 @@ async def test_hosted_cloud_visibility_filters_per_request(monkeypatch):
 
 LOCAL_FS_TOOLS = {
     "download_cloud_project_file",
+    "upload_cloud_project_files",
     "download_training_dataset",
     "download_inference_data",
     "download_meta_model",

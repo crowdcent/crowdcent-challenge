@@ -1,8 +1,9 @@
 """CrowdCent Cloud: project files, Cloud Runs, and automated schedules.
 
 The remote execution workflow: create a project from source or a Cookbook
-recipe, run saved code on CrowdCent hardware, inspect its report, or schedule
-saved code directly for a clock, inference release, or upstream success.
+recipe, put data files (models, datasets) in its folder, run saved code on
+CrowdCent hardware, inspect its report, or schedule saved code directly for a
+clock, inference release, or upstream success.
 
 Browser and Cloud Sessions are opened on the website at crowdcent.com.
 The Python client and MCP tools manage Cloud Runs, project code
@@ -31,6 +32,8 @@ from __future__ import annotations
 import logging
 import uuid
 from typing import Any, Dict, List, Optional
+
+from ..exceptions import CrowdCentAPIError
 
 logger = logging.getLogger(__name__)
 
@@ -231,6 +234,58 @@ class CloudAPI:
             "sha256": sha256, "download": 1,
         }.items() if value is not None}
         self._download_file(f"/cloud/projects/{project_id}/files/", dest_path, path, params=params)
+
+    def upload_cloud_project_files(
+        self, project_id: str, files: Dict[str, Any], *,
+        deleted: Optional[List[str]] = None,
+        baseline: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        """Put data files (models, parquet, CSV: anything that is not code) into
+        the project folder. The bytes go straight to storage, never through the
+        API, so there is no size cap beyond your storage allowance.
+
+        `files` maps a relative project path to a local path, a `Path`, or
+        `bytes`. Code (`.py`/`.ipynb`) is refused here: save it with
+        `update_cloud_project(files=...)`. `deleted` removes folder paths.
+        Without `baseline` the upload writes over the folder's current copy;
+        pass `{path: sha256}` from a listing to be told (409 FILES_CONFLICT)
+        if someone changed a file since you read it. Files the folder already
+        holds are not uploaded again. Returns the server's answer once done:
+        `snapshot` (or null when nothing changed) and `files` as the folder
+        now holds them.
+        """
+        import base64
+        import hashlib
+        from pathlib import Path
+
+        import requests
+
+        def read(value) -> bytes:
+            return value if isinstance(value, (bytes, bytearray)) else Path(value).expanduser().read_bytes()
+
+        blobs = {path: read(value) for path, value in files.items()}
+        entries = {
+            path: {
+                "sha256": hashlib.sha256(body).hexdigest(),
+                "md5": base64.b64encode(hashlib.md5(body).digest()).decode("ascii"),
+                "size_bytes": len(body),
+            }
+            for path, body in blobs.items()
+        }
+        payload: Dict[str, Any] = {"entries": entries, "deleted": list(deleted or [])}
+        if baseline is not None:
+            payload["baseline"] = dict(baseline)
+        endpoint = f"/cloud/projects/{project_id}/files/uploads/"
+        for _ in range(3):
+            answer = self._request("POST", endpoint, json_data=payload).json()
+            if not answer.get("uploads"):
+                return answer
+            for upload in answer["uploads"]:
+                # A signed URL is the whole authorization: no API key travels with it.
+                response = requests.put(upload["url"], data=blobs[upload["path"]], headers=upload["headers"], timeout=600)
+                if response.status_code not in (200, 201, 412):
+                    raise CrowdCentAPIError(f"{upload['path']} could not be uploaded to storage ({response.status_code}).")
+        raise CrowdCentAPIError("Storage kept asking for the same files; try again in a moment.")
 
     def update_cloud_project(
         self, project_id: str, name: Optional[str] = None,

@@ -49,6 +49,7 @@ CLOUD_TOOL_NAMES = frozenset(
         "get_cloud_project",
         "get_cloud_project_files",
         "download_cloud_project_file",
+        "upload_cloud_project_files",
         "create_cloud_project",
         "update_cloud_project",
         "archive_cloud_project",

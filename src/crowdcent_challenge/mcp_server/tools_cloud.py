@@ -296,3 +296,18 @@ def register_cloud_tools(mcp) -> None:
             version=version, snapshot=snapshot, sha256=sha256,
         )
         return f"Project file downloaded to {destination}"
+
+    @mcp.tool
+    def upload_cloud_project_files(
+        project_id: str, files: Dict[str, str], deleted: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Put local data files (models, parquet, CSV) into the project folder:
+        {relative project path: local file path}. Available in local stdio
+        only. Bytes go straight to storage, so large files are fine within the
+        storage allowance. Code (.py/.ipynb) is refused; save code with
+        update_cloud_project. deleted removes folder paths. Writes over the
+        folder's current copy. Returns snapshot and the files as now held."""
+        return client_for().upload_cloud_project_files(
+            project_id, {path: str(Path(local).expanduser().resolve()) for path, local in files.items()},
+            deleted=deleted,
+        )
