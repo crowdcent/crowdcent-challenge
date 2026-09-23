@@ -151,10 +151,10 @@ class CloudAPI:
         Provide exactly one of `source` or `recipe`. Use a Python script or
         marimo notebook saved as `.py`; the primary file is normalized to a
         marimo notebook and frozen as version 1. A folder of scripts is
-        one project: pass the others in `files`, and every top-level `.py`
-        becomes its own job on the project's pipeline (run it by name with
-        :py:meth:`run_cloud_project`; chain jobs with
-        :py:meth:`schedule_cloud_project`).
+        one project: pass the others in `files`. Any `.py` or `.ipynb`, including
+        one in a folder, runs by its path with :py:meth:`run_cloud_project`;
+        its first run or schedule makes it a job on the project's pipeline
+        (chain jobs with :py:meth:`schedule_cloud_project`).
 
         Args:
             name: The project's name (unique among your projects).

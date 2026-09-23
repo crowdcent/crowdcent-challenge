@@ -108,8 +108,9 @@ def register_cloud_tools(mcp) -> None:
         (exactly one). Use a Python script or marimo notebook saved as .py;
         it is frozen as version 1. A folder of scripts is one
         project: put the main script in source/filename and the rest in
-        files ({relative path: text}); every top-level .py becomes a job
-        you can run by name and chain. challenge_access=True makes runs
+        files ({relative path: text}); any .py or .ipynb, in a folder or
+        not, runs by its path, and its first run or schedule makes it a
+        job you can chain. challenge_access=True makes runs
         act as the user on the Challenge (a scoped CROWDCENT_API_KEY per
         run, so ChallengeClient() in the code downloads and submits) —
         a pipeline that submits needs it; say so to the user. Nothing runs

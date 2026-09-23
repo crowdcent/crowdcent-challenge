@@ -147,7 +147,7 @@ Declare the packages your notebook imports so its environment can be recreated. 
 
 ### A folder of scripts
 
-A project is a tree of files, not one notebook. Pass the other files beside the entrypoint (`files={"download_data.py": ..., "submit.py": ...}` in the client, or drop them into the workspace); every top-level `.py` becomes a job of its own that you run by name (`entrypoint="submit.py"`) and chain on the pipeline. A repository that says "run these three scripts in order" is one project, three jobs, and a daily chain.
+A project is a tree of files, not one notebook. Pass the other files beside the entrypoint (`files={"download_data.py": ..., "submit.py": ...}` in the client, or drop them into the workspace); any `.py` or `.ipynb` in it, including one in a folder, runs by its path (`entrypoint="submit.py"`, `entrypoint="models/train.py"`), and the first run or schedule makes it a job of its own on the pipeline, which you can chain. A repository that says "run these three scripts in order" is one project, three jobs, and a daily chain.
 
 ### Hardware and time limits
 
