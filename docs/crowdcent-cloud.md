@@ -77,7 +77,7 @@ Cloud Sessions run native Python on hosted CrowdCent hardware with the marimo ed
 | S | 2 | 5 GiB | |
 | M | 4 | 16 GiB | |
 | L | 8 | 48 GiB | |
-| GPU | 3 | 11 GiB | one NVIDIA L4 24 GB |
+| GPU | 14 | 54 GiB | one NVIDIA L4 24 GB |
 
 GPU Cloud Sessions provide a 64 GiB temporary disk cache at `~/.cache`, deleted when the session ends. This is separate from the GPU's 24 GB of video memory and the session's system memory; downloading a model does not guarantee it will fit in memory.
 
@@ -96,7 +96,7 @@ Runs execute an immutable snapshot of your project in an isolated container. You
 | S | 2 | 8 GiB | |
 | M | 4 | 16 GiB | |
 | L | 8 | 32 GiB | |
-| GPU | 4 | 16 GiB | one NVIDIA L4 24 GB |
+| GPU | 16 | 64 GiB | one NVIDIA L4 24 GB |
 
 Every size may run for up to a day; you can choose a shorter deadline. Startup time includes preparing hardware and installing declared dependencies, and varies with the workload.
 

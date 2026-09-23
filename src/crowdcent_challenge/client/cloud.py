@@ -368,7 +368,7 @@ class CloudAPI:
             project_id: The project's public ID.
             version: A specific version number to run. Defaults to latest.
             envelope: Hardware: "s" (2 vCPU, 8 GB), "m" (4 vCPU, 16 GB),
-                "l" (8 vCPU, 32 GB), "gpu_s" (4 vCPU, 16 GB, one NVIDIA L4).
+                "l" (8 vCPU, 32 GB), "gpu_s" (16 vCPU, 64 GB, one NVIDIA L4).
                 Rates come from :py:meth:`get_cloud_billing`.
             time_limit_minutes: How long the code may run, up to a day. A
                 deadline, never a price: the run pays only for the minutes

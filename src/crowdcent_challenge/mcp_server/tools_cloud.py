@@ -181,7 +181,7 @@ def register_cloud_tools(mcp) -> None:
         returned id until live is false.
 
         envelope: "s" (2 vCPU, 8 GB), "m" (4 vCPU, 16 GB), "l" (8 vCPU,
-        32 GB), "gpu_s" (4 vCPU, 16 GB, one NVIDIA L4 24 GB).
+        32 GB), "gpu_s" (16 vCPU, 64 GB, one NVIDIA L4 24 GB).
         time_limit_minutes: a deadline under the day every run gets, never
         a price; set one that fits the job so a runaway run stops early.
         Omitted, the run may live the day. entrypoint
