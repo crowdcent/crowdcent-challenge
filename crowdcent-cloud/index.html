@@ -1,0 +1,3126 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Official Documentation for the CrowdCent Challenge. Including Python API Client and CLI for the CrowdCent Challenge API.">
+      
+      
+      
+      
+        <link rel="prev" href="../live-trading/">
+      
+      
+        <link rel="next" href="../faq/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/cc_logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>CrowdCent Cloud - CrowdCent Challenge Docs</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Poppins";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../overrides/assets/stylesheets/extra.css">
+    
+      <link rel="stylesheet" href="https://unpkg.com/katex@0/dist/katex.min.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#crowdcent-cloud" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="CrowdCent Challenge Docs" class="md-header__button md-logo" aria-label="CrowdCent Challenge Docs" data-md-component="logo">
+      
+  <img src="../assets/images/cc_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CrowdCent Challenge Docs
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CrowdCent Cloud
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/crowdcent/crowdcent-challenge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    crowdcent-challenge
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  Challenge Docs
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../tutorials/hyperliquid-end-to-end/" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api-reference/python/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://crowdcent.com/challenge" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Challenge App
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="CrowdCent Challenge Docs" class="md-nav__button md-logo" aria-label="CrowdCent Challenge Docs" data-md-component="logo">
+      
+  <img src="../assets/images/cc_logo.png" alt="logo">
+
+    </a>
+    CrowdCent Challenge Docs
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/crowdcent/crowdcent-challenge" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    crowdcent-challenge
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Challenge Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Challenge Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../points-system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Points System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simulator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simulator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../live-trading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Live Trading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CrowdCent Cloud
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CrowdCent Cloud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#browser-and-cloud-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser and Cloud Sessions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser and Cloud Sessions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browser-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloud-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud Sessions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-lifecycle-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session lifecycle and recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud Runs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cloud Runs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notebook-buttons-and-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notebook buttons and forms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-and-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and access control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-folder-of-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A folder of scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-and-time-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware and time limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-schedules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automated schedules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated schedules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported triggers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credits-and-billing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credits and billing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-and-managing-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating and managing projects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-client-cli-and-mcp-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python client, CLI, and MCP tools
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python client, CLI, and MCP tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quickstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quickstart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safe-updates-and-concurrency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safe updates and concurrency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#idempotent-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Idempotent requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-ai-assistants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using AI assistants
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#centaur-in-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Centaur in Cloud
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security and permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_9" id="__nav_1_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Challenges
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Challenges
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hyperliquid-ranking/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hyperliquid Ranking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../equity-nlp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Equity NLP &#128683;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_10" id="__nav_1_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Client
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Python Client
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install-quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Install & Quick Start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ai-agents-mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AI Agents (MCP)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_1_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_1_11" id="__nav_1_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    More
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    More
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About CrowdCent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../disclaimer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Disclaimer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/hyperliquid-end-to-end/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hyperliquid End-to-End
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Modeling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Modeling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/training-data-v3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exploring v3 Training Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-cv-lstm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    XGBoost vs LSTM with CV
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-custom-dataset-eodhd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Build a Custom Dataset
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/advanced-multi-data-slots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced: Multi-Source Ensemble for Crypto Ranking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Workflow
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Workflow
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/track-your-performance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Track Your Performance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/submission-automation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Submission Automation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/python/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://crowdcent.com/api/swagger-ui/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OpenAPI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://crowdcent.com/challenge" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Challenge App
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#browser-and-cloud-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser and Cloud Sessions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Browser and Cloud Sessions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#browser-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Browser runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cloud-sessions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud Sessions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-lifecycle-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session lifecycle and recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cloud-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cloud Runs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cloud Runs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notebook-buttons-and-forms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notebook buttons and forms
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#network-and-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and access control
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependency management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-folder-of-scripts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A folder of scripts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hardware-and-time-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hardware and time limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#automated-schedules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Automated schedules
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Automated schedules">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-triggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported triggers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credits-and-billing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credits and billing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-and-managing-projects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating and managing projects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-client-cli-and-mcp-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python client, CLI, and MCP tools
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Python client, CLI, and MCP tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quickstart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quickstart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#safe-updates-and-concurrency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Safe updates and concurrency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#project-storage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project storage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#idempotent-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Idempotent requests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-ai-assistants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using AI assistants
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#centaur-in-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Centaur in Cloud
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-and-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security and permissions
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="crowdcent-cloud">CrowdCent Cloud</h1>
+<p>CrowdCent Cloud brings your code, saved models, and automated workflows into one project. Develop marimo notebooks and Python scripts in the Browser or a <strong>Cloud Session</strong>, then use <strong>Cloud Runs</strong> to execute saved code on demand or on a schedule.</p>
+<p>CrowdCent Cloud is open to <strong>anyone with a Challenge submission</strong>. No submission yet? Run the <code>hyperliquid-ranking</code> recipe free in your browser from the <a href="https://crowdcent.com/cloud/">Cloud page</a> to make your first one. Enable <strong>Allow Cloud</strong> on an API key to use the Python client or MCP tools.</p>
+<h2 id="overview">Overview</h2>
+<p>CrowdCent Cloud supports the standard competition workflow: develop and save code, then run it on dedicated compute or schedule it for later. Train models periodically and generate predictions daily or whenever a challenge releases new inference data.</p>
+<p>Key features include:</p>
+<ul>
+<li><strong>Python projects.</strong> Use marimo notebooks saved as <code>.py</code> files, ordinary Python scripts, and supporting project files. Declare dependencies inside the file with PEP 723 script metadata.</li>
+<li><strong>Choose how to work.</strong> Edit interactively in the free Browser runtime or on hosted hardware with Cloud Sessions. Cloud Runs execute saved code unattended.</li>
+<li><strong>Schedule saved code.</strong> Pin saved code and its execution settings without running it first, or reuse the settings from a successful Cloud Run. Later edits take effect only when you update the schedule explicitly.</li>
+<li><strong>Sandboxed isolation.</strong> Common public APIs, package indexes, and model downloads are available automatically over HTTPS; other destinations require approval. Temporary, non-trading API credentials allow Challenge data downloads and prediction submissions without exposing account secrets.</li>
+</ul>
+<figure class="doc-screenshot">
+<p><a href="https://crowdcent.com/cloud/recipes/" rel="noopener" target="_blank" title="Open this page on CrowdCent"><img alt="CrowdCent Cloud Cookbook with recipe cards, Edit code, and Fork to projects actions" height="671" loading="lazy" src="../assets/images/screenshots/cloud-cookbook.png" width="1134" /></a></p>
+<figcaption>Open <strong>Cloud → Cookbook</strong> to start from a working example. <strong>Edit code</strong> opens a recipe; <strong>Fork to projects</strong> saves your own copy. The Hyperliquid baseline is marked <strong>Start here</strong>.</figcaption>
+</figure>
+<h2 id="core-concepts">Core concepts</h2>
+<p>The website and API / Python / MCP share the saved-project and Cloud Run workflow. Use the website for live editing:</p>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th style="text-align: center;">Website</th>
+<th style="text-align: center;">API / Python / MCP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Projects, saved files, and versions</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td>Cloud Runs and schedules</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td>Live editing</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">—</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Project</strong></td>
+<td>Your code, generated files, version history, Cloud Runs, and per-file schedules in one folder.</td>
+</tr>
+<tr>
+<td><strong>Version</strong></td>
+<td>An immutable copy of saved project code and dependency declarations. A changed save creates the next version.</td>
+</tr>
+<tr>
+<td><strong>Output snapshot</strong></td>
+<td>A record of the whole generated-output folder at a point in time, including models and predictions. Its history is independent of code versions.</td>
+</tr>
+<tr>
+<td><strong>Cloud Session</strong></td>
+<td>A live Python kernel on hosted hardware, opened from the website. The free Browser runtime runs in your tab instead.</td>
+</tr>
+<tr>
+<td><strong>Cloud Run</strong></td>
+<td>An unattended execution of a saved version and named file on selected hardware.</td>
+</tr>
+<tr>
+<td><strong>Schedule</strong></td>
+<td>Clock, inference-release, or after-success triggers for a file's pinned code and execution settings.</td>
+</tr>
+<tr>
+<td><strong>Recipe</strong></td>
+<td>A starter notebook from the <a href="https://github.com/crowdcent/crowdcent-cookbook">CrowdCent Cookbook</a>. Forking a recipe creates your own project.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="browser-and-cloud-sessions">Browser and Cloud Sessions</h2>
+<p>Open a project on crowdcent.com to edit and execute its marimo notebook. Launch support covers marimo <code>.py</code> notebooks and Python scripts; Jupyter notebooks and JupyterLab are outside the launch scope.</p>
+<p>When working locally or using an AI assistant via MCP, use your local development environment, then save files, start Cloud Runs, and configure schedules through the project API.</p>
+<p>Use the menu beside <strong>Edit code</strong> to choose Browser or Cloud Session, switch hardware, or end your session.</p>
+<figure class="doc-screenshot">
+<p><a href="https://crowdcent.com/cloud/" rel="noopener" target="_blank" title="Open this page on CrowdCent"><img alt="Saved Hyperliquid Ranking demo project with the notebook editor, Browser runtime, Files and history, Environment, and Run &amp; schedule controls" height="680" loading="lazy" src="../assets/images/screenshots/cloud-workspace.png" width="1280" /></a></p>
+<figcaption>The project workspace puts code in the editor, the runtime beside <strong>Edit code</strong>, and <strong>Files &amp; history</strong> plus <strong>Run &amp; schedule</strong> on the right.</figcaption>
+</figure>
+<h3 id="browser-runtime">Browser runtime</h3>
+<p>The Browser runtime executes Python directly in your browser tab using WebAssembly via Pyodide and marimo.</p>
+<ul>
+<li><strong>Free compute.</strong> Runs on your device without consuming Cloud compute credits.</li>
+<li><strong>Dependency installation.</strong> Browser-compatible packages declared in your notebook install in the tab. Packages that require native Python may need a Cloud Session or Cloud Run.</li>
+<li><strong>Challenge data access.</strong> Enabling the <strong>Challenge access</strong> toggle grants the session a temporary, short-lived token to read challenge datasets without exposing account credentials.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Browser memory and compute limits</p>
+<p>The Browser runtime uses your device's CPU and browser memory. Large datasets and model training can exceed those limits. Use a <strong>Cloud Session</strong> or <strong>Cloud Run</strong> for workloads that need more memory or native Python packages.</p>
+</div>
+<h3 id="cloud-sessions">Cloud Sessions</h3>
+<p>Cloud Sessions run native Python on hosted CrowdCent hardware with the marimo editor.</p>
+<ul>
+<li><strong>Dedicated compute.</strong> Suitable for heavier data transformations and local model training.</li>
+<li><strong>Usage billing.</strong> Billed by the started minute at the selected size's hourly rate. The rate is displayed before you start.</li>
+<li><strong>Runtime switching.</strong> Your project files move with you; the kernel restarts, so rerun cells to recreate in-memory variables. Files beyond the Browser transfer limits stay saved in the project.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th>vCPU</th>
+<th>Memory</th>
+<th>Accelerator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S</td>
+<td>2</td>
+<td>5 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>M</td>
+<td>4</td>
+<td>16 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>L</td>
+<td>8</td>
+<td>48 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>14</td>
+<td>54 GiB</td>
+<td>one NVIDIA L4 24 GB</td>
+</tr>
+</tbody>
+</table>
+<p>GPU Cloud Sessions provide a 64 GiB temporary disk cache at <code>~/.cache</code>, deleted when the session ends. This is separate from the GPU's 24 GB of video memory and the session's system memory; downloading a model does not guarantee it will fit in memory.</p>
+<h3 id="session-lifecycle-and-recovery">Session lifecycle and recovery</h3>
+<p>Use <strong>Save version</strong> to preserve code and generated files. Cloud Sessions also attempt to save when you click <strong>End</strong> or reach their idle or lifetime limit. A session stops after 5 hours with no typing and no code running (a long training job with its tab closed keeps it alive), and after 24 hours at most; the workspace warns before either and shows its limits. Your credits bound everything else. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.</p>
+<p>With <strong>Challenge access</strong> enabled, Browser and Cloud Sessions can download Challenge data and submit predictions using a temporary key. Those keys cannot trade or start other Cloud resources. Use Cloud Runs for unattended submissions and scheduled workflows.</p>
+<h2 id="cloud-runs">Cloud Runs</h2>
+<p>Runs execute an immutable snapshot of your project in an isolated container. You can trigger a run manually from the workspace or programmatically via the API and MCP tools. Once queued, you can monitor execution status until completion.</p>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th>vCPU</th>
+<th>Memory</th>
+<th>Accelerator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S</td>
+<td>2</td>
+<td>8 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>M</td>
+<td>4</td>
+<td>16 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>L</td>
+<td>8</td>
+<td>32 GiB</td>
+<td></td>
+</tr>
+<tr>
+<td>GPU</td>
+<td>16</td>
+<td>64 GiB</td>
+<td>one NVIDIA L4 24 GB</td>
+</tr>
+</tbody>
+</table>
+<p>Every size may run for up to a day; you can choose a shorter deadline. Startup time includes preparing hardware and installing declared dependencies, and varies with the workload.</p>
+<h3 id="notebook-buttons-and-forms">Notebook buttons and forms</h3>
+<p>Every manual or scheduled Cloud Run receives <code>CROWDCENT_RUN_ID</code> in its environment, but interactive notebook sessions do not. So, a recipe intended to submit unattended during a run can use this to pass its button gate during a run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># In the submission cell; submit is a mo.ui.run_button from an earlier cell.</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">mo</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CROWDCENT_RUN_ID"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">submit</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</code></pre></div>
+<p>The Cookbook's <code>hyperliquid_ranking</code> recipe uses this pattern to submit automatically to slot 1 during Cloud Runs. Cloud executes marimo notebooks with <code>marimo export html</code>; in the current runtime, <code>mo.running_in_notebook()</code> returns <code>True</code> and <code>mo.app_meta().mode</code> is <code>"edit"</code> even during a run. Use the run ID to distinguish unattended Cloud execution.</p>
+<h3 id="network-and-access-control">Network and access control</h3>
+<p>Browser notebooks, Cloud Sessions, and Cloud Runs share a reviewed catalog of public HTTPS destinations. Common services such as GitHub, Hugging Face model and dataset downloads, Python package indexes, and market-data APIs are available automatically on port 443. You do not need to add those hosts to each project. A service may still require its own API key.</p>
+<p>Existing schedules and schedules copied from a completed Cloud Run keep their saved network permissions; setting a schedule from saved code adopts the current defaults.</p>
+<p>Request other destinations under <strong>Environment → Network</strong>. Private-network addresses and unapproved destinations remain blocked. Generic hosting and temporary tunnel domains are not approved as a whole; a specific endpoint can be reviewed separately.</p>
+<p>Each Cloud Run normally has a <strong>64 GiB network-transfer budget</strong>; each Cloud Session has <strong>128 GiB</strong>. Both count your code's downloads and uploads, including dependency installation. In Cloud Runs, saving and restoring project files is handled by CrowdCent and does not use this budget. In Cloud Sessions, saving and restoring project files also counts. Each budget is reduced to the account's remaining monthly network allowance: 200 GiB for Challenger, 500 GiB for Contender, and 1,000 GiB for Centurion and Sovereign. Runs and sessions share that allowance, which resets on the first of the month at 00:00 UTC; active sessions reserve their authorized capacity until usage is measured or the session ends.</p>
+<p>Browser notebooks use the same public-host catalog, with smaller request limits: 16 MiB uploads and 256 MiB responses through the Browser relay, plus your device's memory limits. Use a Cloud Session or Cloud Run for larger downloads.</p>
+<p>Temporary downloads are separate from saved-project storage. A working dataset in a temporary directory or runtime cache uses disk space and network allowance, and is discarded when that runtime ends. Saving it as a project file also subjects it to the <a href="#safe-updates-and-concurrency">saved-file and output limits</a>. Transfer budgets do not increase saved-file limits or guarantee that a model fits in memory.</p>
+<p>When the <strong>Challenge access</strong> option is enabled, the run receives a scoped, short-lived Challenge API key valid only for the duration of the run. This allows the notebook to fetch new inference data and post predictions to the challenge.</p>
+<h3 id="dependency-management">Dependency management</h3>
+<p>Dependencies are declared at the top of your script or notebook using <a href="https://packaging.python.org/en/latest/specifications/inline-script-metadata/">PEP 723 inline script metadata</a>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># /// script</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># dependencies = [</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1">#     "polars&gt;=1.0.0",</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">#     "lightgbm&gt;=4.0.0",</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">#     "crowdcent-challenge",</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># ]</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># ///</span>
+</code></pre></div>
+<p>Declare the packages your notebook imports so its environment can be recreated. Cloud Runs and Cloud Sessions read this metadata when preparing the notebook environment. Browser execution also requires those packages to be available for its browser-based Python runtime.</p>
+<h3 id="a-folder-of-scripts">A folder of scripts</h3>
+<p>A project is a tree of files, not one notebook. Pass the other files beside the entrypoint (<code>files={"download_data.py": ..., "submit.py": ...}</code> in the client, or drop them into the workspace); any <code>.py</code> or <code>.ipynb</code> in it, including one in a folder, runs by its path (<code>entrypoint="submit.py"</code>, <code>entrypoint="models/train.py"</code>), and the first run or schedule makes it a job of its own on the pipeline, which you can chain. A repository that says "run these three scripts in order" is one project, three jobs, and a daily chain.</p>
+<h3 id="hardware-and-time-limits">Hardware and time limits</h3>
+<p>Choose <code>s</code>, <code>m</code>, <code>l</code>, or <code>gpu_s</code>; the tables above show the resources for Cloud Runs and Cloud Sessions separately. Each size has the same hourly rate across both, with usage billed by the started minute.</p>
+<p>A Cloud Run can run for up to 24 hours. You can set a shorter deadline. Starting requires enough available credits for an hour at the selected rate, or the chosen deadline if shorter; more credit is reserved as the run continues. Runs stop at their deadline or last funded minute. A stopped run can preserve its latest valid output checkpoint; check its report to see what was retained.</p>
+<p>A GPU notebook declares its framework like any other dependency, <code>jax[cuda12]</code> for Keras on JAX (the <code>centimators</code> sequence models) or <code>torch</code>; the <code>gpu_s</code> machine carries the NVIDIA driver, and its own <code>xgboost</code> trains on the GPU with <code>device="cuda"</code> with nothing declared.</p>
+<h3 id="run-reports">Run reports</h3>
+<p>When a Cloud Run finishes, it produces an execution report containing:</p>
+<ul>
+<li><strong>State.</strong> Current execution phase (<code>queued</code>, <code>running</code>, <code>done</code>, or <code>failed</code>).</li>
+<li><strong>Facts.</strong> Recorded metadata including project version, hardware environment, and API permissions used.</li>
+<li><strong>Logs.</strong> A bounded tail of stdout and stderr output.</li>
+<li><strong>Diagnostics.</strong> Error details and stack traces if execution failed.</li>
+<li><strong>Artifacts.</strong> Metadata for files generated during the run.</li>
+</ul>
+<p>A status of <code>done</code> confirms that the script finished successfully within its time budget. To verify that predictions were accepted, check the challenge submissions dashboard or call <code>list_submissions</code> in the Python client.</p>
+<h3 id="parameters">Parameters</h3>
+<p>Most runs need none. Parameters are for a notebook you launch several times with different settings, such as a tuning study.</p>
+<p>Parameters are named values a run is told when it starts: <code>trials=100 lr_max=0.2</code>. Set them under <strong>Advanced</strong> on the Run form, or pass <code>parameters</code> to <code>run_cloud_project</code> or <code>schedule_cloud_project</code>. The run's code receives them as command-line arguments, <code>--trials=100 --lr_max=0.2</code>, which a marimo notebook reads with <code>mo.cli_args()</code> and a plain script with <code>sys.argv</code>. Numbers, <code>true</code>/<code>false</code>, and text are typed the way marimo types them. A run takes up to 32 parameters, named with lowercase letters, digits, and underscores.</p>
+<p>For a form with complete defaults, a Cloud Run can use those defaults without parameters. Define <code>DEFAULTS</code> in the notebook and use it to initialize the form, then read the selected settings in a later cell:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">answered</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mo</span><span class="o">.</span><span class="n">cli_args</span><span class="p">())</span> <span class="ow">or</span> <span class="n">search_form</span><span class="o">.</span><span class="n">value</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">mo</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="ow">not</span> <span class="n">answered</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CROWDCENT_RUN_ID"</span><span class="p">),</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="n">mo</span><span class="o">.</span><span class="n">md</span><span class="p">(</span><span class="s2">"Choose a search and press **Tune**."</span><span class="p">),</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">search</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">DEFAULTS</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">answered</span> <span class="ow">or</span> <span class="p">{})}</span>
+</code></pre></div>
+<p>A Cloud Run with no parameters uses the defaults; a run told <code>trials=100</code> overrides that setting. An interactive notebook without arguments waits for the form. Runs use defaults saved in the code, not widget values changed in an interactive session. A run's parameters show on its report and beside it under History, scheduling the run keeps them, and <code>get_cloud_run</code> returns them as <code>parameters</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">for</span> <span class="n">trials</span><span class="p">,</span> <span class="n">lr_max</span> <span class="ow">in</span> <span class="p">[(</span><span class="mi">60</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)]:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">client</span><span class="o">.</span><span class="n">run_cloud_project</span><span class="p">(</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="n">envelope</span><span class="o">=</span><span class="s2">"l"</span><span class="p">,</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>        <span class="n">time_limit_minutes</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>        <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">"trials"</span><span class="p">:</span> <span class="n">trials</span><span class="p">,</span> <span class="s2">"lr_max"</span><span class="p">:</span> <span class="n">lr_max</span><span class="p">},</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="p">)</span>
+</code></pre></div>
+<p>The executed notebook appears on the run report, and generated project files appear under History for later runs to read. The <code>optuna_tuning</code> recipe in the <a href="https://github.com/crowdcent/crowdcent-cookbook">CrowdCent Cookbook</a> is a complete example. It runs up to two Optuna trials concurrently. Choose parallelism in your code to suit the selected hardware.</p>
+<h2 id="automated-schedules">Automated schedules</h2>
+<p>Schedule any saved executable file directly; no earlier run is required. The schedule pins the selected code version, file, hardware, parameters, and project access settings. Creating it starts no compute and reserves no credits. A trigger starts a Cloud Run, whose compute usage is billed normally.</p>
+<p>With the Python client or MCP, omit <code>run_id</code> to schedule saved code. The defaults are the current saved version, primary file, S hardware, and the project's network, Challenge-access, and output settings. Or supply a successful <code>run_id</code> (<code>state: done</code>) to reuse that run's exact tested settings; do not combine it with execution-setting arguments.</p>
+<p>A schedule holds the code version it was set with. Editing or saving new code does not
+change it; the project's schedule state then reads <code>behind: true</code>, and the website shows
+<strong>Use vN</strong> beside the rule. Either call <code>schedule_cloud_project</code> again to pin the newer
+version, or set <code>follow_head=True</code> (the website's <strong>Always run my newest save</strong> switch) so
+every fire runs the newest saved version. Data files are never pinned: every run reads
+the project folder as it stands when it starts, so a model the optimizer wrote an hour
+ago is what the inference job loads. <code>get_cloud_project</code> lists every runnable file under
+<code>jobs</code>, whether or not it has run yet. <code>behind</code> is per file: editing <code>predict.py</code> does not
+put <code>train.py</code>'s schedule behind.</p>
+<p>Runs move through <code>queued</code> or <code>preparing</code> (before a machine), <code>starting</code> (the machine
+coming up, usually one to three minutes), <code>running</code> (your code), then <code>done</code>, <code>failed</code>,
+<code>timed_out</code> or <code>canceled</code>; <code>detail</code> says the same in words. <code>list_cloud_runs(project_id)</code>
+lists them newest first; <code>stop_cloud_run(run_id)</code> cancels one that has not started at once
+(nothing charged) or asks a running one to stop. Repeating <code>run_cloud_project</code> with the same
+<code>idempotency_key</code> returns the original run and is never throttled; only new runs count
+against the ten-a-minute run budget.</p>
+<p>Every client exception carries <code>status_code</code>, <code>code</code> (the API's error code, such as
+<code>VERSION_CONFLICT</code> or <code>FILES_CONFLICT</code>), <code>fields</code> (per-field validation detail) and
+<code>payload</code>; the field detail is also in the message.</p>
+<p>On the website, open <strong>Run &amp; schedule</strong> in the project toolbar. Choose <strong>On release</strong> under <strong>Runs</strong>, select the challenge, review the hardware, and use <strong>Set schedule</strong> to save the rule.</p>
+<figure class="doc-screenshot">
+<p><a href="https://crowdcent.com/cloud/" rel="noopener" target="_blank" title="Open this page on CrowdCent"><img alt="Cloud scheduling drawer with On release selected, Hyperliquid Ranking as the challenge, hardware, and Set schedule action" height="355" loading="lazy" src="../assets/images/screenshots/cloud-schedule.png" width="1280" /></a></p>
+<figcaption><strong>Set schedule</strong> arms future runs; <strong>Run</strong> starts compute immediately. Review the selected file, trigger, and hardware before choosing either.</figcaption>
+</figure>
+<h3 id="supported-triggers">Supported triggers</h3>
+<ul>
+<li><strong>Daily.</strong> Runs every day at a specified <code>HH:MM</code> time in your chosen IANA timezone.</li>
+<li><strong>Weekly.</strong> Runs once a week on a weekday (<code>0</code>=Mon … <code>6</code>=Sun) at <code>HH:MM</code>.</li>
+<li><strong>Monthly.</strong> Runs on day <code>1</code>–<code>31</code> at <code>HH:MM</code>. Months without that date are skipped; February 29 runs in leap years.</li>
+<li><strong>On inference release.</strong> Runs automatically whenever the target challenge publishes a new inference dataset.</li>
+<li><strong>After.</strong> Runs when another job in the same project succeeds. The downstream file does not need an earlier run of its own.</li>
+</ul>
+<p>Schedules can be paused and resumed at any time without needing to recreate the configuration.</p>
+<h2 id="credits-and-billing">Credits and billing</h2>
+<p>Cloud Sessions and Cloud Runs consume Cloud credits. Centaur also uses this
+balance if you enable paid asks after its included allowance.</p>
+<ul>
+<li><strong>Unified credit balance.</strong> Accounts maintain a balance measured in integer cents (<code>available_cents</code>).</li>
+<li><strong>Included tier allowance.</strong> Accounts receive a monthly credit allowance based on their tier. A reservation uses included credits when they cover it; otherwise it uses purchased credits.</li>
+<li><strong>One rate per machine.</strong> Each size has the same hourly rate for Cloud Runs and Cloud Sessions, billed by the started minute. Credits are reserved up to an hour ahead of use; unused reservations are released when compute stops.</li>
+<li><strong>Low balance handling.</strong> Insufficient credits prevent new compute. The API returns HTTP <code>402 CREDITS_REQUIRED</code> with a direct URL to add credits.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th style="text-align: right;">CC Points</th>
+<th style="text-align: right;">Included credits per month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Starter</td>
+<td style="text-align: right;">any, with a submission</td>
+<td style="text-align: right;">$2.50</td>
+</tr>
+<tr>
+<td>Challenger</td>
+<td style="text-align: right;">100+</td>
+<td style="text-align: right;">$10</td>
+</tr>
+<tr>
+<td>Contender</td>
+<td style="text-align: right;">500+</td>
+<td style="text-align: right;">$25</td>
+</tr>
+<tr>
+<td>Centurion</td>
+<td style="text-align: right;">1,500+</td>
+<td style="text-align: right;">$50</td>
+</tr>
+<tr>
+<td>Sovereign</td>
+<td style="text-align: right;">5,000+</td>
+<td style="text-align: right;">$100</td>
+</tr>
+</tbody>
+</table>
+<p>Included credits reset on the first of each month at 00:00 UTC and do not roll
+over. The month's allowance is set when you first reserve included credits that
+month; later tier changes apply to the next month's allowance. Your current
+allowance and remaining balance are shown under <strong>Billing</strong>. Purchased credits
+are tracked separately from the monthly allowance.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">billing</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_cloud_billing</span><span class="p">()</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">billing</span><span class="p">[</span><span class="s2">"available_cents"</span><span class="p">]</span>              <span class="c1"># Total available balance (included + purchased)</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">billing</span><span class="p">[</span><span class="s2">"included"</span><span class="p">][</span><span class="s2">"remaining_cents"</span><span class="p">]</span>  <span class="c1"># Monthly allowance remaining</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">billing</span><span class="p">[</span><span class="s2">"prices"</span><span class="p">]</span>                       <span class="c1"># Per size: hourly_cents, run_max_seconds</span>
+</code></pre></div>
+<h2 id="creating-and-managing-projects">Creating and managing projects</h2>
+<p>In the web interface, open <strong>Cloud</strong> to manage your projects.</p>
+<ul>
+<li><strong>New project.</strong> Create a blank project in the Browser or Cloud runtime, import a repository from GitHub, fork a recipe from the Cookbook, or generate a starting point using Centaur.</li>
+<li><strong>Cookbook recipes.</strong> Browse reviewed templates (such as <code>hyperliquid-ranking</code> or <code>numerai-dashboard</code>) to preview code or fork into your account.</li>
+<li><strong>Archiving projects.</strong> Archiving hides a project from your active list, pauses its schedules, and ends its Cloud Sessions. Restoring it leaves schedules paused until you resume them.</li>
+<li><strong>Deleting projects.</strong> Projects with recorded run history or billed session time must be archived to preserve their records. A project with no retained execution evidence can be deleted if no other project uses its output store.</li>
+</ul>
+<h2 id="python-client-cli-and-mcp-tools">Python client, CLI, and MCP tools</h2>
+<p>The Python client, the <code>crowdcent cloud</code> CLI, and MCP tools manage <strong>project files, Cloud Runs, and schedules</strong>. Create projects, read and edit saved files, download models, execute saved code, inspect results, and automate the next run.</p>
+<p>Open live Browser and Cloud Sessions on the website. Centaur can work in that live workspace; an external API or MCP agent works with saved project files and Cloud Runs.</p>
+<p>Complete method documentation is available in the <a href="../api-reference/python/">Python API reference</a> and the <a href="../ai-agents-mcp/">AI Agents (MCP) guide</a>. REST endpoints are documented under the <code>cloud</code> tag in the <a href="https://crowdcent.com/api/swagger-ui/#/cloud">OpenAPI specification</a>.</p>
+<h3 id="quickstart">Quickstart</h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="python" name="__tabbed_1" type="radio" /><input id="cli" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="python">Python</label><label for="cli">CLI</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">crowdcent_challenge</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChallengeClient</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">client</span> <span class="o">=</span> <span class="n">ChallengeClient</span><span class="p">(</span><span class="s2">"hyperliquid-ranking"</span><span class="p">)</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Create a tuning project from a Cookbook recipe</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">project</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">create_cloud_project</span><span class="p">(</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="s2">"Weekly model optimization"</span><span class="p">,</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">recipe</span><span class="o">=</span><span class="s2">"optuna-tuning"</span><span class="p">,</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="n">challenge_access</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="p">)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="c1"># Pin saved code for Monday at 02:00 UTC; no training runs now.</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="n">client</span><span class="o">.</span><span class="n">schedule_cloud_project</span><span class="p">(</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">entrypoint</span><span class="o">=</span><span class="n">project</span><span class="p">[</span><span class="s2">"filename"</span><span class="p">],</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="n">envelope</span><span class="o">=</span><span class="s2">"m"</span><span class="p">,</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>    <span class="n">time_limit_minutes</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">"trials"</span><span class="p">:</span> <span class="mi">100</span><span class="p">},</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>    <span class="n">trigger</span><span class="o">=</span><span class="s2">"weekly"</span><span class="p">,</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="n">weekday</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>    <span class="n">daily_at</span><span class="o">=</span><span class="s2">"02:00"</span><span class="p">,</span>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a>    <span class="n">timezone</span><span class="o">=</span><span class="s2">"UTC"</span><span class="p">,</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Create a tuning project from a Cookbook recipe</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>crowdcent<span class="w"> </span>cloud<span class="w"> </span>create<span class="w"> </span><span class="s2">"Weekly model optimization"</span><span class="w"> </span>--recipe<span class="w"> </span>optuna-tuning<span class="w"> </span>--challenge-access
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Pin saved code for Monday at 02:00 UTC; no training runs now.</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>crowdcent<span class="w"> </span>cloud<span class="w"> </span>schedule<span class="w"> </span>PROJECT_ID<span class="w"> </span>--envelope<span class="w"> </span>m<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span>--time-limit<span class="w"> </span><span class="m">90</span><span class="w"> </span>--param<span class="w"> </span><span class="nv">trials</span><span class="o">=</span><span class="m">100</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">  </span>--trigger<span class="w"> </span>weekly<span class="w"> </span>--weekday<span class="w"> </span><span class="m">0</span><span class="w"> </span>--at<span class="w"> </span><span class="m">02</span>:00<span class="w"> </span>--timezone<span class="w"> </span>UTC
+</code></pre></div>
+</div>
+</div>
+</div>
+<p>If you have already tested a Cloud Run and want to reuse its exact settings,
+pass its ID instead of execution settings:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="python_1" name="__tabbed_2" type="radio" /><input id="cli_1" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="python_1">Python</label><label for="cli_1">CLI</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">run</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_cloud_run</span><span class="p">(</span><span class="n">successful_run_id</span><span class="p">)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">assert</span> <span class="n">run</span><span class="p">[</span><span class="s2">"state"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"done"</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">client</span><span class="o">.</span><span class="n">schedule_cloud_project</span><span class="p">(</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="n">run</span><span class="p">[</span><span class="s2">"project"</span><span class="p">],</span> <span class="n">run</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="n">trigger</span><span class="o">=</span><span class="s2">"weekly"</span><span class="p">,</span> <span class="n">weekday</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">daily_at</span><span class="o">=</span><span class="s2">"02:00"</span><span class="p">,</span> <span class="n">timezone</span><span class="o">=</span><span class="s2">"UTC"</span><span class="p">,</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="p">)</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>crowdcent<span class="w"> </span>cloud<span class="w"> </span>run-status<span class="w"> </span>RUN_ID<span class="w">          </span><span class="c1"># check "state": "done"</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>crowdcent<span class="w"> </span>cloud<span class="w"> </span>schedule<span class="w"> </span>PROJECT_ID<span class="w"> </span>--from-run<span class="w"> </span>RUN_ID<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span>--trigger<span class="w"> </span>weekly<span class="w"> </span>--weekday<span class="w"> </span><span class="m">0</span><span class="w"> </span>--at<span class="w"> </span><span class="m">02</span>:00<span class="w"> </span>--timezone<span class="w"> </span>UTC
+</code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="safe-updates-and-concurrency">Safe updates and concurrency</h3>
+<p>Saving file edits via <code>update_cloud_project</code> requires specifying <code>base_version</code>, the version number your edit was based on. If another session or agent has saved a newer version, the request returns HTTP <code>409 VERSION_CONFLICT</code>. This prevents unintended overwrites.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">project</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_cloud_project</span><span class="p">(</span><span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">client</span><span class="o">.</span><span class="n">update_cloud_project</span><span class="p">(</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="n">files</span><span class="o">=</span><span class="p">{</span><span class="n">project</span><span class="p">[</span><span class="s2">"filename"</span><span class="p">]:</span> <span class="n">new_source</span><span class="p">,</span> <span class="s2">"helpers/features.py"</span><span class="p">:</span> <span class="n">helper_source</span><span class="p">},</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">base_version</span><span class="o">=</span><span class="n">project</span><span class="p">[</span><span class="s2">"latest_version"</span><span class="p">],</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">)</span>
+</code></pre></div>
+<p>Read files with <code>get_cloud_project_files(project_id, path="helpers/features.py")</code>.
+<code>files</code> updates only the named paths; use <code>None</code> to delete. Other files, including
+binary inputs, remain unchanged. A rename is a deletion and addition in one edit.
+Use <code>filename</code> when changing which file is the primary notebook.</p>
+<p>Code versions and generated-output snapshots are independent. A saved schedule
+pins saved code; each occurrence reads the output snapshot current when the
+run is created. An optimizer can write <code>models/best.joblib</code>, and a later prediction
+script can load it from the same path. Clock and <code>after</code> triggers are alternatives:
+either can start the job. They do not mean “wait for both.” An <code>after</code> run reads the
+current output snapshot, which may include a newer publication than its triggering run.</p>
+<p>File listings return immutable <code>version</code> or <code>snapshot</code> selectors. Supply one when
+reading or downloading a model to reproduce the listed bytes:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">files</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_cloud_project_files</span><span class="p">(</span><span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">model</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">files</span><span class="p">[</span><span class="s2">"files"</span><span class="p">]</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s2">"path"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"models/best.joblib"</span><span class="p">)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="n">client</span><span class="o">.</span><span class="n">download_cloud_project_file</span><span class="p">(</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">model</span><span class="p">[</span><span class="s2">"path"</span><span class="p">],</span> <span class="s2">"best.joblib"</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="n">model</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">],</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">)</span>
+</code></pre></div>
+<p>Put data files into the project folder without the bytes passing through the API.
+Give <code>upload_cloud_project_files</code> local paths (or <code>bytes</code>) keyed by their project
+path; it describes the files, uploads what the folder does not hold yet straight to
+storage, and returns once they are recorded. Code (<code>.py</code>/<code>.ipynb</code>) is refused here:
+save it with <code>update_cloud_project(files=...)</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">answer</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">upload_cloud_project_files</span><span class="p">(</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="n">project</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="p">{</span><span class="s2">"models/best.joblib"</span><span class="p">:</span> <span class="s2">"best.joblib"</span><span class="p">,</span> <span class="s2">"data/features.parquet"</span><span class="p">:</span> <span class="s2">"features.parquet"</span><span class="p">},</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="nb">print</span><span class="p">(</span><span class="n">answer</span><span class="p">[</span><span class="s2">"snapshot"</span><span class="p">],</span> <span class="n">answer</span><span class="p">[</span><span class="s2">"files"</span><span class="p">])</span>
+</code></pre></div>
+<p>Without <code>baseline</code> the upload writes over the folder's current copy. Pass
+<code>baseline={path: sha256}</code> from a listing to be refused (<code>409 FILES_CONFLICT</code>) if a
+file changed since you read it. <code>deleted=[...]</code> removes folder paths. The REST shape
+is one endpoint, <code>POST /api/cloud/projects/{id}/files/uploads/</code>, called until its
+<code>uploads</code> list is empty; the MCP tool of the same name takes local paths and is
+available in local stdio only. On the website, <strong>Files &amp; history → Upload…</strong> does the
+same for files on your computer.</p>
+<p>Cloud Sessions and Cloud Runs support output files up to <strong>50 GiB</strong>, with at most
+<strong>50 GiB across all files in one output snapshot</strong>, subject to the account's
+retained-storage allowance. Cloud Session saves and restores also use the session's
+remaining transfer budget. The Browser workspace holds data files up to 32 MB each
+(200 MB in all) in the tab; larger files stay in the project folder for runs and
+sessions and are marked <strong>Cloud only</strong> in that workspace. Current output paths remain
+available; superseded snapshots follow retention limits, so history
+is not permanent model retention. Keep separately named model files when both
+models must remain in the current folder.</p>
+<p>An open Browser or Cloud workspace retains its own files when the API saves a
+new version. Its saved status offers <strong>Save my workspace</strong>, <strong>Load saved version</strong>,
+and <strong>Review differences</strong>. Loading preserves the local code in history first;
+overwriting still checks that the reviewed remote version has not changed again.
+Unchanged local model files never republish over newer remote models. Conflicting
+output edits are retained in a snapshot without moving the current output folder.</p>
+<h3 id="project-storage">Project storage</h3>
+<p><code>get_cloud_project(project_id)["storage"]</code> reports retained bytes for that project.
+<code>get_cloud_billing()["storage"]</code> reports the account's <code>used_bytes</code>, <code>limit_bytes</code>,
+<code>included_bytes</code>, <code>remaining_bytes</code>, and a <code>projects</code> breakdown, including archived projects.
+Archiving preserves files and does not free storage.</p>
+<p>Project <code>used_bytes</code> is <code>source_bytes + output_bytes</code>. Each distinct saved source
+archive counts by its stored size. Identical output blobs count once within a
+project, even when several paths or snapshots reference them. <code>current_output_bytes</code>
+counts outputs referenced by current snapshots; <code>history_bytes</code> counts the remaining
+retained output bytes, excluding code archives. Browser memory and runtime disk
+space are separate from this saved-project allowance.</p>
+<p>Included retained storage is 1 GiB for Starter, 10 GiB for Challenger, 25 GiB for Contender, 50 GiB
+for Centurion, and 100 GiB for Sovereign. You can explicitly enable
+extra storage, up to 200 GiB across the account, with a monthly spending cap:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">billing</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">update_cloud_billing</span><span class="p">(</span><span class="n">storage_monthly_limit_cents</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>  <span class="c1"># $5 cap</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">billing</span><span class="p">[</span><span class="s2">"storage"</span><span class="p">][</span><span class="s2">"billing"</span><span class="p">])</span>
+</code></pre></div>
+<p>Extra bytes cost $0.05 per GiB per 30 days, prorated by size and elapsed time.
+Charges use included credits first, then purchased credits; fractional cents
+carry between billing checkpoints. The spending cap resets on the first of each
+month at 00:00 UTC. When the cap or available credits are exhausted, new storage
+growth is blocked; existing files remain available to read, download, or prune.
+Unfunded time does not become a debt charged after a later top-up.</p>
+<p>The matching <code>update_cloud_billing</code> MCP tool and <code>PATCH /cloud/billing/</code> accept
+the same <code>storage_monthly_limit_cents</code> value. These settings never buy credits.
+To disable extra storage, first reduce usage to the included allowance, then
+set the limit to zero. The response's <code>storage.billing</code> reports the current cap,
+charges, rate, and any reason growth is blocked.</p>
+<p>To permanently remove unused output history, explicitly request pruning through
+the existing project-update method or matching MCP tool:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">project</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">update_cloud_project</span><span class="p">(</span><span class="n">project_id</span><span class="p">,</span> <span class="n">prune_history</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">project</span><span class="p">[</span><span class="s2">"storage"</span><span class="p">])</span>
+</code></pre></div>
+<p>Send <code>prune_history=True</code> without other update fields. Pruning retains current
+outputs, all code versions, and outputs needed by active runs, so <code>history_bytes</code>
+is not necessarily the amount it can reclaim. End Cloud Sessions using the output
+folder first; pruning is refused while they are active. Ordinary saves and updates
+do not trigger this destructive cleanup automatically.</p>
+<p>Between cleanups, history keeps <strong>each file's current copy and its previous one</strong>, so a
+daily job that rewrites a 100 MB parquet holds 200 MB of history, not thirty copies.
+<code>update_cloud_project(project_id, history_keep=5)</code> keeps the last five copies of each
+file, <code>history_keep=None</code> keeps everything; the website has the same choice under
+<strong>Files &amp; history → Storage &amp; file settings → History keeps</strong>. Files a running Run or
+Session uses and the last 24 hours are kept regardless, and code versions always are.</p>
+<h3 id="idempotent-requests">Idempotent requests</h3>
+<p>Calls to <code>create_cloud_project</code> and <code>run_cloud_project</code> include an auto-generated idempotency key so network retries cannot accidentally create duplicate projects or launch unintended runs. You can also supply a custom <code>idempotency_key</code> argument when implementing custom retry loops.</p>
+<h3 id="using-ai-assistants">Using AI assistants</h3>
+<p>AI tools connected via the CrowdCent MCP server can manage the Cloud workflow through matching tool names (<code>create_cloud_project</code>, <code>run_cloud_project</code>, <code>get_cloud_run</code>, etc.).</p>
+<p>The hosted MCP server reads project text and file metadata. To download a binary
+model to your computer, use Python, REST, or the local MCP server's
+<code>download_cloud_project_file</code> tool.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>"Create a Cloud project from the hyperliquid-ranking recipe, run it, and verify the output. If the run succeeds, schedule it on each inference release."
+</code></pre></div>
+<h3 id="centaur-in-cloud">Centaur in Cloud</h3>
+<p>Centaur helps you edit notebooks and project files, run code, inspect results,
+and manage Cloud Runs and schedules. In an open notebook, it works in your live
+workspace; <strong>Save version</strong> preserves those edits.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>On its own</strong></td>
+<td>reads your projects, runs, data and trading; edits notebooks and files; creates and archives projects; configures schedules when asked</td>
+</tr>
+<tr>
+<td><strong>Asks first</strong></td>
+<td>launches paid Cloud Runs · submissions (predictions, your Challenge key) · storage spending and permanent history removal (always asks) · trading (real money, always asks)</td>
+</tr>
+<tr>
+<td><strong>Never</strong></td>
+<td>buy credits or change your login or API keys</td>
+</tr>
+</tbody>
+</table>
+<p>Cloud Run launches and submissions have approval switches in the panel. When enabled, that action can proceed without another card; otherwise Centaur waits for your response. Unanswered cards expire without executing the action. Submissions are enabled by default. Trading, changes to storage spending, and permanent removal of output history always require confirmation. The panel also shows capabilities that are unavailable, such as Challenge access disabled for the project.</p>
+<p>Scheduled Cloud Runs consume credits when they execute; configuring a schedule does not show a separate approval card. Code Centaur executes in an attached workspace has that workspace's filesystem and permitted network access.</p>
+<h2 id="security-and-permissions">Security and permissions</h2>
+<p>Python/REST API and MCP access requires an API key with <strong>Allow Cloud</strong> enabled in <a href="https://crowdcent.com/profile/settings/">profile settings</a>. On the website, sign in with an eligible account.</p>
+<ul>
+<li><strong>Privilege separation.</strong> Temporary keys issued to Cloud Runs and sessions cannot place trades. Keep your own development and automation API keys separate from trading-enabled keys.</li>
+<li><strong>Recursive prevention.</strong> Scoped tokens provisioned for runs and interactive sessions cannot spawn secondary Cloud resources or modify billing settings.</li>
+<li><strong>Authentication check.</strong> Call <code>client.check_auth()</code> to inspect the capabilities enabled on your current API key.</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="September 25, 2026 03:10:20 UTC">September 25, 2026</span>
+  </span>
+
+    
+    
+    
+      
+  
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Contributors">
+      
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4a4 4 0 0 1 4 4 4 4 0 0 1-4 4 4 4 0 0 1-4-4 4 4 0 0 1 4-4m0 10c4.42 0 8 1.79 8 4v2H4v-2c0-2.21 3.58-4 8-4"/></svg>
+      
+    </span>
+    <nav>
+      jrosenfeld13
+    </nav>
+  </span>
+
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../live-trading/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Live Trading">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Live Trading
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../faq/" class="md-footer__link md-footer__link--next" aria-label="Next: FAQ">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                FAQ
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Made by CrowdCent
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://discord.gg/v6ZSGuTbQS" target="_blank" rel="noopener" title="crowdcent on discord" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M492.5 69.8c-.2-.3-.4-.6-.8-.7-38.1-17.5-78.4-30-119.7-37.1-.4-.1-.8 0-1.1.1s-.6.4-.8.8c-5.5 9.9-10.5 20.2-14.9 30.6-44.6-6.8-89.9-6.8-134.4 0-4.5-10.5-9.5-20.7-15.1-30.6-.2-.3-.5-.6-.8-.8s-.7-.2-1.1-.2C162.5 39 122.2 51.5 84.1 69c-.3.1-.6.4-.8.7C7.1 183.5-13.8 294.6-3.6 404.2c0 .3.1.5.2.8s.3.4.5.6c44.4 32.9 94 58 146.8 74.2.4.1.8.1 1.1 0s.7-.4.9-.7c11.3-15.4 21.4-31.8 30-48.8.1-.2.2-.5.2-.8s0-.5-.1-.8-.2-.5-.4-.6-.4-.3-.7-.4c-15.8-6.1-31.2-13.4-45.9-21.9-.3-.2-.5-.4-.7-.6s-.3-.6-.3-.9 0-.6.2-.9.3-.5.6-.7c3.1-2.3 6.2-4.7 9.1-7.1.3-.2.6-.4.9-.4s.7 0 1 .1c96.2 43.9 200.4 43.9 295.5 0 .3-.1.7-.2 1-.2s.7.2.9.4c2.9 2.4 6 4.9 9.1 7.2.2.2.4.4.6.7s.2.6.2.9-.1.6-.3.9-.4.5-.6.6c-14.7 8.6-30 15.9-45.9 21.8-.2.1-.5.2-.7.4s-.3.4-.4.7-.1.5-.1.8.1.5.2.8c8.8 17 18.8 33.3 30 48.8.2.3.6.6.9.7s.8.1 1.1 0c52.9-16.2 102.6-41.3 147.1-74.2.2-.2.4-.4.5-.6s.2-.5.2-.8c12.3-126.8-20.5-236.9-86.9-334.5zm-302 267.7c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.4 59.2-52.8 59.2m195.4 0c-29 0-52.8-26.6-52.8-59.2s23.4-59.2 52.8-59.2c29.7 0 53.3 26.8 52.8 59.2 0 32.7-23.2 59.2-52.8 59.2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://x.com/CrowdCent" target="_blank" rel="noopener" title="crowdcent on X" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M357.2 48h70.6L273.6 224.2 455 464H313L201.7 318.6 74.5 464H3.8l164.9-188.5L-5.2 48h145.6l100.5 132.9zm-24.8 373.8h39.1L119.1 88h-42z"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/CrowdCent" target="_blank" rel="noopener" title="crowdcent on github" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.expand", "navigation.path", "navigation.instant", "navigation.instant.prefetch", "navigation.tabs", "navigation.sections", "navigation.footer", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.tabs.link", "content.code.annotation", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="../overrides/assets/js/centaur-widget.js"></script>
+      
+        <script src="../overrides/assets/js/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0/dist/contrib/auto-render.min.js"></script>
+      
+        <script src="../js/open_in_new_tab.js"></script>
+      
+    
+  </body>
+</html>
