@@ -416,3 +416,431 @@ def test_submit_api_error(runner, mock_client, mock_predictions_file):
 
 
 # --- TODO: Add more tests for other CLI commands and edge cases ---
+
+
+# --- Help text ---
+
+
+def test_commands_keep_their_help_text(runner):
+    """handle_api_error must not swallow the docstring click shows as help."""
+    result = runner.invoke(cli, ["--help"])
+    assert "Submit a prediction file" in result.output
+    result = runner.invoke(cli, ["submit", "--help"])
+    assert "Parquet or CSV" in result.output
+
+
+# --- Account ---
+
+
+def test_whoami(runner, mock_client):
+    mock_client.check_auth.return_value = {"username": "me", "allow_cloud": True}
+    result = runner.invoke(cli, ["whoami"])
+    assert result.exit_code == 0
+    assert json.loads(result.output)["username"] == "me"
+
+
+def test_performance_filters(runner, mock_client):
+    mock_client.get_performance.return_value = [{"id": 1}]
+    result = runner.invoke(cli, ["performance", "--slot", "2", "--include-pending"])
+    assert result.exit_code == 0
+    mock_client.get_performance.assert_called_once_with(scored_only=False, slot=2)
+
+
+# --- Simulator ---
+
+
+def test_sim_run_inline_config(runner, mock_client):
+    mock_client.run_simulation.return_value = {"oos_stats": {"sharpe": 1.2}}
+    result = runner.invoke(
+        cli,
+        [
+            "sim",
+            "run",
+            "--config",
+            '{"n_long": 10}',
+            "--include",
+            "curve",
+            "--leverage",
+            "2",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.run_simulation.assert_called_once_with(
+        {"n_long": 10},
+        config_token=None,
+        include=["curve"],
+        benchmark_trials=0,
+        leverage=2.0,
+        target_vol=0.0,
+    )
+
+
+def test_sim_run_config_from_file(runner, mock_client, tmp_path):
+    config = tmp_path / "config.json"
+    config.write_text('{"n_short": 5}')
+    mock_client.run_simulation.return_value = {}
+    result = runner.invoke(cli, ["sim", "run", "--config", f"@{config}"])
+    assert result.exit_code == 0, result.output
+    assert mock_client.run_simulation.call_args.args[0] == {"n_short": 5}
+
+
+def test_sim_run_needs_exactly_one_config(runner, mock_client):
+    result = runner.invoke(cli, ["sim", "run"])
+    assert result.exit_code != 0
+    result = runner.invoke(cli, ["sim", "run", "--config", "{}", "--config-token", "t"])
+    assert result.exit_code != 0
+    mock_client.run_simulation.assert_not_called()
+
+
+def test_sim_run_rejects_bad_json(runner, mock_client):
+    result = runner.invoke(cli, ["sim", "run", "--config", "{n_long: 10}"])
+    assert result.exit_code == 2
+    assert "not valid JSON" in result.output
+    mock_client.run_simulation.assert_not_called()
+
+
+def test_sim_sweep_and_blend(runner, mock_client):
+    mock_client.run_sweep.return_value = {"results": []}
+    mock_client.run_blend.return_value = {"stats": {}}
+    result = runner.invoke(
+        cli,
+        [
+            "sim",
+            "sweep",
+            "--config",
+            '{"n_short": 10}',
+            "--sweep",
+            '{"n_long": [5, 10]}',
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.run_sweep.assert_called_once_with({"n_short": 10}, {"n_long": [5, 10]})
+
+    sleeves = '[{"config": {"n_long": 5}, "weight": 1.0}]'
+    result = runner.invoke(
+        cli, ["sim", "blend", "--sleeves", sleeves, "--target-vol", "0.2"]
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.run_blend.assert_called_once_with(
+        [{"config": {"n_long": 5}, "weight": 1.0}], leverage=1.0, target_vol=0.2
+    )
+
+
+# --- Trading ---
+
+
+def test_trade_defaults_to_testnet(runner, mock_client):
+    mock_client.get_mandate.return_value = {}
+    runner.invoke(cli, ["trade", "mandate"])
+    mock_client.get_mandate.assert_called_once_with(network="testnet")
+
+
+def test_trade_preview_prints_the_execute_command(runner, mock_client):
+    mock_client.preview_rebalance.return_value = {"plan_hash": "abc", "trades": []}
+    result = runner.invoke(cli, ["trade", "preview", "--network", "mainnet"])
+    assert result.exit_code == 0, result.output
+    assert "crowdcent trade execute abc --network mainnet" in result.output
+
+
+def test_trade_execute_aborts_without_confirmation(runner, mock_client):
+    result = runner.invoke(cli, ["trade", "execute", "abc"], input="n\n")
+    assert result.exit_code != 0
+    mock_client.execute_rebalance.assert_not_called()
+
+
+def test_trade_execute_aborts_without_a_terminal(runner, mock_client):
+    """An agent with no stdin must pass --yes; a closed prompt never executes."""
+    result = runner.invoke(cli, ["trade", "execute", "abc"], input="")
+    assert result.exit_code != 0
+    mock_client.execute_rebalance.assert_not_called()
+
+
+def test_trade_execute_after_confirmation(runner, mock_client):
+    mock_client.execute_rebalance.return_value = {"status": "done"}
+    result = runner.invoke(cli, ["trade", "execute", "abc"], input="y\n")
+    assert result.exit_code == 0, result.output
+    mock_client.execute_rebalance.assert_called_once_with("abc", network="testnet")
+
+
+def test_trade_execute_with_yes(runner, mock_client):
+    mock_client.execute_rebalance.return_value = {}
+    result = runner.invoke(
+        cli, ["trade", "execute", "abc", "--yes", "--network", "mainnet"]
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.execute_rebalance.assert_called_once_with("abc", network="mainnet")
+
+
+def test_trade_flatten_previews_without_a_hash(runner, mock_client):
+    mock_client.flatten.return_value = {"plan_hash": "f1"}
+    result = runner.invoke(cli, ["trade", "flatten"])
+    assert result.exit_code == 0, result.output
+    mock_client.flatten.assert_called_once_with(preview=True, network="testnet")
+    assert "crowdcent trade flatten f1" in result.output
+
+
+def test_trade_flatten_executes_with_a_hash(runner, mock_client):
+    mock_client.flatten.return_value = {}
+    result = runner.invoke(cli, ["trade", "flatten", "f1", "-y"])
+    assert result.exit_code == 0, result.output
+    mock_client.flatten.assert_called_once_with("f1", network="testnet")
+
+
+def test_trade_pause_needs_no_confirmation(runner, mock_client):
+    mock_client.pause_trading.return_value = {"paused": True}
+    result = runner.invoke(cli, ["trade", "pause"], input="")
+    assert result.exit_code == 0, result.output
+    mock_client.pause_trading.assert_called_once_with(network="testnet")
+
+
+def test_trade_set_mandate_confirms(runner, mock_client):
+    mock_client.set_mandate.return_value = {}
+    result = runner.invoke(
+        cli, ["trade", "set-mandate", "--mandate", '{"sleeves": []}'], input=""
+    )
+    assert result.exit_code != 0
+    mock_client.set_mandate.assert_not_called()
+    result = runner.invoke(
+        cli, ["trade", "set-mandate", "--mandate", '{"sleeves": []}', "-y"]
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.set_mandate.assert_called_once_with({"sleeves": []}, network="testnet")
+
+
+# --- Cloud ---
+
+
+def test_cloud_create_from_recipe(runner, mock_client):
+    mock_client.create_cloud_project.return_value = {"id": "p1"}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "create",
+            "My model",
+            "--recipe",
+            "hyperliquid-ranking",
+            "--challenge-access",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.create_cloud_project.assert_called_once_with(
+        "My model",
+        source=None,
+        filename="notebook.py",
+        files=None,
+        recipe="hyperliquid-ranking",
+        challenge_access=True,
+    )
+
+
+def test_cloud_create_from_local_files(runner, mock_client, tmp_path):
+    main = tmp_path / "train.py"
+    main.write_text("print('train')")
+    helper = tmp_path / "helpers.py"
+    helper.write_text("X = 1")
+    mock_client.create_cloud_project.return_value = {"id": "p1"}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "create",
+            "M",
+            "--source",
+            str(main),
+            "--file",
+            f"lib/helpers.py={helper}",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    kwargs = mock_client.create_cloud_project.call_args.kwargs
+    assert kwargs["source"] == "print('train')"
+    assert kwargs["filename"] == "train.py"
+    assert kwargs["files"] == {"lib/helpers.py": "X = 1"}
+
+
+def test_cloud_create_needs_recipe_or_source(runner, mock_client):
+    result = runner.invoke(cli, ["cloud", "create", "M"])
+    assert result.exit_code != 0
+    mock_client.create_cloud_project.assert_not_called()
+
+
+def test_cloud_save_edits_and_deletes(runner, mock_client, tmp_path):
+    local = tmp_path / "predict.py"
+    local.write_text("new")
+    mock_client.update_cloud_project.return_value = {"latest_version": 4}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "save",
+            "p1",
+            f"predict.py={local}",
+            "--base-version",
+            "3",
+            "--delete",
+            "old.py",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.update_cloud_project.assert_called_once_with(
+        "p1", base_version=3, files={"predict.py": "new", "old.py": None}
+    )
+
+
+def test_cloud_upload_maps_paths(runner, mock_client, tmp_path):
+    model = tmp_path / "model.pkl"
+    model.write_bytes(b"\x00")
+    mock_client.upload_cloud_project_files.return_value = {}
+    result = runner.invoke(cli, ["cloud", "upload", "p1", f"models/model.pkl={model}"])
+    assert result.exit_code == 0, result.output
+    mock_client.upload_cloud_project_files.assert_called_once_with(
+        "p1", {"models/model.pkl": str(model)}
+    )
+
+
+def test_cloud_upload_missing_file(runner, mock_client):
+    result = runner.invoke(cli, ["cloud", "upload", "p1", "nope.pkl"])
+    assert result.exit_code == 2
+    mock_client.upload_cloud_project_files.assert_not_called()
+
+
+def test_cloud_run_parses_params(runner, mock_client):
+    mock_client.run_cloud_project.return_value = {"id": "r1", "state": "queued"}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "run",
+            "p1",
+            "--entrypoint",
+            "train.py",
+            "--envelope",
+            "m",
+            "--param",
+            "trials=100",
+            "--param",
+            "fast=true",
+            "--param",
+            "name=lgbm",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.run_cloud_project.assert_called_once_with(
+        "p1",
+        version=None,
+        envelope="m",
+        time_limit_minutes=None,
+        entrypoint="train.py",
+        idempotency_key=None,
+        parameters={"trials": 100, "fast": True, "name": "lgbm"},
+    )
+
+
+def test_cloud_run_wait_polls_to_the_end(runner, mock_client):
+    mock_client.run_cloud_project.return_value = {"id": "r1", "state": "queued"}
+    mock_client.get_cloud_run.side_effect = [
+        {"id": "r1", "state": "running", "detail": ""},
+        {"id": "r1", "state": "done", "detail": "finished"},
+    ]
+    with patch("crowdcent_challenge.cli.time.sleep"):
+        result = runner.invoke(cli, ["cloud", "run", "p1", "--wait"])
+    assert result.exit_code == 0, result.output
+    assert mock_client.get_cloud_run.call_count == 2
+    assert '"state": "done"' in result.output
+
+
+def test_cloud_run_wait_fails_on_a_failed_run(runner, mock_client):
+    mock_client.run_cloud_project.return_value = {"id": "r1", "state": "queued"}
+    mock_client.get_cloud_run.return_value = {
+        "id": "r1",
+        "state": "failed",
+        "detail": "boom",
+    }
+    result = runner.invoke(cli, ["cloud", "run", "p1", "--wait"])
+    assert result.exit_code == 1
+
+
+def test_cloud_schedule_on_release(runner, mock_client):
+    mock_client.schedule_cloud_project.return_value = {"next_due": None}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "schedule",
+            "p1",
+            "--trigger",
+            "on_inference_release",
+            "--release-challenge",
+            "hyperliquid-ranking",
+            "--entrypoint",
+            "predict.py",
+            "--follow-head",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    kwargs = mock_client.schedule_cloud_project.call_args.kwargs
+    assert kwargs["trigger"] == "on_inference_release"
+    assert kwargs["challenge"] == "hyperliquid-ranking"
+    assert kwargs["entrypoint"] == "predict.py"
+    assert kwargs["follow_head"] is True
+    assert kwargs["run_id"] is None
+
+
+def test_cloud_unschedule_and_stop(runner, mock_client):
+    mock_client.pause_cloud_project_schedule.return_value = {"paused": True}
+    mock_client.stop_cloud_run.return_value = {"state": "canceled"}
+    assert runner.invoke(cli, ["cloud", "unschedule", "p1"]).exit_code == 0
+    mock_client.pause_cloud_project_schedule.assert_called_once_with(
+        "p1", entrypoint=None
+    )
+    assert runner.invoke(cli, ["cloud", "stop", "r1"]).exit_code == 0
+    mock_client.stop_cloud_run.assert_called_once_with("r1")
+
+
+def test_cloud_archive_confirms(runner, mock_client):
+    result = runner.invoke(cli, ["cloud", "archive", "p1"], input="")
+    assert result.exit_code != 0
+    mock_client.archive_cloud_project.assert_not_called()
+
+
+def test_cloud_api_errors_are_reported(runner, mock_client):
+    mock_client.get_cloud_project.side_effect = NotFoundError("no such project")
+    result = runner.invoke(cli, ["cloud", "project", "p1"])
+    assert result.exit_code != 0
+    assert "no such project" in result.output
+
+
+def test_cloud_update_settings(runner, mock_client):
+    mock_client.update_cloud_project.return_value = {}
+    result = runner.invoke(
+        cli,
+        [
+            "cloud",
+            "update",
+            "p1",
+            "--name",
+            "New",
+            "--no-challenge-access",
+            "--history-keep",
+            "all",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    mock_client.update_cloud_project.assert_called_once_with(
+        "p1", name="New", challenge_access=False, history_keep=None
+    )
+
+
+def test_cloud_update_prune_confirms_and_stands_alone(runner, mock_client):
+    mock_client.update_cloud_project.return_value = {}
+    result = runner.invoke(cli, ["cloud", "update", "p1", "--prune-history"], input="")
+    assert result.exit_code != 0
+    result = runner.invoke(
+        cli, ["cloud", "update", "p1", "--prune-history", "--name", "x", "-y"]
+    )
+    assert result.exit_code == 2
+    mock_client.update_cloud_project.assert_not_called()
+    result = runner.invoke(cli, ["cloud", "update", "p1", "--prune-history", "-y"])
+    assert result.exit_code == 0, result.output
+    mock_client.update_cloud_project.assert_called_once_with("p1", prune_history=True)

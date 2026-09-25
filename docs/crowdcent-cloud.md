@@ -287,53 +287,77 @@ In the web interface, open **Cloud** to manage your projects.
 - **Archiving projects.** Archiving hides a project from your active list, pauses its schedules, and ends its Cloud Sessions. Restoring it leaves schedules paused until you resume them.
 - **Deleting projects.** Projects with recorded run history or billed session time must be archived to preserve their records. A project with no retained execution evidence can be deleted if no other project uses its output store.
 
-## Python client and MCP tools
+## Python client, CLI, and MCP tools
 
-The Python client and MCP tools manage **project files, Cloud Runs, and schedules**. Create projects, read and edit saved files, download models, execute saved code, inspect results, and automate the next run.
+The Python client, the `crowdcent cloud` CLI, and MCP tools manage **project files, Cloud Runs, and schedules**. Create projects, read and edit saved files, download models, execute saved code, inspect results, and automate the next run.
 
 Open live Browser and Cloud Sessions on the website. Centaur can work in that live workspace; an external API or MCP agent works with saved project files and Cloud Runs.
 
 Complete method documentation is available in the [Python API reference](api-reference/python.md) and the [AI Agents (MCP) guide](ai-agents-mcp.md). REST endpoints are documented under the `cloud` tag in the [OpenAPI specification](https://crowdcent.com/api/swagger-ui/#/cloud).
 
-### Python quickstart
+### Quickstart
 
-```python
-from crowdcent_challenge import ChallengeClient
+=== "Python"
 
-client = ChallengeClient("hyperliquid-ranking")
+    ```python
+    from crowdcent_challenge import ChallengeClient
 
-# Create a tuning project from a Cookbook recipe
-project = client.create_cloud_project(
-    "Weekly model optimization",
-    recipe="optuna-tuning",
-    challenge_access=True,
-)
+    client = ChallengeClient("hyperliquid-ranking")
 
-# Pin saved code for Monday at 02:00 UTC; no training runs now.
-client.schedule_cloud_project(
-    project["id"],
-    entrypoint=project["filename"],
-    envelope="m",
-    time_limit_minutes=90,
-    parameters={"trials": 100},
-    trigger="weekly",
-    weekday=0,
-    daily_at="02:00",
-    timezone="UTC",
-)
-```
+    # Create a tuning project from a Cookbook recipe
+    project = client.create_cloud_project(
+        "Weekly model optimization",
+        recipe="optuna-tuning",
+        challenge_access=True,
+    )
+
+    # Pin saved code for Monday at 02:00 UTC; no training runs now.
+    client.schedule_cloud_project(
+        project["id"],
+        entrypoint=project["filename"],
+        envelope="m",
+        time_limit_minutes=90,
+        parameters={"trials": 100},
+        trigger="weekly",
+        weekday=0,
+        daily_at="02:00",
+        timezone="UTC",
+    )
+    ```
+
+=== "CLI"
+
+    ```bash
+    # Create a tuning project from a Cookbook recipe
+    crowdcent cloud create "Weekly model optimization" --recipe optuna-tuning --challenge-access
+
+    # Pin saved code for Monday at 02:00 UTC; no training runs now.
+    crowdcent cloud schedule PROJECT_ID --envelope m \
+      --time-limit 90 --param trials=100 \
+      --trigger weekly --weekday 0 --at 02:00 --timezone UTC
+    ```
 
 If you have already tested a Cloud Run and want to reuse its exact settings,
 pass its ID instead of execution settings:
 
-```python
-run = client.get_cloud_run(successful_run_id)
-assert run["state"] == "done"
-client.schedule_cloud_project(
-    run["project"], run["id"],
-    trigger="weekly", weekday=0, daily_at="02:00", timezone="UTC",
-)
-```
+=== "Python"
+
+    ```python
+    run = client.get_cloud_run(successful_run_id)
+    assert run["state"] == "done"
+    client.schedule_cloud_project(
+        run["project"], run["id"],
+        trigger="weekly", weekday=0, daily_at="02:00", timezone="UTC",
+    )
+    ```
+
+=== "CLI"
+
+    ```bash
+    crowdcent cloud run-status RUN_ID          # check "state": "done"
+    crowdcent cloud schedule PROJECT_ID --from-run RUN_ID \
+      --trigger weekly --weekday 0 --at 02:00 --timezone UTC
+    ```
 
 ### Safe updates and concurrency
 

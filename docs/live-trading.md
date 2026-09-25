@@ -31,59 +31,78 @@ When scheduled execution is enabled, this loop runs automatically within your co
 
 ## Safety and emergency controls
 
-- **Testnet by default**: The SDK, REST API, and MCP tools default to `network="testnet"`. Production trading requires explicitly passing `network="mainnet"`.
+- **Testnet by default**: The SDK, CLI, REST API, and MCP tools default to `network="testnet"`. Production trading requires explicitly passing `network="mainnet"` (`--network mainnet` in the CLI).
+- **Confirmation in the CLI**: `crowdcent trade set-mandate`, `execute`, `flatten PLAN_HASH`, and `resume` ask before acting and abort without a terminal unless given `--yes`. `crowdcent trade pause` never asks.
 - **Immediate pause (`pause_trading`)**: Instantly disables scheduled execution. Can be triggered with any valid API key.
 - **Resume trading (`resume_trading`)**: Re-enables scheduled execution (requires an API key with live trading permissions).
 - **Position liquidation (`flatten`)**: Closes all active positions using a dedicated two-step preview and execution flow (`flatten(preview=True)` followed by `flatten(plan_hash=...)`).
 
-## Python quickstart
+## Quickstart
 
-```python
-from crowdcent_challenge import ChallengeClient
+=== "Python"
 
-client = ChallengeClient("hyperliquid-ranking")
+    ```python
+    from crowdcent_challenge import ChallengeClient
 
-# 1. Configure the mandate with strategy sleeves and execution settings
-mandate = client.set_mandate(
-    {
-        "sleeves": [
-            {
-                "config": {
-                    "n_long": 10,
-                    "n_short": 10,
-                    "optimizer": "inv_vol",
-                    "rebalance_days": "10t",
-                    "include_funding": True,
-                },
-                "weight": 1.0,
-                "label": "Primary Model",
-            }
-        ],
-        "order_type": "twap",
-        "twap_minutes": 15,
-        "leverage": 1.0,
-        "schedule_enabled": True,
-        "schedule_at_time": "14:00",
-    },
-    network="testnet",
-)
+    client = ChallengeClient("hyperliquid-ranking")
 
-# 2. Preview the rebalance plan (dry run)
-preview = client.preview_rebalance(network="testnet")
-print(f"Planned trades: {len(preview['trades'])}")
-print(f"Estimated turnover: ${preview['turnover']:,.2f}")
-print(f"Plan hash: {preview['plan_hash']}")
+    # 1. Configure the mandate with strategy sleeves and execution settings
+    mandate = client.set_mandate(
+        {
+            "sleeves": [
+                {
+                    "config": {
+                        "n_long": 10,
+                        "n_short": 10,
+                        "optimizer": "inv_vol",
+                        "rebalance_days": "10t",
+                        "include_funding": True,
+                    },
+                    "weight": 1.0,
+                    "label": "Primary Model",
+                }
+            ],
+            "order_type": "twap",
+            "twap_minutes": 15,
+            "leverage": 1.0,
+            "schedule_enabled": True,
+            "schedule_at_time": "14:00",
+        },
+        network="testnet",
+    )
 
-# 3. Confirm and execute using the plan hash within 10 minutes
-execution = client.execute_rebalance(
-    plan_hash=preview["plan_hash"],
-    network="testnet",
-)
-print("Execution status:", execution["status"])
+    # 2. Preview the rebalance plan (dry run)
+    preview = client.preview_rebalance(network="testnet")
+    print(f"Planned trades: {len(preview['trades'])}")
+    print(f"Estimated turnover: ${preview['turnover']:,.2f}")
+    print(f"Plan hash: {preview['plan_hash']}")
 
-# 4. Emergency pause
-# client.pause_trading(network="testnet")
-```
+    # 3. Confirm and execute using the plan hash within 10 minutes
+    execution = client.execute_rebalance(
+        plan_hash=preview["plan_hash"],
+        network="testnet",
+    )
+    print("Execution status:", execution["status"])
+
+    # 4. Emergency pause
+    # client.pause_trading(network="testnet")
+    ```
+
+=== "CLI"
+
+    ```bash
+    # 1. Configure the mandate (the same JSON as the Python dict, from a file)
+    crowdcent trade set-mandate --mandate @mandate.json
+
+    # 2. Preview the rebalance plan (dry run); prints the plan and its plan_hash
+    crowdcent trade preview
+
+    # 3. Confirm and execute using the plan hash within 10 minutes
+    crowdcent trade execute PLAN_HASH
+
+    # 4. Emergency pause
+    # crowdcent trade pause
+    ```
 
 ## Access requirements
 

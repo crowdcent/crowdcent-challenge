@@ -27,13 +27,13 @@ schedule; update the schedule explicitly to use the new version.
 
 You can also start a Cloud Run first, inspect its report and the Challenge
 submissions page, then schedule that successful run's exact settings through
-Python or MCP.
+Python, the CLI, or MCP.
 
-## Use Python or an AI assistant
+## Use Python, the CLI, or an AI assistant
 
-The Python client and MCP tools use the same project and scheduling API. Enable
+The Python client, the `crowdcent cloud` CLI, and MCP tools use the same project and scheduling API. Enable
 **Allow Cloud** on your API key, then follow the
-[Python quickstart](../crowdcent-cloud.md#python-quickstart).
+[quickstart](../crowdcent-cloud.md#quickstart).
 
 An MCP-connected assistant can handle the workflow:
 

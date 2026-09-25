@@ -2,7 +2,7 @@
 
 The [Simulator](https://crowdcent.com/challenge/hyperliquid-ranking/meta-model/simulation/) evaluates the [meta-model](hyperliquid-ranking.md#meta-model)'s aggregate predictions as simulated long/short perpetual-futures portfolios over historical Hyperliquid market data. It allows you to test portfolio construction rules, optimizers, rebalancing frequencies, and market frictions against the community signal.
 
-You can use the Simulator interactively in your browser without writing code, or programmatically through the Python client and MCP tools.
+You can use the Simulator interactively in your browser without writing code, or programmatically through the Python client, the `crowdcent sim` CLI, and MCP tools.
 
 ## Run your first backtest in the browser
 
@@ -59,58 +59,80 @@ Simulator capabilities scale with your [CC Points](points-system.md) tier:
 
 If a configuration specifies a parameter above your current tier, the server automatically clamps the value to your highest accessible tier rather than failing the request. Clamped parameters are listed in the `locked` field of the response.
 
-## Python quickstart
+## Quickstart
 
-```python
-from crowdcent_challenge import ChallengeClient
+=== "Python"
 
-client = ChallengeClient("hyperliquid-ranking")
+    ```python
+    from crowdcent_challenge import ChallengeClient
 
-# 1. Backtest a single configuration
-result = client.run_simulation(
-    config={
-        "n_long": 10,
-        "n_short": 10,
-        "optimizer": "inv_vol",
-        "rebalance_days": "10t",
-        "include_funding": True,
-    },
-    include=["curve", "holdings"],
-    benchmark_trials=25,
-)
+    client = ChallengeClient("hyperliquid-ranking")
 
-print(f"In-sample Sharpe: {result['is_stats']['sharpe']:.2f}")
-print(f"Out-of-sample Sharpe: {result['oos_stats']['sharpe']:.2f}")
-print(f"Web URL: {result['web_url']}")
-
-# 2. Grid-search across multiple parameters
-sweep = client.run_sweep(
-    config={"n_short": 10, "optimizer": "inv_vol", "include_funding": True},
-    sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
-)
-
-for cell in sweep["results"]:
-    print(cell["params"], "OOS Sharpe:", cell["oos_stats"]["sharpe"])
-
-# 3. Blend weighted sleeves into an ensemble portfolio
-blend = client.run_blend(
-    sleeves=[
-        {
-            "config": {"n_long": 5, "n_short": 10, "rebalance_days": "30t"},
-            "weight": 0.6,
-            "label": "Slow Trend",
+    # 1. Backtest a single configuration
+    result = client.run_simulation(
+        config={
+            "n_long": 10,
+            "n_short": 10,
+            "optimizer": "inv_vol",
+            "rebalance_days": "10t",
+            "include_funding": True,
         },
-        {
-            "config": {"n_long": 10, "n_short": 10, "rebalance_days": "5t"},
-            "weight": 0.4,
-            "label": "Fast Rebalance",
-        },
-    ]
-)
+        include=["curve", "holdings"],
+        benchmark_trials=25,
+    )
 
-print("Composite Sharpe:", blend["stats"]["sharpe"])
-print("Sleeve Correlations:", blend["correlation"])
-```
+    print(f"In-sample Sharpe: {result['is_stats']['sharpe']:.2f}")
+    print(f"Out-of-sample Sharpe: {result['oos_stats']['sharpe']:.2f}")
+    print(f"Web URL: {result['web_url']}")
+
+    # 2. Grid-search across multiple parameters
+    sweep = client.run_sweep(
+        config={"n_short": 10, "optimizer": "inv_vol", "include_funding": True},
+        sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
+    )
+
+    for cell in sweep["results"]:
+        print(cell["params"], "OOS Sharpe:", cell["oos_stats"]["sharpe"])
+
+    # 3. Blend weighted sleeves into an ensemble portfolio
+    blend = client.run_blend(
+        sleeves=[
+            {
+                "config": {"n_long": 5, "n_short": 10, "rebalance_days": "30t"},
+                "weight": 0.6,
+                "label": "Slow Trend",
+            },
+            {
+                "config": {"n_long": 10, "n_short": 10, "rebalance_days": "5t"},
+                "weight": 0.4,
+                "label": "Fast Rebalance",
+            },
+        ]
+    )
+
+    print("Composite Sharpe:", blend["stats"]["sharpe"])
+    print("Sleeve Correlations:", blend["correlation"])
+    ```
+
+=== "CLI"
+
+    ```bash
+    # 0. The knobs and values your tier allows
+    crowdcent sim capabilities
+
+    # 1. Backtest a single configuration
+    crowdcent sim run \
+      --config '{"n_long": 10, "n_short": 10, "optimizer": "inv_vol", "rebalance_days": "10t", "include_funding": true}' \
+      --include curve --include holdings --benchmark-trials 25
+
+    # 2. Grid-search across multiple parameters
+    crowdcent sim sweep \
+      --config '{"n_short": 10, "optimizer": "inv_vol", "include_funding": true}' \
+      --sweep '{"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]}'
+
+    # 3. Blend weighted sleeves into an ensemble portfolio (JSON from a file)
+    crowdcent sim blend --sleeves @sleeves.json
+    ```
 
 ## Deploying to live trading
 

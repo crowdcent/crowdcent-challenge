@@ -107,7 +107,25 @@ crowdcent submit predictions.parquet
 # Submit an experimental prediction with a private note
 crowdcent submit predictions.parquet --slot 2 --experimental \
     --notes "2-layer transformer w/ sector embeddings"
+
+# Scores, and what your API key may do
+crowdcent performance
+crowdcent whoami
+
+# Backtest the meta-model
+crowdcent sim run --config '{"n_long": 10, "n_short": 10, "rebalance_days": "10t"}'
+
+# Live trading: preview, then execute the plan (testnet unless --network mainnet)
+crowdcent trade preview
+crowdcent trade execute PLAN_HASH
+
+# CrowdCent Cloud: create, run, and schedule a project
+crowdcent cloud create "My model" --recipe hyperliquid-ranking --challenge-access
+crowdcent cloud run PROJECT_ID --wait
+crowdcent cloud schedule PROJECT_ID --trigger on_inference_release --release-challenge hyperliquid-ranking
 ```
+
+Every command prints JSON; run `crowdcent <command> --help` for its options.
 
 **Documentation**: [docs.crowdcent.com](https://docs.crowdcent.com)
 
