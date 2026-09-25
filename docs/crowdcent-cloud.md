@@ -83,7 +83,7 @@ GPU Cloud Sessions provide a 64 GiB temporary disk cache at `~/.cache`, deleted 
 
 ### Session lifecycle and recovery
 
-Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. The defaults are 30 minutes idle and 2 hours total below Challenger tier, and 60 minutes idle and 12 hours total from Challenger up; the workspace shows its current limits. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
+Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. A session stops after 5 hours with no typing and no code running (a long training job with its tab closed keeps it alive), and after 24 hours at most; the workspace warns before either and shows its limits. Your credits bound everything else. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
 
 With **Challenge access** enabled, Browser and Cloud Sessions can download Challenge data and submit predictions using a temporary key. Those keys cannot trade or start other Cloud resources. Use Cloud Runs for unattended submissions and scheduled workflows.
 
