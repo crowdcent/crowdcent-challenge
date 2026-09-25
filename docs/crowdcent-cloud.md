@@ -2,7 +2,7 @@
 
 CrowdCent Cloud brings your code, saved models, and automated workflows into one project. Develop marimo notebooks and Python scripts in the Browser or a **Cloud Session**, then use **Cloud Runs** to execute saved code on demand or on a schedule.
 
-CrowdCent Cloud is in **public preview for Challenger+ members (100+ CC Points)**. Enable **Allow Cloud** on an API key to use the Python client or MCP tools.
+CrowdCent Cloud is open to **anyone with a Challenge submission**. No submission yet? Run the `hyperliquid-ranking` recipe free in your browser from the [Cloud page](https://crowdcent.com/cloud/) to make your first one. Enable **Allow Cloud** on an API key to use the Python client or MCP tools.
 
 ## Overview
 
@@ -83,7 +83,7 @@ GPU Cloud Sessions provide a 64 GiB temporary disk cache at `~/.cache`, deleted 
 
 ### Session lifecycle and recovery
 
-Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. For Challenger tier and above, the defaults are 60 minutes idle and 12 hours total; the workspace shows its current limits. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
+Use **Save version** to preserve code and generated files. Cloud Sessions also attempt to save when you click **End** or reach their idle or lifetime limit. The defaults are 30 minutes idle and 2 hours total below Challenger tier, and 60 minutes idle and 12 hours total from Challenger up; the workspace shows its current limits. Conflicting saves are retained for recovery without replacing newer saved work. Save regularly: recovery depends on the session still being reachable.
 
 With **Challenge access** enabled, Browser and Cloud Sessions can download Challenge data and submit predictions using a temporary key. Those keys cannot trade or start other Cloud resources. Use Cloud Runs for unattended submissions and scheduled workflows.
 
@@ -259,6 +259,7 @@ balance if you enable paid asks after its included allowance.
 
 | Tier | CC Points | Included credits per month |
 |---|---:|---:|
+| Starter | any, with a submission | $2.50 |
 | Challenger | 100+ | $10 |
 | Contender | 500+ | $25 |
 | Centurion | 1,500+ | $50 |
@@ -423,7 +424,7 @@ counts outputs referenced by current snapshots; `history_bytes` counts the remai
 retained output bytes, excluding code archives. Browser memory and runtime disk
 space are separate from this saved-project allowance.
 
-Included retained storage is 10 GiB for Challenger, 25 GiB for Contender, 50 GiB
+Included retained storage is 1 GiB for Starter, 10 GiB for Challenger, 25 GiB for Contender, 50 GiB
 for Centurion, and 100 GiB for Sovereign. You can explicitly enable
 extra storage, up to 200 GiB across the account, with a monthly spending cap:
 

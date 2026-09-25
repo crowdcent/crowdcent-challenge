@@ -2,7 +2,7 @@
 
 Use **Cloud Runs** to generate predictions and submit them on a schedule. Your
 project keeps the code, model files, run reports, and schedule together.
-CrowdCent Cloud is in public preview for Challenger+ members (100+ CC Points).
+CrowdCent Cloud is open to anyone with a Challenge submission.
 
 ## Set up a schedule on the website
 

@@ -144,6 +144,6 @@ Trading tools appear when your API key has live trading enabled (Settings → "A
 
 - **"API key not provided"**: set `CROWDCENT_API_KEY` in the server's `env` block (local) or the `Authorization` header (hosted).
 - **Trading tools missing**: enable "Allow live trading" on your key in the trading tab. Trading requires Challenger tier (100+ CC Points) and an active submission in the last 30 days — without eligibility, tools stay hidden and API calls return 403.
-- **Cloud tools missing**: enable "Allow Cloud" on your key in profile settings to expose the tools. Calls also require an eligible account: the public preview is for Challenger+ members (100+ CC Points).
+- **Cloud tools missing**: enable "Allow Cloud" on your key in profile settings to expose the tools. Calls also require an eligible account: anyone with a Challenge submission.
 - **A knob didn't take effect**: simulation knobs above your points tier are clamped to your tier, and the response's `locked` list names which ones. Error messages state the tier and points needed to unlock.
 - **Submission format**: predictions need the challenge's required columns (for `hyperliquid-ranking`: `id`, `pred_10d`, `pred_30d`), and submissions are only open during the challenge's submission window.
