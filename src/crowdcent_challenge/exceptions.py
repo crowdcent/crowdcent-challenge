@@ -10,7 +10,15 @@ detail, ``{}`` when none), and ``payload`` (the whole error body).
 class CrowdCentAPIError(Exception):
     """Base exception for API errors."""
 
-    def __init__(self, message: str = "", *, status_code=None, code: str = "", fields=None, payload=None):
+    def __init__(
+        self,
+        message: str = "",
+        *,
+        status_code=None,
+        code: str = "",
+        fields=None,
+        payload=None,
+    ):
         super().__init__(message)
         self.status_code = status_code
         self.code = code

@@ -84,7 +84,9 @@ def test_create_from_recipe_sends_no_source_and_a_generated_key(client, requests
 def test_update_sends_the_base_version_token(client, requests_mock):
     requests_mock.patch(f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123"})
 
-    client.update_cloud_project("abc123", files={"notebook.py": "print('v2')\n"}, base_version=1)
+    client.update_cloud_project(
+        "abc123", files={"notebook.py": "print('v2')\n"}, base_version=1
+    )
 
     assert requests_mock.last_request.json() == {
         "files": {"notebook.py": "print('v2')\n"},
@@ -92,24 +94,41 @@ def test_update_sends_the_base_version_token(client, requests_mock):
     }
 
 
-def test_archive_project_uses_existing_delete_without_decoding_empty_body(client, requests_mock):
-    request = requests_mock.delete(f"{BASE_URL}/cloud/projects/abc123/", status_code=204)
+def test_archive_project_uses_existing_delete_without_decoding_empty_body(
+    client, requests_mock
+):
+    request = requests_mock.delete(
+        f"{BASE_URL}/cloud/projects/abc123/", status_code=204
+    )
     assert client.archive_cloud_project("abc123") == {"archived": True}
     assert request.last_request.body is None
 
 
 def test_output_folder_settings_preserve_explicit_false(client, requests_mock):
     requests_mock.patch(f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123"})
-    client.update_cloud_project("abc123", store_project="models", share_store=False, publish_store=False)
+    client.update_cloud_project(
+        "abc123", store_project="models", share_store=False, publish_store=False
+    )
     assert requests_mock.last_request.json() == {
-        "store_project": "models", "share_store": False, "publish_store": False,
+        "store_project": "models",
+        "share_store": False,
+        "publish_store": False,
     }
 
 
-def test_history_pruning_is_an_explicit_update_and_preserves_usage_response(client, requests_mock):
-    storage = {"used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
-               "current_output_bytes": 100, "history_bytes": 0}
-    requests_mock.patch(f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123", "storage": storage})
+def test_history_pruning_is_an_explicit_update_and_preserves_usage_response(
+    client, requests_mock
+):
+    storage = {
+        "used_bytes": 140,
+        "source_bytes": 40,
+        "output_bytes": 100,
+        "current_output_bytes": 100,
+        "history_bytes": 0,
+    }
+    requests_mock.patch(
+        f"{BASE_URL}/cloud/projects/abc123/", json={"id": "abc123", "storage": storage}
+    )
     result = client.update_cloud_project("abc123", prune_history=True)
     assert requests_mock.last_request.json() == {"prune_history": True}
     assert result["storage"] == storage
@@ -117,12 +136,29 @@ def test_history_pruning_is_an_explicit_update_and_preserves_usage_response(clie
     assert requests_mock.last_request.json() == {"name": "Keep history"}
 
 
-def test_billing_forwards_account_storage_and_archived_project_usage(client, requests_mock):
-    storage = {"used_bytes": 140, "limit_bytes": 1024, "remaining_bytes": 884,
-               "projects": [{"id": "abc123", "name": "Archived model", "archived": True,
-                             "used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
-                             "current_output_bytes": 60, "history_bytes": 40}]}
-    requests_mock.get(f"{BASE_URL}/cloud/billing/", json={"available_cents": 1000, "storage": storage})
+def test_billing_forwards_account_storage_and_archived_project_usage(
+    client, requests_mock
+):
+    storage = {
+        "used_bytes": 140,
+        "limit_bytes": 1024,
+        "remaining_bytes": 884,
+        "projects": [
+            {
+                "id": "abc123",
+                "name": "Archived model",
+                "archived": True,
+                "used_bytes": 140,
+                "source_bytes": 40,
+                "output_bytes": 100,
+                "current_output_bytes": 60,
+                "history_bytes": 40,
+            }
+        ],
+    }
+    requests_mock.get(
+        f"{BASE_URL}/cloud/billing/", json={"available_cents": 1000, "storage": storage}
+    )
     assert client.get_cloud_billing()["storage"] == storage
 
 
@@ -139,7 +175,9 @@ def test_a_stale_save_surfaces_version_conflict_verbatim(client, requests_mock):
     )
 
     with pytest.raises(ClientError, match="VERSION_CONFLICT"):
-        client.update_cloud_project("abc123", files={"notebook.py": "x"}, base_version=1)
+        client.update_cloud_project(
+            "abc123", files={"notebook.py": "x"}, base_version=1
+        )
 
 
 def test_run_pins_version_envelope_and_idempotency(client, requests_mock):
@@ -270,44 +308,72 @@ def test_schedule_saved_code_needs_only_the_existing_put(client, requests_mock):
 
     assert result["version"] == 7
     assert schedule.last_request.json() == {
-        "trigger": "daily", "daily_at": "02:00", "timezone": "UTC",
+        "trigger": "daily",
+        "daily_at": "02:00",
+        "timezone": "UTC",
     }
     # No preliminary lookup or run creation is needed to arm saved code.
-    assert [(request.method, request.path) for request in requests_mock.request_history] == [
+    assert [
+        (request.method, request.path) for request in requests_mock.request_history
+    ] == [
         ("PUT", "/api/cloud/projects/abc123/schedule/"),
     ]
 
 
-def test_schedule_selected_code_preserves_false_and_empty_parameters(client, requests_mock):
+def test_schedule_selected_code_preserves_false_and_empty_parameters(
+    client, requests_mock
+):
     schedule = requests_mock.put(
-        f"{BASE_URL}/cloud/projects/abc123/schedule/", json={"armed": True},
+        f"{BASE_URL}/cloud/projects/abc123/schedule/",
+        json={"armed": True},
     )
 
     client.schedule_cloud_project(
-        "abc123", version=3, entrypoint="optimize.py", envelope="m",
-        time_limit_minutes=90, parameters={}, publish_store=False,
-        trigger="monthly", day=31, daily_at="02:00", timezone="Europe/London",
+        "abc123",
+        version=3,
+        entrypoint="optimize.py",
+        envelope="m",
+        time_limit_minutes=90,
+        parameters={},
+        publish_store=False,
+        trigger="monthly",
+        day=31,
+        daily_at="02:00",
+        timezone="Europe/London",
     )
 
     assert schedule.last_request.json() == {
-        "version": 3, "entrypoint": "optimize.py", "envelope": "m",
-        "time_limit_minutes": 90, "parameters": {}, "publish_store": False,
-        "trigger": "monthly", "day": 31, "daily_at": "02:00", "timezone": "Europe/London",
+        "version": 3,
+        "entrypoint": "optimize.py",
+        "envelope": "m",
+        "time_limit_minutes": 90,
+        "parameters": {},
+        "publish_store": False,
+        "trigger": "monthly",
+        "day": 31,
+        "daily_at": "02:00",
+        "timezone": "Europe/London",
     }
 
 
 def test_schedule_unrun_prediction_after_optimizer(client, requests_mock):
     schedule = requests_mock.put(
-        f"{BASE_URL}/cloud/projects/abc123/schedule/", json={"armed": True},
+        f"{BASE_URL}/cloud/projects/abc123/schedule/",
+        json={"armed": True},
     )
 
     client.schedule_cloud_project(
-        "abc123", entrypoint="predict.py", trigger="after", after="optimize.py",
+        "abc123",
+        entrypoint="predict.py",
+        trigger="after",
+        after="optimize.py",
         parameters={"target": "30d", "submit": False},
     )
 
     assert schedule.last_request.json() == {
-        "entrypoint": "predict.py", "trigger": "after", "after": "optimize.py",
+        "entrypoint": "predict.py",
+        "trigger": "after",
+        "after": "optimize.py",
         "parameters": {"target": "30d", "submit": False},
     }
     assert requests_mock.call_count == 1
@@ -315,13 +381,19 @@ def test_schedule_unrun_prediction_after_optimizer(client, requests_mock):
 
 def test_schedule_mixed_mode_validation_surfaces_from_api(client, requests_mock):
     requests_mock.put(
-        f"{BASE_URL}/cloud/projects/abc123/schedule/", status_code=400,
+        f"{BASE_URL}/cloud/projects/abc123/schedule/",
+        status_code=400,
         json={"run": ["Choose a successful run or saved-code settings, not both."]},
     )
 
-    with pytest.raises(ClientError, match="Choose a successful run or saved-code settings"):
+    with pytest.raises(
+        ClientError, match="Choose a successful run or saved-code settings"
+    ):
         client.schedule_cloud_project(
-            "abc123", "run-uuid", daily_at="02:00", publish_store=False,
+            "abc123",
+            "run-uuid",
+            daily_at="02:00",
+            publish_store=False,
         )
 
 
@@ -340,18 +412,28 @@ def test_get_cloud_billing_is_a_plain_read(client, requests_mock):
 
 
 @pytest.mark.parametrize("limit", [500, 0])
-def test_update_cloud_billing_uses_existing_endpoint_and_preserves_zero(client, requests_mock, limit):
-    doc = {"storage": {"billing": {"monthly_limit_cents": limit, "enabled": bool(limit)}}}
+def test_update_cloud_billing_uses_existing_endpoint_and_preserves_zero(
+    client, requests_mock, limit
+):
+    doc = {
+        "storage": {"billing": {"monthly_limit_cents": limit, "enabled": bool(limit)}}
+    }
     patch = requests_mock.patch(f"{BASE_URL}/cloud/billing/", json=doc)
     assert client.update_cloud_billing(storage_monthly_limit_cents=limit) == doc
     assert patch.last_request.json() == {"storage_monthly_limit_cents": limit}
 
 
-def test_storage_disable_refusal_surfaces_without_retrying_a_different_cap(client, requests_mock):
-    patch = requests_mock.patch(f"{BASE_URL}/cloud/billing/", status_code=409, json={
-        "detail": "Reduce stored files to your included allowance before turning off extra storage.",
-        "code": "STORE_BOUND_EXCEEDED",
-    })
+def test_storage_disable_refusal_surfaces_without_retrying_a_different_cap(
+    client, requests_mock
+):
+    patch = requests_mock.patch(
+        f"{BASE_URL}/cloud/billing/",
+        status_code=409,
+        json={
+            "detail": "Reduce stored files to your included allowance before turning off extra storage.",
+            "code": "STORE_BOUND_EXCEEDED",
+        },
+    )
     with pytest.raises(ClientError, match="included allowance"):
         client.update_cloud_billing(storage_monthly_limit_cents=0)
     assert patch.call_count == 1
@@ -360,9 +442,15 @@ def test_storage_disable_refusal_surfaces_without_retrying_a_different_cap(clien
 def test_a_folder_of_scripts_runs_by_name_and_chains(client, requests_mock):
     """Roo's repository: three scripts, one project; each runs by name with a
     time limit, and the schedule chains them in the folder's order."""
-    create = requests_mock.post(f"{BASE_URL}/cloud/projects/", json={"id": "p1"}, status_code=201)
-    run = requests_mock.post(f"{BASE_URL}/cloud/projects/p1/runs/", json={"id": "r1"}, status_code=201)
-    schedule = requests_mock.put(f"{BASE_URL}/cloud/projects/p1/schedule/", json={"armed": True})
+    create = requests_mock.post(
+        f"{BASE_URL}/cloud/projects/", json={"id": "p1"}, status_code=201
+    )
+    run = requests_mock.post(
+        f"{BASE_URL}/cloud/projects/p1/runs/", json={"id": "r1"}, status_code=201
+    )
+    schedule = requests_mock.put(
+        f"{BASE_URL}/cloud/projects/p1/schedule/", json={"armed": True}
+    )
 
     client.create_cloud_project(
         "roo",
@@ -372,7 +460,11 @@ def test_a_folder_of_scripts_runs_by_name_and_chains(client, requests_mock):
         idempotency_key="k1",
     )
     client.run_cloud_project(
-        "p1", envelope="m", time_limit_minutes=30, entrypoint="download_data.py", idempotency_key="k2"
+        "p1",
+        envelope="m",
+        time_limit_minutes=30,
+        entrypoint="download_data.py",
+        idempotency_key="k2",
     )
     client.schedule_cloud_project("p1", "r1", trigger="after", after="download_data.py")
 
@@ -386,33 +478,56 @@ def test_a_folder_of_scripts_runs_by_name_and_chains(client, requests_mock):
         "time_limit_minutes": 30,
         "entrypoint": "download_data.py",
     }
-    assert schedule.last_request.json() == {"run": "r1", "trigger": "after", "after": "download_data.py"}
+    assert schedule.last_request.json() == {
+        "run": "r1",
+        "trigger": "after",
+        "after": "download_data.py",
+    }
 
 
 def test_read_and_download_pinned_project_files(client, requests_mock, tmp_path):
     endpoint = f"{BASE_URL}/cloud/projects/p1/files/"
-    requests_mock.get(endpoint, json={"file": {"path": "helper.py", "text": "VALUE = 2"}})
-    assert client.get_cloud_project_files("p1", path="helper.py", version=2)["file"]["text"] == "VALUE = 2"
+    requests_mock.get(
+        endpoint, json={"file": {"path": "helper.py", "text": "VALUE = 2"}}
+    )
+    assert (
+        client.get_cloud_project_files("p1", path="helper.py", version=2)["file"][
+            "text"
+        ]
+        == "VALUE = 2"
+    )
     assert requests_mock.last_request.qs["version"] == ["2"]
     requests_mock.get(endpoint, content=b"model bytes")
     destination = tmp_path / "model.joblib"
-    client.download_cloud_project_file("p1", "models/best.joblib", str(destination), snapshot=12)
+    client.download_cloud_project_file(
+        "p1", "models/best.joblib", str(destination), snapshot=12
+    )
     assert destination.read_bytes() == b"model bytes"
     assert requests_mock.last_request.qs["snapshot"] == ["12"]
     assert requests_mock.last_request.qs["download"] == ["1"]
 
 
-def test_signed_file_redirect_streams_without_forwarding_api_credentials(client, requests_mock, tmp_path):
+def test_signed_file_redirect_streams_without_forwarding_api_credentials(
+    client, requests_mock, tmp_path
+):
     import hashlib
 
     body = b"signed immutable model bytes"
     digest = hashlib.sha256(body).hexdigest()
     endpoint = f"{BASE_URL}/cloud/projects/p1/files/"
-    signed_url = "https://owned-bucket.storage.googleapis.com/blobs/digest?X-Goog-Signature=test"
-    authorize = requests_mock.get(endpoint, status_code=302, headers={"Location": signed_url})
-    download = requests_mock.get(signed_url, content=body, headers={"Content-Length": str(len(body))})
+    signed_url = (
+        "https://owned-bucket.storage.googleapis.com/blobs/digest?X-Goog-Signature=test"
+    )
+    authorize = requests_mock.get(
+        endpoint, status_code=302, headers={"Location": signed_url}
+    )
+    download = requests_mock.get(
+        signed_url, content=body, headers={"Content-Length": str(len(body))}
+    )
     destination = tmp_path / "model.joblib"
-    client.download_cloud_project_file("p1", "models/model.joblib", str(destination), snapshot=12, sha256=digest)
+    client.download_cloud_project_file(
+        "p1", "models/model.joblib", str(destination), snapshot=12, sha256=digest
+    )
     assert authorize.last_request.headers["Authorization"] == f"Api-Key {TEST_API_KEY}"
     assert authorize.last_request.qs["snapshot"] == ["12"]
     assert "Authorization" not in download.last_request.headers
@@ -424,8 +539,13 @@ def test_signed_file_redirect_streams_without_forwarding_api_credentials(client,
 
 def test_delete_edits_and_single_schedule_pause(client, requests_mock):
     requests_mock.patch(f"{BASE_URL}/cloud/projects/p1/", json={"latest_version": 3})
-    client.update_cloud_project("p1", base_version=2, files={"old.py": None, "predict.py": "print(1)"})
-    assert requests_mock.last_request.json()["files"] == {"old.py": None, "predict.py": "print(1)"}
+    client.update_cloud_project(
+        "p1", base_version=2, files={"old.py": None, "predict.py": "print(1)"}
+    )
+    assert requests_mock.last_request.json()["files"] == {
+        "old.py": None,
+        "predict.py": "print(1)",
+    }
     assert requests_mock.last_request.json()["base_version"] == 2
     requests_mock.delete(f"{BASE_URL}/cloud/projects/p1/schedule/", status_code=204)
     client.pause_cloud_project_schedule("p1", entrypoint="predict.py")
@@ -433,7 +553,9 @@ def test_delete_edits_and_single_schedule_pause(client, requests_mock):
 
 
 @pytest.mark.parametrize("interrupted", [False, True])
-def test_failed_model_download_keeps_existing_file(client, tmp_path, monkeypatch, interrupted):
+def test_failed_model_download_keeps_existing_file(
+    client, tmp_path, monkeypatch, interrupted
+):
     import requests
 
     destination = tmp_path / "best.joblib"
@@ -454,13 +576,17 @@ def test_failed_model_download_keeps_existing_file(client, tmp_path, monkeypatch
     response = Response()
     monkeypatch.setattr(client, "_request", lambda *args, **kwargs: response)
     with pytest.raises(CrowdCentAPIError):
-        client.download_cloud_project_file("p1", "models/best.joblib", str(destination), sha256="0" * 64)
+        client.download_cloud_project_file(
+            "p1", "models/best.joblib", str(destination), sha256="0" * 64
+        )
     assert destination.read_bytes() == b"previous model"
     assert response.closed
     assert list(tmp_path.iterdir()) == [destination]
 
 
-def test_upload_data_files_go_straight_to_storage_until_done(client, requests_mock, tmp_path):
+def test_upload_data_files_go_straight_to_storage_until_done(
+    client, requests_mock, tmp_path
+):
     """One call repeated: the first answer signs a PUT, the bytes go to the signed
     URL with exactly its headers and no API key, the second answer is the snapshot."""
     import base64
@@ -469,21 +595,63 @@ def test_upload_data_files_go_straight_to_storage_until_done(client, requests_mo
     model = tmp_path / "model.joblib"
     model.write_bytes(b"\x80\x04model")
     body = model.read_bytes()
-    entry = {"sha256": hashlib.sha256(body).hexdigest(), "md5": base64.b64encode(hashlib.md5(body).digest()).decode(), "size_bytes": len(body)}
-    signed = "https://bucket.storage.googleapis.com/blobs/" + entry["sha256"] + "?signed"
+    entry = {
+        "sha256": hashlib.sha256(body).hexdigest(),
+        "md5": base64.b64encode(hashlib.md5(body).digest()).decode(),
+        "size_bytes": len(body),
+    }
+    signed = (
+        "https://bucket.storage.googleapis.com/blobs/" + entry["sha256"] + "?signed"
+    )
     uploads = requests_mock.post(
         f"{BASE_URL}/cloud/projects/p1/files/uploads/",
-        [{"json": {"uploads": [{"path": "models/m.joblib", "url": signed, "headers": {"Content-MD5": entry["md5"], "x-goog-if-generation-match": "0"}}], "snapshot": None, "files": {}}},
-         {"json": {"uploads": [], "snapshot": 7, "files": {"models/m.joblib": {"sha256": entry["sha256"], "size_bytes": len(body)}}}}],
+        [
+            {
+                "json": {
+                    "uploads": [
+                        {
+                            "path": "models/m.joblib",
+                            "url": signed,
+                            "headers": {
+                                "Content-MD5": entry["md5"],
+                                "x-goog-if-generation-match": "0",
+                            },
+                        }
+                    ],
+                    "snapshot": None,
+                    "files": {},
+                }
+            },
+            {
+                "json": {
+                    "uploads": [],
+                    "snapshot": 7,
+                    "files": {
+                        "models/m.joblib": {
+                            "sha256": entry["sha256"],
+                            "size_bytes": len(body),
+                        }
+                    },
+                }
+            },
+        ],
     )
     put = requests_mock.put(signed, status_code=200)
 
-    answer = client.upload_cloud_project_files("p1", {"models/m.joblib": model, "data/raw.bin": b"\x00\x01"}, deleted=["old.csv"])
+    answer = client.upload_cloud_project_files(
+        "p1",
+        {"models/m.joblib": model, "data/raw.bin": b"\x00\x01"},
+        deleted=["old.csv"],
+    )
 
     assert answer["snapshot"] == 7
     assert uploads.call_count == 2
     sent = uploads.request_history[0].json()
-    assert sent["entries"]["models/m.joblib"] == entry and sent["deleted"] == ["old.csv"] and "baseline" not in sent
+    assert (
+        sent["entries"]["models/m.joblib"] == entry
+        and sent["deleted"] == ["old.csv"]
+        and "baseline" not in sent
+    )
     assert sent["entries"]["data/raw.bin"]["size_bytes"] == 2
     assert uploads.request_history[1].json() == sent
     assert put.call_count == 1 and put.last_request.body == body
@@ -492,12 +660,19 @@ def test_upload_data_files_go_straight_to_storage_until_done(client, requests_mo
 
 
 def test_follow_head_and_history_keep_ride_their_requests(client, requests_mock):
-    schedule = requests_mock.put(f"{BASE_URL}/cloud/projects/p1/schedule/", json={"version": 3, "follow_head": True, "behind": False})
-    client.schedule_cloud_project("p1", trigger="daily", daily_at="13:00", follow_head=True)
+    schedule = requests_mock.put(
+        f"{BASE_URL}/cloud/projects/p1/schedule/",
+        json={"version": 3, "follow_head": True, "behind": False},
+    )
+    client.schedule_cloud_project(
+        "p1", trigger="daily", daily_at="13:00", follow_head=True
+    )
     assert schedule.last_request.json()["follow_head"] is True
     client.schedule_cloud_project("p1", trigger="daily", daily_at="13:00")
     assert "follow_head" not in schedule.last_request.json()
-    patch = requests_mock.patch(f"{BASE_URL}/cloud/projects/p1/", json={"store": {"history_keep": None}})
+    patch = requests_mock.patch(
+        f"{BASE_URL}/cloud/projects/p1/", json={"store": {"history_keep": None}}
+    )
     client.update_cloud_project("p1", history_keep=None)
     assert patch.last_request.json() == {"history_keep": None}
     client.update_cloud_project("p1", history_keep=5)
@@ -506,27 +681,55 @@ def test_follow_head_and_history_keep_ride_their_requests(client, requests_mock)
     assert "history_keep" not in patch.last_request.json()
 
 
-def test_errors_carry_status_code_fields_and_the_field_detail_in_the_message(client, requests_mock):
+def test_errors_carry_status_code_fields_and_the_field_detail_in_the_message(
+    client, requests_mock
+):
     from crowdcent_challenge.exceptions import AuthenticationError, ClientError
 
-    requests_mock.post(f"{BASE_URL}/cloud/projects/p1/files/uploads/", status_code=400, json={
-        "error": {"code": "VALIDATION_ERROR", "message": "Validation failed.",
-                  "fields": {"entries": ["hack.py: code goes through the files field of PATCH projects/<id>/, not the folder."]}},
-    })
+    requests_mock.post(
+        f"{BASE_URL}/cloud/projects/p1/files/uploads/",
+        status_code=400,
+        json={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Validation failed.",
+                "fields": {
+                    "entries": [
+                        "hack.py: code goes through the files field of PATCH projects/<id>/, not the folder."
+                    ]
+                },
+            },
+        },
+    )
     with pytest.raises(ClientError) as raised:
         client.upload_cloud_project_files("p1", {"hack.py": b"x = 1\n"})
     err = raised.value
     assert err.status_code == 400 and err.code == "VALIDATION_ERROR"
     assert err.fields["entries"][0].startswith("hack.py: code goes through")
     assert "hack.py: code goes through" in str(err)
-    requests_mock.get(f"{BASE_URL}/cloud/projects/", status_code=403, json={"error": {"code": "KEY_NOT_CLOUD_ENABLED", "message": "Turn on Cloud for this key."}})
+    requests_mock.get(
+        f"{BASE_URL}/cloud/projects/",
+        status_code=403,
+        json={
+            "error": {
+                "code": "KEY_NOT_CLOUD_ENABLED",
+                "message": "Turn on Cloud for this key.",
+            }
+        },
+    )
     with pytest.raises(AuthenticationError) as raised:
         client.list_cloud_projects()
     assert raised.value.code == "KEY_NOT_CLOUD_ENABLED"
 
 
 def test_runs_can_be_listed_and_stopped(client, requests_mock):
-    listed = requests_mock.get(f"{BASE_URL}/cloud/projects/p1/runs/", json=[{"id": "r1", "state": "starting"}])
-    assert client.list_cloud_runs("p1", limit=5)[0]["id"] == "r1" and listed.last_request.qs["limit"] == ["5"]
-    requests_mock.delete(f"{BASE_URL}/cloud/runs/r1/", json={"id": "r1", "state": "canceled"})
+    listed = requests_mock.get(
+        f"{BASE_URL}/cloud/projects/p1/runs/", json=[{"id": "r1", "state": "starting"}]
+    )
+    assert client.list_cloud_runs("p1", limit=5)[0][
+        "id"
+    ] == "r1" and listed.last_request.qs["limit"] == ["5"]
+    requests_mock.delete(
+        f"{BASE_URL}/cloud/runs/r1/", json={"id": "r1", "state": "canceled"}
+    )
     assert client.stop_cloud_run("r1")["state"] == "canceled"

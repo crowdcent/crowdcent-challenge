@@ -183,27 +183,40 @@ class BaseClient:
                 logger.error(
                     f"API Error ({status_code}): {error_code} - {error_message} for {method} {url}"
                 )
-                details = {"status_code": status_code, "code": error_code, "fields": fields, "payload": payload}
+                details = {
+                    "status_code": status_code,
+                    "code": error_code,
+                    "fields": fields,
+                    "payload": payload,
+                }
 
-                if status_code == 401 or (status_code == 403 and error_code in ("NOT_AUTHENTICATED", "KEY_NOT_CLOUD_ENABLED")):
+                if status_code == 401 or (
+                    status_code == 403
+                    and error_code in ("NOT_AUTHENTICATED", "KEY_NOT_CLOUD_ENABLED")
+                ):
                     raise AuthenticationError(
-                        f"Authentication failed ({status_code}): {error_message} [{error_code}]", **details
+                        f"Authentication failed ({status_code}): {error_message} [{error_code}]",
+                        **details,
                     ) from e
                 elif status_code == 404:
                     raise NotFoundError(
-                        f"Resource not found (404): {error_message} [{error_code}]", **details
+                        f"Resource not found (404): {error_message} [{error_code}]",
+                        **details,
                     ) from e
                 elif 400 <= status_code < 500:
                     raise ClientError(
-                        f"Client error ({status_code}): {error_message} [{error_code}]", **details
+                        f"Client error ({status_code}): {error_message} [{error_code}]",
+                        **details,
                     ) from e
                 elif 500 <= status_code < 600:
                     raise ServerError(
-                        f"Server error ({status_code}): {error_message} [{error_code}]", **details
+                        f"Server error ({status_code}): {error_message} [{error_code}]",
+                        **details,
                     ) from e
                 else:
                     raise CrowdCentAPIError(
-                        f"HTTP error ({status_code}): {error_message} [{error_code}]", **details
+                        f"HTTP error ({status_code}): {error_message} [{error_code}]",
+                        **details,
                     ) from e
             except (
                 requests_exceptions.ConnectionError,
@@ -228,7 +241,9 @@ class BaseClient:
                 logger.error(f"Request failed: {e} for {method} {url}")
                 raise CrowdCentAPIError(f"Request failed: {e}") from e
 
-    def _download_file(self, endpoint: str, dest_path: str, description: str, *, params=None) -> None:
+    def _download_file(
+        self, endpoint: str, dest_path: str, description: str, *, params=None
+    ) -> None:
         """Download a file from the API with progress bar.
 
         Args:
@@ -247,8 +262,10 @@ class BaseClient:
             digest = hashlib.sha256()
             with (
                 tempfile.NamedTemporaryFile(
-                    mode="wb", dir=os.path.dirname(os.path.abspath(dest_path)),
-                    prefix=".crowdcent-download-", delete=False,
+                    mode="wb",
+                    dir=os.path.dirname(os.path.abspath(dest_path)),
+                    prefix=".crowdcent-download-",
+                    delete=False,
                 ) as f,
                 _progress_bar(total_size, dest_path) as pbar,
             ):
@@ -259,7 +276,9 @@ class BaseClient:
                     pbar.update(len(chunk))
             expected = (params or {}).get("sha256")
             if expected and digest.hexdigest() != expected:
-                raise CrowdCentAPIError("Downloaded file does not match the requested SHA-256.")
+                raise CrowdCentAPIError(
+                    "Downloaded file does not match the requested SHA-256."
+                )
             os.replace(temporary, dest_path)
             logger.info(f"Successfully downloaded {description} to {dest_path}")
         except IOError as e:

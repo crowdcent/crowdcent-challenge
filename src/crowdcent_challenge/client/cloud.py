@@ -74,7 +74,9 @@ class CloudAPI:
         response = self._request("GET", "/cloud/billing/")
         return response.json()
 
-    def update_cloud_billing(self, *, storage_monthly_limit_cents: int) -> Dict[str, Any]:
+    def update_cloud_billing(
+        self, *, storage_monthly_limit_cents: int
+    ) -> Dict[str, Any]:
         """Sets the monthly credit-spending cap for extra retained storage.
 
         This explicitly opts into storage charges from existing Cloud credits;
@@ -93,9 +95,13 @@ class CloudAPI:
         Returns:
             The same complete billing document as :py:meth:`get_cloud_billing`.
         """
-        response = self._request("PATCH", "/cloud/billing/", json_data={
-            "storage_monthly_limit_cents": storage_monthly_limit_cents,
-        })
+        response = self._request(
+            "PATCH",
+            "/cloud/billing/",
+            json_data={
+                "storage_monthly_limit_cents": storage_monthly_limit_cents,
+            },
+        )
         return response.json()
 
     def list_cloud_recipes(self) -> List[Dict[str, Any]]:
@@ -199,10 +205,16 @@ class CloudAPI:
         return response.json()
 
     def get_cloud_project_files(
-        self, project_id: str, *, path: Optional[str] = None,
-        version: Optional[int] = None, snapshot: Optional[int] = None,
-        sha256: Optional[str] = None, after: Optional[str] = None,
-        limit: int = 50, offset: int = 0,
+        self,
+        project_id: str,
+        *,
+        path: Optional[str] = None,
+        version: Optional[int] = None,
+        snapshot: Optional[int] = None,
+        sha256: Optional[str] = None,
+        after: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
     ) -> Dict[str, Any]:
         """List project files, or read bounded text/metadata at an exact path.
 
@@ -213,15 +225,31 @@ class CloudAPI:
         immutable version or snapshot. `sha256` refuses a changed current file.
         Binary/large output bytes are never included in JSON.
         """
-        params = {key: value for key, value in {
-            "path": path, "version": version, "snapshot": snapshot,
-            "sha256": sha256, "after": after, "limit": limit, "offset": offset,
-        }.items() if value is not None}
-        return self._request("GET", f"/cloud/projects/{project_id}/files/", params=params).json()
+        params = {
+            key: value
+            for key, value in {
+                "path": path,
+                "version": version,
+                "snapshot": snapshot,
+                "sha256": sha256,
+                "after": after,
+                "limit": limit,
+                "offset": offset,
+            }.items()
+            if value is not None
+        }
+        return self._request(
+            "GET", f"/cloud/projects/{project_id}/files/", params=params
+        ).json()
 
     def download_cloud_project_file(
-        self, project_id: str, path: str, dest_path: str, *,
-        version: Optional[int] = None, snapshot: Optional[int] = None,
+        self,
+        project_id: str,
+        path: str,
+        dest_path: str,
+        *,
+        version: Optional[int] = None,
+        snapshot: Optional[int] = None,
         sha256: Optional[str] = None,
     ) -> None:
         """Stream one project file to disk. Pin the version/snapshot from a listing.
@@ -229,14 +257,26 @@ class CloudAPI:
         `sha256` can additionally refuse a current file that changed since
         the listing. Streams model files without loading them into memory.
         """
-        params = {key: value for key, value in {
-            "path": path, "version": version, "snapshot": snapshot,
-            "sha256": sha256, "download": 1,
-        }.items() if value is not None}
-        self._download_file(f"/cloud/projects/{project_id}/files/", dest_path, path, params=params)
+        params = {
+            key: value
+            for key, value in {
+                "path": path,
+                "version": version,
+                "snapshot": snapshot,
+                "sha256": sha256,
+                "download": 1,
+            }.items()
+            if value is not None
+        }
+        self._download_file(
+            f"/cloud/projects/{project_id}/files/", dest_path, path, params=params
+        )
 
     def upload_cloud_project_files(
-        self, project_id: str, files: Dict[str, Any], *,
+        self,
+        project_id: str,
+        files: Dict[str, Any],
+        *,
         deleted: Optional[List[str]] = None,
         baseline: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
@@ -261,7 +301,11 @@ class CloudAPI:
         import requests
 
         def read(value) -> bytes:
-            return value if isinstance(value, (bytes, bytearray)) else Path(value).expanduser().read_bytes()
+            return (
+                value
+                if isinstance(value, (bytes, bytearray))
+                else Path(value).expanduser().read_bytes()
+            )
 
         blobs = {path: read(value) for path, value in files.items()}
         entries = {
@@ -282,17 +326,30 @@ class CloudAPI:
                 return answer
             for upload in answer["uploads"]:
                 # A signed URL is the whole authorization: no API key travels with it.
-                response = requests.put(upload["url"], data=blobs[upload["path"]], headers=upload["headers"], timeout=600)
+                response = requests.put(
+                    upload["url"],
+                    data=blobs[upload["path"]],
+                    headers=upload["headers"],
+                    timeout=600,
+                )
                 if response.status_code not in (200, 201, 412):
-                    raise CrowdCentAPIError(f"{upload['path']} could not be uploaded to storage ({response.status_code}).")
-        raise CrowdCentAPIError("Storage kept asking for the same files; try again in a moment.")
+                    raise CrowdCentAPIError(
+                        f"{upload['path']} could not be uploaded to storage ({response.status_code})."
+                    )
+        raise CrowdCentAPIError(
+            "Storage kept asking for the same files; try again in a moment."
+        )
 
     def update_cloud_project(
-        self, project_id: str, name: Optional[str] = None,
-        base_version: Optional[int] = None, filename: Optional[str] = None,
+        self,
+        project_id: str,
+        name: Optional[str] = None,
+        base_version: Optional[int] = None,
+        filename: Optional[str] = None,
         files: Optional[Dict[str, Optional[str]]] = None,
         challenge_access: Optional[bool] = None,
-        store_project: Optional[str] = None, share_store: Optional[bool] = None,
+        store_project: Optional[str] = None,
+        share_store: Optional[bool] = None,
         publish_store: Optional[bool] = None,
         prune_history: Optional[bool] = None,
         history_keep: Any = ...,
@@ -321,15 +378,26 @@ class CloudAPI:
         outputs needed by active runs are retained. End Cloud Sessions using
         the folder first. Pruning is explicit; ordinary updates never prune.
         """
-        payload = {key: value for key, value in {
-            "name": name, "base_version": base_version, "filename": filename,
-            "files": files, "challenge_access": challenge_access,
-            "store_project": store_project, "share_store": share_store,
-            "publish_store": publish_store, "prune_history": prune_history,
-        }.items() if value is not None}
+        payload = {
+            key: value
+            for key, value in {
+                "name": name,
+                "base_version": base_version,
+                "filename": filename,
+                "files": files,
+                "challenge_access": challenge_access,
+                "store_project": store_project,
+                "share_store": share_store,
+                "publish_store": publish_store,
+                "prune_history": prune_history,
+            }.items()
+            if value is not None
+        }
         if history_keep is not ...:
             payload["history_keep"] = history_keep
-        return self._request("PATCH", f"/cloud/projects/{project_id}/", json_data=payload).json()
+        return self._request(
+            "PATCH", f"/cloud/projects/{project_id}/", json_data=payload
+        ).json()
 
     def archive_cloud_project(self, project_id: str) -> Dict[str, Any]:
         """Archive a project, end its Cloud Sessions, and pause its schedules.
@@ -411,9 +479,13 @@ class CloudAPI:
         )
         return response.json()
 
-    def list_cloud_runs(self, project_id: str, *, limit: int = 20) -> List[Dict[str, Any]]:
+    def list_cloud_runs(
+        self, project_id: str, *, limit: int = 20
+    ) -> List[Dict[str, Any]]:
         """The project's runs, newest first (1-100), in the run summary shape."""
-        return self._request("GET", f"/cloud/projects/{project_id}/runs/", params={"limit": limit}).json()
+        return self._request(
+            "GET", f"/cloud/projects/{project_id}/runs/", params={"limit": limit}
+        ).json()
 
     def stop_cloud_run(self, run_id: str) -> Dict[str, Any]:
         """Stop a run. One that has not started is cancelled at once, nothing charged;
@@ -507,23 +579,36 @@ class CloudAPI:
             it), `follow_head`, `entrypoint`, `rule`, `after`, and `next_due`.
         """
         payload: Dict[str, Any] = {
-            key: value for key, value in {
-                "run": run_id, "trigger": trigger, "daily_at": daily_at,
-                "timezone": timezone if trigger in ("daily", "weekly", "monthly") else None,
-                "weekday": weekday, "day": day, "challenge": challenge,
-                "after": after or None, "version": version,
-                "entrypoint": entrypoint, "envelope": envelope,
+            key: value
+            for key, value in {
+                "run": run_id,
+                "trigger": trigger,
+                "daily_at": daily_at,
+                "timezone": timezone
+                if trigger in ("daily", "weekly", "monthly")
+                else None,
+                "weekday": weekday,
+                "day": day,
+                "challenge": challenge,
+                "after": after or None,
+                "version": version,
+                "entrypoint": entrypoint,
+                "envelope": envelope,
                 "time_limit_minutes": time_limit_minutes,
-                "parameters": parameters, "publish_store": publish_store,
+                "parameters": parameters,
+                "publish_store": publish_store,
                 "follow_head": follow_head,
-            }.items() if value is not None
+            }.items()
+            if value is not None
         }
         response = self._request(
             "PUT", f"/cloud/projects/{project_id}/schedule/", json_data=payload
         )
         return response.json()
 
-    def pause_cloud_project_schedule(self, project_id: str, entrypoint: Optional[str] = None) -> Dict[str, Any]:
+    def pause_cloud_project_schedule(
+        self, project_id: str, entrypoint: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Pauses one file's schedule, or every schedule when entrypoint is omitted.
 
         Idempotent: pausing an unscheduled project is a no-op. Re-arm by
@@ -532,6 +617,9 @@ class CloudAPI:
         Returns:
             ``{"paused": True}``.
         """
-        self._request("DELETE", f"/cloud/projects/{project_id}/schedule/",
-                      params={"entrypoint": entrypoint} if entrypoint is not None else None)
+        self._request(
+            "DELETE",
+            f"/cloud/projects/{project_id}/schedule/",
+            params={"entrypoint": entrypoint} if entrypoint is not None else None,
+        )
         return {"paused": True}
