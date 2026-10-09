@@ -33,7 +33,7 @@ The simulator supports several configuration parameters:
 <figcaption>Read <strong>Sharpe</strong> alongside <strong>Max drawdown</strong>, the return path, and the random-portfolio comparison. These are hypothetical results on the displayed historical window, not live trading returns.</figcaption>
 </figure>
 
-Every backtest produces performance metrics split between full-period, in-sample (`is_stats`), and out-of-sample holdout (`oos_stats`) data:
+Every backtest produces performance metrics for the full period (`stats`), split in two: in-sample (`is_stats`), everything before the cut, and out-of-sample (`oos_stats`), the final `oos_days` of the result. `oos_days` is 90 by default, any length you choose, or 0 for no out-of-sample period (out-of-sample stats need 30 or more days). The response's `split` gives `oos_days` and `oos_start`, the first out-of-sample day. On the website the cut is the **Out-of-sample** control under the chart's date range.
 
 - **Core statistics**: Annualized Sharpe ratio, Sortino ratio, CAGR, maximum drawdown, annualized volatility, and average gross. A path that reached zero equity (`ruined_on`) or was liquidated (`liquidated_on`) reports total return and drawdown only; its annualized ratios are withheld.
 - **Optional breakdown series (`include`)**: Daily NAV curve (`curve`), current target weights (`holdings`), monthly returns table (`monthly`), and per-asset P&L attribution (`contributions`).
@@ -41,7 +41,7 @@ Every backtest produces performance metrics split between full-period, in-sample
 
 ## Parameter sweeps and multi-sleeve blends
 
-- **Parameter sweeps (`run_sweep`)**: Evaluates a grid of configurations (e.g., testing multiple cohort sizes against different rebalance cadences). When analyzing sweep results, look for stable parameter plateaus across out-of-sample data rather than isolated point peaks.
+- **Parameter sweeps (`run_sweep`)**: Evaluates a grid of configurations (e.g., testing multiple cohort sizes against different rebalance cadences). Pick candidates on in-sample numbers, prefer settings whose neighbors also perform, and read out-of-sample numbers only after you pick, since choosing on the out-of-sample period makes it in-sample. On the website the results are linked panels: equity curves, a scatter of any two measures (in-sample against out-of-sample Sharpe by default), one strip per swept setting, and a table of every config. Picks made in any panel show in all of them, and out-of-sample results can stay hidden until a config is picked.
 - **Multi-sleeve blends (`run_blend`)**: Nets several weighted simulation configurations into one book, marked as one account (offsetting positions cancel before they are charged), and returns an inter-sleeve correlation matrix. Sizing belongs to the blend, not its sleeves: sleeves run at natural gross, weights shape the blend, and the netted book is sized once by the call's own `leverage` and `target_vol` (the web chart's Sizing row under the charted configurations is the same pair).
 
 ## Tier unlocks and parameter clamping
@@ -51,9 +51,12 @@ Simulator capabilities scale with your [CC Points](points-system.md) tier:
 | Tier | Simulator features |
 |---|---|
 | Everyone | Backtesting on 90-day delayed meta-model data |
-| **Challenger** (100+ points) | Real-time meta-model data*, Inverse-Vol & HRP optimizers, parameter sweeps |
-| **Contender** (500+ points) | Covariance optimizers, leverage and volatility targeting, market impact scaling, expanded sweep (up to 96 cells) and blend budgets (up to 5 sleeves) |
-| **Centurion** (1,500+ points) | Conviction-weighted sizing and classified alpha controls |
+| **Challenger** (100+ points) | Real-time meta-model data*, Inverse-Vol & HRP optimizers, parameter sweeps, blends of up to 5 sleeves |
+| **Contender** (500+ points) | Covariance optimizers, leverage and volatility targeting, market impact scaling, expanded sweep (up to 96 cells), blends of up to 10 sleeves |
+| **Centurion** (1,500+ points) | Conviction-weighted sizing and classified alpha controls, blends of up to 25 sleeves |
+| **Sovereign** (5,000+ points) | Blends of up to 50 sleeves |
+
+Blend caps apply to live trading mandates as well: a mandate carries as many sleeves as your tier can blend.
 
 *Real-time meta-model data at any tier requires a submission in the last 30 days. Without one, data falls back to a 90-day delay.
 
@@ -85,14 +88,17 @@ If a configuration specifies a parameter above your current tier, the server aut
     print(f"Out-of-sample Sharpe: {result['oos_stats']['sharpe']:.2f}")
     print(f"Web URL: {result['web_url']}")
 
-    # 2. Grid-search across multiple parameters
+    # 2. Grid-search across multiple parameters, holding out the last 180 days
     sweep = client.run_sweep(
         config={"n_short": 10, "optimizer": "inv_vol", "include_funding": True},
         sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
+        oos_days=180,
     )
 
-    for cell in sweep["results"]:
-        print(cell["params"], "OOS Sharpe:", cell["oos_stats"]["sharpe"])
+    # Pick in-sample, then look out-of-sample
+    picks = sorted(sweep["results"], key=lambda c: c["is_stats"]["sharpe"])[-3:]
+    for cell in picks:
+        print(cell["params"], "Out-of-sample Sharpe:", cell["oos_stats"]["sharpe"])
 
     # 3. Blend weighted sleeves into an ensemble portfolio
     blend = client.run_blend(

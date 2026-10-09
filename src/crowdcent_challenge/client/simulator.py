@@ -39,6 +39,7 @@ class SimulatorAPI:
         benchmark_trials: int = 0,
         leverage: float = 1.0,
         target_vol: float = 0.0,
+        oos_days: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Backtests one portfolio configuration on the live meta-model.
 
@@ -70,13 +71,18 @@ class SimulatorAPI:
                 a config that names it is rejected.
             target_vol: Annualized vol target (0 = off, Contender tier) that
                 adapts the multiple under `leverage`, never above it.
+            oos_days: The out-of-sample period: the final N days of the
+                result, reported as `oos_stats` (`is_stats` covers the days
+                before). Defaults to 90 on the server; 0 means none.
+                Out-of-sample stats need 30 or more days.
 
         Returns:
             A dictionary with the clamped `config` echo, the `sizing` pair
             that ran, `locked`, `config_token`, `web_url` (the site
-            pre-loaded with this exact config and sizing), `as_of`,
-            `n_days`, `stats`, `is_stats`, `oos_stats`, plus any `include`
-            extras and `benchmark` results.
+            pre-loaded with this exact config, sizing and split), `as_of`,
+            `n_days`, `stats`, `is_stats`, `oos_stats`, `split` (the
+            `oos_days` used and `oos_start`, the first out-of-sample day), plus
+            any `include` extras and `benchmark` results.
 
         Example:
             ```python
@@ -86,7 +92,7 @@ class SimulatorAPI:
             result["stats"]["sharpe"]  # 1.42
             ```
         """
-        payload: Dict[str, Any] = {}
+        payload: dict[str, Any] = {}
         if config is not None:
             payload["config"] = config
         if config_token is not None:
@@ -99,6 +105,8 @@ class SimulatorAPI:
             payload["leverage"] = leverage
         if target_vol:
             payload["target_vol"] = target_vol
+        if oos_days is not None:
+            payload["oos_days"] = oos_days
         response = self._request(
             "POST",
             f"/challenges/{self.challenge_slug}/simulator/run/",
@@ -112,6 +120,7 @@ class SimulatorAPI:
         sweep: Dict[str, List[Any]],
         *,
         on_chunk: Optional[Callable[[List[Dict[str, Any]], int], None]] = None,
+        oos_days: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Grid-searches portfolio configurations on the meta-model.
 
@@ -119,10 +128,10 @@ class SimulatorAPI:
         loops `offset` -> `next_offset` transparently until the whole grid
         has run, so you always get the complete result set back.
 
-        How to read a sweep: **plateaus, not peaks.** A lone bright cell is
-        luck; a bright region is structure. Prefer configurations whose
-        neighbors also perform, and weight out-of-sample stats (`oos_stats`)
-        over in-sample when picking a candidate.
+        How to read a sweep: pick candidates on in-sample numbers
+        (`is_stats`), prefer settings whose neighbors also perform, and look
+        at out-of-sample numbers (`oos_stats`) only once the picks are made:
+        choosing on the out-of-sample period makes it in-sample.
 
         Args:
             config: The base configuration (same vocabulary as
@@ -135,12 +144,16 @@ class SimulatorAPI:
                 and grid budget (96 configs at Contender tier, 24 below).
             on_chunk: Optional callable ``on_chunk(results_so_far, total)``
                 invoked after each server chunk — useful for progress bars.
+            oos_days: The out-of-sample period: the final N days of the
+                result, reported as `oos_stats` (`is_stats` covers the days
+                before). Defaults to 90 on the server; 0 means none.
+                Out-of-sample stats need 30 or more days.
 
         Returns:
             A dictionary with `total` and `results`: one entry per grid cell
             (in deterministic grid order), each holding `config_token`,
-            `params` (the swept values), and `stats`/`is_stats`/`oos_stats`
-            or an `error`.
+            `params` (the swept values), `stats`/`is_stats`/`oos_stats` and
+            `split`, or an `error`.
 
         Raises:
             ClientError: `SWEEP_TOO_LARGE` if the grid exceeds your tier's
@@ -150,10 +163,17 @@ class SimulatorAPI:
         offset = 0
         total = None
         while True:
+            payload: Dict[str, Any] = {
+                "config": config,
+                "sweep": sweep,
+                "offset": offset,
+            }
+            if oos_days is not None:
+                payload["oos_days"] = oos_days
             response = self._request(
                 "POST",
                 f"/challenges/{self.challenge_slug}/simulator/sweep/",
-                json_data={"config": config, "sweep": sweep, "offset": offset},
+                json_data=payload,
             )
             body = response.json()
             total = body["total"]
@@ -171,6 +191,7 @@ class SimulatorAPI:
         *,
         leverage: float = 1.0,
         target_vol: float = 0.0,
+        oos_days: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Blends weighted sleeves into one ensemble book and evaluates it.
 
@@ -179,7 +200,8 @@ class SimulatorAPI:
         `target_vol` (the blend's, never a sleeve's: weights shape the
         blend, and a sleeve config that names sizing is rejected).
         Fail-closed: any sleeve error fails the whole blend. Sleeve count is
-        capped by tier (5 at Contender, 3 below).
+        capped by tier (5 at Challenger, 10 at Contender, 25 at Centurion,
+        50 at Sovereign; a live mandate has the same cap).
 
         Args:
             sleeves: A list of ``{"config": {...} | "config_token": "...",
@@ -188,10 +210,14 @@ class SimulatorAPI:
                 Contender tier).
             target_vol: Annualized vol target (0 = off, Contender tier)
                 adapting the multiple under `leverage`.
+            oos_days: The out-of-sample period: the final N days of the
+                result, reported as `oos_stats` (`is_stats` covers the days
+                before). Defaults to 90 on the server; 0 means none.
+                Out-of-sample stats need 30 or more days.
 
         Returns:
             A dictionary with the `sizing` pair that ran, blend
-            `stats`/`is_stats`/`oos_stats`, the sleeve `correlation`
+            `stats`/`is_stats`/`oos_stats` and `split`, the sleeve `correlation`
             matrix, and per-sleeve stats (computed on the aligned window so
             they are directly comparable).
         """
@@ -200,6 +226,8 @@ class SimulatorAPI:
             payload["leverage"] = leverage
         if target_vol:
             payload["target_vol"] = target_vol
+        if oos_days is not None:
+            payload["oos_days"] = oos_days
         response = self._request(
             "POST",
             f"/challenges/{self.challenge_slug}/simulator/blend/",

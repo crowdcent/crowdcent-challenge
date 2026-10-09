@@ -19,15 +19,17 @@ def register_simulation_tools(mcp) -> None:
         benchmark_trials: int = 0,
         leverage: float = 1.0,
         target_vol: float = 0.0,
+        oos_days: int = 90,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Backtest one portfolio config against the live meta-model.
 
         The simulator trades the meta-model's published rankings as a
         long/short portfolio with your chosen construction (cohort sizes,
-        cadence, optimizer, fees, funding). Returns stats with an
-        in-sample/out-of-sample split, a config_token, and a web_url the
-        user can open on crowdcent.com.
+        cadence, optimizer, fees, funding). Returns stats split into
+        in-sample (`is_stats`) and out-of-sample (`oos_stats`, the final
+        `oos_days`), a config_token, and a web_url the user can open on
+        crowdcent.com.
 
         Config knobs (all optional; omitted knobs use the site's defaults:
         pred_30d, 40/40, "10t", a $1.5M open-interest floor, 3.5 bps fees
@@ -70,6 +72,9 @@ def register_simulation_tools(mcp) -> None:
                 signal against.
             leverage: Gross book as a multiple of equity (default 1.0).
             target_vol: Annualized vol target under `leverage` (0 = off).
+            oos_days: Out-of-sample period, the final N days (default 90, 0 =
+                none); `is_stats` covers the days before, `oos_stats` the
+                test, and `split` echoes the cut.
         """
         include: List[str] = []
         if include_curve:
@@ -82,21 +87,23 @@ def register_simulation_tools(mcp) -> None:
             benchmark_trials=benchmark_trials,
             leverage=leverage,
             target_vol=target_vol,
+            oos_days=oos_days,
         )
 
     @mcp.tool
     def sweep_simulations(
         config: Dict[str, Any],
         sweep: Dict[str, List[Any]],
+        oos_days: int = 90,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Grid-search up to your tier's budget (96 configs at Contender,
         24 below) of portfolio constructions in one call.
 
-        IMPORTANT: read plateaus, not peaks — a lone bright cell is luck; a
-        bright region is structure. Prefer configs whose neighbors also
-        perform, and weight out-of-sample stats (`oos_stats`) over
-        in-sample when recommending anything.
+        IMPORTANT: choose candidates on in-sample numbers (`is_stats`),
+        prefer settings whose neighbors also perform, and read out-of-sample
+        numbers (`oos_stats`) only after choosing: picking on the
+        out-of-sample period makes it in-sample.
 
         Args:
             config: Base configuration; swept knobs override it.
@@ -111,17 +118,22 @@ def register_simulation_tools(mcp) -> None:
                 listing reports (they snap to its step). Over budget or
                 above tier fails with an error that says exactly what is
                 allowed.
+            oos_days: Out-of-sample period, the final N days (default 90, 0 =
+                none); `is_stats` covers the days before, `oos_stats` the
+                test, and `split` echoes the cut.
         """
-        return client_for(challenge_slug).run_sweep(config, sweep)
+        return client_for(challenge_slug).run_sweep(config, sweep, oos_days=oos_days)
 
     @mcp.tool
     def blend_simulations(
         sleeves: List[Dict[str, Any]],
         leverage: float = 1.0,
         target_vol: float = 0.0,
+        oos_days: int = 90,
         challenge_slug: str = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
-        """Blend up to 3-5 weighted sleeves (tier-capped) into one ensemble
+        """Blend up to 5-50 weighted sleeves (tier-capped: 5 Challenger, 10
+        Contender, 25 Centurion, 50 Sovereign) into one ensemble
         book; returns blend stats plus the sleeve correlation matrix.
         Sizing is the blend's, never a sleeve's: weights shape the blend,
         and the netted book is sized once by leverage / target_vol.
@@ -132,7 +144,13 @@ def register_simulation_tools(mcp) -> None:
                 between sleeves is what makes a blend worth deploying.
             leverage: Gross book as a multiple of equity (default 1.0).
             target_vol: Annualized vol target under `leverage` (0 = off).
+            oos_days: Out-of-sample period, the final N days (default 90, 0 =
+                none); `is_stats` covers the days before, `oos_stats` the
+                test, and `split` echoes the cut.
         """
         return client_for(challenge_slug).run_blend(
-            sleeves, leverage=leverage, target_vol=target_vol
+            sleeves,
+            leverage=leverage,
+            target_vol=target_vol,
+            oos_days=oos_days,
         )

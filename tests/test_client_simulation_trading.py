@@ -97,6 +97,20 @@ def test_run_sweep_walks_continuation(client, requests_mock):
     assert requests_mock.request_history[-1].json()["offset"] == 2
 
 
+def test_oos_days_rides_every_simulation_call(client, requests_mock):
+    for path in ("run", "sweep", "blend"):
+        requests_mock.post(
+            f"{BASE_URL}/challenges/{TEST_SLUG}/simulator/{path}/",
+            json={"total": 0, "results": [], "next_offset": None, "stats": {}},
+        )
+    client.run_simulation(config={"n_long": 10}, oos_days=0)
+    assert requests_mock.last_request.json()["oos_days"] == 0
+    client.run_sweep({"n_short": 5}, {"n_long": [5, 10]}, oos_days=180)
+    assert requests_mock.last_request.json()["oos_days"] == 180
+    client.run_blend([{"config": {"n_long": 5}}], oos_days=60)
+    assert requests_mock.last_request.json()["oos_days"] == 60
+
+
 def test_run_blend(client, requests_mock):
     requests_mock.post(
         f"{BASE_URL}/challenges/{TEST_SLUG}/simulator/blend/",

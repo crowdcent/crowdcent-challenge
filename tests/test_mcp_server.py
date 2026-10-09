@@ -164,7 +164,9 @@ async def test_hosted_drops_file_tools_keeps_url_twins(monkeypatch):
     assert "submit_predictions_from_dataframe" in names  # data travels inline
 
 
-async def test_hosted_cannot_invoke_cloud_download_or_write_server_files(monkeypatch, tmp_path):
+async def test_hosted_cannot_invoke_cloud_download_or_write_server_files(
+    monkeypatch, tmp_path
+):
     from crowdcent_challenge.mcp_server import tools_cloud
 
     monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
@@ -174,9 +176,14 @@ async def test_hosted_cannot_invoke_cloud_download_or_write_server_files(monkeyp
     destination = tmp_path / "models" / "best.joblib"
     async with Client(build_server()) as client:
         with pytest.raises(ToolError, match="[Uu]nknown tool|[Nn]ot found"):
-            await client.call_tool("download_cloud_project_file", {
-                "project_id": "abc123", "path": "models/best.joblib", "dest_path": str(destination),
-            })
+            await client.call_tool(
+                "download_cloud_project_file",
+                {
+                    "project_id": "abc123",
+                    "path": "models/best.joblib",
+                    "dest_path": str(destination),
+                },
+            )
     fake.assert_not_called()
     assert not destination.parent.exists()
 
@@ -223,6 +230,7 @@ async def test_run_simulation_passes_through(monkeypatch):
         benchmark_trials=0,
         leverage=1.0,
         target_vol=0.0,
+        oos_days=90,
     )
     # Clamp echo and locked list pass through untouched.
     assert result.data["locked"] == ["optimizer"]
@@ -297,7 +305,11 @@ async def test_cloud_tools_pass_through_and_surface_conflicts(monkeypatch):
         with pytest.raises(ToolError, match="VERSION_CONFLICT"):
             await client.call_tool(
                 "update_cloud_project",
-                {"project_id": "abc123", "files": {"notebook.py": "x"}, "base_version": 1},
+                {
+                    "project_id": "abc123",
+                    "files": {"notebook.py": "x"},
+                    "base_version": 1,
+                },
             )
 
     fake.run_cloud_project.assert_called_once_with(
@@ -315,51 +327,97 @@ async def test_cloud_tools_pass_through_and_surface_conflicts(monkeypatch):
 
 async def test_cloud_settings_and_archive_use_existing_rest_contract(requests_mock):
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
-    patch = requests_mock.patch("http://api.test/api/cloud/projects/abc123/", json={"id": "abc123"})
-    archive = requests_mock.delete("http://api.test/api/cloud/projects/abc123/", status_code=204)
+    patch = requests_mock.patch(
+        "http://api.test/api/cloud/projects/abc123/", json={"id": "abc123"}
+    )
+    archive = requests_mock.delete(
+        "http://api.test/api/cloud/projects/abc123/", status_code=204
+    )
     async with Client(build_server()) as client:
-        await client.call_tool("update_cloud_project", {
-            "project_id": "abc123", "store_project": "models", "share_store": False,
-            "publish_store": False, "base_version": 7,
-            "files": {"old.py": None, "predict.py": "print('ready')\n"},
-        })
-        result = await client.call_tool("archive_cloud_project", {"project_id": "abc123"})
+        await client.call_tool(
+            "update_cloud_project",
+            {
+                "project_id": "abc123",
+                "store_project": "models",
+                "share_store": False,
+                "publish_store": False,
+                "base_version": 7,
+                "files": {"old.py": None, "predict.py": "print('ready')\n"},
+            },
+        )
+        result = await client.call_tool(
+            "archive_cloud_project", {"project_id": "abc123"}
+        )
     assert patch.last_request.json() == {
-        "store_project": "models", "share_store": False, "publish_store": False,
-        "base_version": 7, "files": {"old.py": None, "predict.py": "print('ready')\n"},
+        "store_project": "models",
+        "share_store": False,
+        "publish_store": False,
+        "base_version": 7,
+        "files": {"old.py": None, "predict.py": "print('ready')\n"},
     }
     assert archive.call_count == 1
     assert result.data == {"archived": True}
 
 
-async def test_cloud_prune_history_is_explicit_in_schema_and_existing_patch(requests_mock):
+async def test_cloud_prune_history_is_explicit_in_schema_and_existing_patch(
+    requests_mock,
+):
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
-    storage = {"used_bytes": 140, "source_bytes": 40, "output_bytes": 100,
-               "current_output_bytes": 100, "history_bytes": 0}
-    patch = requests_mock.patch("http://api.test/api/cloud/projects/abc123/", json={"id": "abc123", "storage": storage})
+    storage = {
+        "used_bytes": 140,
+        "source_bytes": 40,
+        "output_bytes": 100,
+        "current_output_bytes": 100,
+        "history_bytes": 0,
+    }
+    patch = requests_mock.patch(
+        "http://api.test/api/cloud/projects/abc123/",
+        json={"id": "abc123", "storage": storage},
+    )
     async with Client(build_server()) as client:
-        tool = next(tool for tool in await client.list_tools() if tool.name == "update_cloud_project")
+        tool = next(
+            tool
+            for tool in await client.list_tools()
+            if tool.name == "update_cloud_project"
+        )
         assert tool.inputSchema["required"] == ["project_id"]
         assert tool.inputSchema["properties"]["prune_history"]["default"] is None
-        result = await client.call_tool("update_cloud_project", {"project_id": "abc123", "prune_history": True})
+        result = await client.call_tool(
+            "update_cloud_project", {"project_id": "abc123", "prune_history": True}
+        )
         assert patch.last_request.json() == {"prune_history": True}
         assert result.data["storage"] == storage
-        await client.call_tool("update_cloud_project", {"project_id": "abc123", "name": "Keep history"})
+        await client.call_tool(
+            "update_cloud_project", {"project_id": "abc123", "name": "Keep history"}
+        )
     assert patch.last_request.json() == {"name": "Keep history"}
 
 
-async def test_cloud_storage_billing_requires_explicit_cap_and_uses_existing_patch(requests_mock):
+async def test_cloud_storage_billing_requires_explicit_cap_and_uses_existing_patch(
+    requests_mock,
+):
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
-    patch = requests_mock.patch("http://api.test/api/cloud/billing/", json={
-        "storage": {"billing": {"monthly_limit_cents": 500, "enabled": True}},
-    })
+    patch = requests_mock.patch(
+        "http://api.test/api/cloud/billing/",
+        json={
+            "storage": {"billing": {"monthly_limit_cents": 500, "enabled": True}},
+        },
+    )
     async with Client(build_server()) as client:
-        tool = next(tool for tool in await client.list_tools() if tool.name == "update_cloud_billing")
+        tool = next(
+            tool
+            for tool in await client.list_tools()
+            if tool.name == "update_cloud_billing"
+        )
         assert tool.inputSchema["required"] == ["storage_monthly_limit_cents"]
-        result = await client.call_tool("update_cloud_billing", {"storage_monthly_limit_cents": 500})
+        result = await client.call_tool(
+            "update_cloud_billing", {"storage_monthly_limit_cents": 500}
+        )
         assert result.data["storage"]["billing"]["monthly_limit_cents"] == 500
         assert patch.last_request.json() == {"storage_monthly_limit_cents": 500}
-        await client.call_tool("update_cloud_billing", {"storage_monthly_limit_cents": 0})
+        await client.call_tool(
+            "update_cloud_billing", {"storage_monthly_limit_cents": 0}
+        )
         assert patch.last_request.json() == {"storage_monthly_limit_cents": 0}
 
 
@@ -370,63 +428,112 @@ async def test_cloud_schedule_saved_code_schema_and_transport(requests_mock):
         json={"armed": True, "version": 7, "entrypoint": "optimize.py"},
     )
     async with Client(build_server()) as client:
-        tool = next(tool for tool in await client.list_tools() if tool.name == "schedule_cloud_project")
+        tool = next(
+            tool
+            for tool in await client.list_tools()
+            if tool.name == "schedule_cloud_project"
+        )
         assert tool.inputSchema["required"] == ["project_id"]
-        result = await client.call_tool("schedule_cloud_project", {
-            "project_id": "abc123", "version": 7, "entrypoint": "optimize.py",
-            "envelope": "m", "time_limit_minutes": 90, "parameters": {},
-            "publish_store": False, "trigger": "monthly", "day": 31, "daily_at": "02:00",
-        })
+        result = await client.call_tool(
+            "schedule_cloud_project",
+            {
+                "project_id": "abc123",
+                "version": 7,
+                "entrypoint": "optimize.py",
+                "envelope": "m",
+                "time_limit_minutes": 90,
+                "parameters": {},
+                "publish_store": False,
+                "trigger": "monthly",
+                "day": 31,
+                "daily_at": "02:00",
+            },
+        )
     assert result.data["version"] == 7
     assert schedule.last_request.json() == {
-        "version": 7, "entrypoint": "optimize.py", "envelope": "m",
-        "time_limit_minutes": 90, "parameters": {}, "publish_store": False,
-        "trigger": "monthly", "day": 31, "daily_at": "02:00", "timezone": "UTC",
+        "version": 7,
+        "entrypoint": "optimize.py",
+        "envelope": "m",
+        "time_limit_minutes": 90,
+        "parameters": {},
+        "publish_store": False,
+        "trigger": "monthly",
+        "day": 31,
+        "daily_at": "02:00",
+        "timezone": "UTC",
     }
-    assert [(request.method, request.path) for request in requests_mock.request_history] == [
+    assert [
+        (request.method, request.path) for request in requests_mock.request_history
+    ] == [
         ("PUT", "/api/cloud/projects/abc123/schedule/"),
     ]
 
 
-@pytest.mark.parametrize("arguments,expected", [
-    (
-        {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
-        {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
-    ),
-    (
-        {"run_id": "run-uuid", "daily_at": "02:00"},
-        {"run": "run-uuid", "trigger": "daily", "daily_at": "02:00", "timezone": "UTC"},
-    ),
-])
+@pytest.mark.parametrize(
+    "arguments,expected",
+    [
+        (
+            {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
+            {"trigger": "after", "entrypoint": "predict.py", "after": "optimize.py"},
+        ),
+        (
+            {"run_id": "run-uuid", "daily_at": "02:00"},
+            {
+                "run": "run-uuid",
+                "trigger": "daily",
+                "daily_at": "02:00",
+                "timezone": "UTC",
+            },
+        ),
+    ],
+)
 async def test_cloud_schedule_direct_chain_and_tested_run_remain_distinct(
-    requests_mock, arguments, expected,
+    requests_mock,
+    arguments,
+    expected,
 ):
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
     schedule = requests_mock.put(
-        "http://api.test/api/cloud/projects/abc123/schedule/", json={"armed": True},
+        "http://api.test/api/cloud/projects/abc123/schedule/",
+        json={"armed": True},
     )
     async with Client(build_server()) as client:
-        await client.call_tool("schedule_cloud_project", {"project_id": "abc123", **arguments})
+        await client.call_tool(
+            "schedule_cloud_project", {"project_id": "abc123", **arguments}
+        )
     assert schedule.last_request.json() == expected
     assert requests_mock.call_count == 1
 
 
-async def test_local_cloud_download_streams_pinned_bytes_to_requested_path(requests_mock, tmp_path):
+async def test_local_cloud_download_streams_pinned_bytes_to_requested_path(
+    requests_mock, tmp_path
+):
     import hashlib
 
     runtime._stdio_claims_cache = ("test_key", float("inf"), {"allow_cloud": True})
     body = b"saved model bytes"
     digest = hashlib.sha256(body).hexdigest()
-    request = requests_mock.get("http://api.test/api/cloud/projects/abc123/files/", content=body)
+    request = requests_mock.get(
+        "http://api.test/api/cloud/projects/abc123/files/", content=body
+    )
     destination = tmp_path / "models" / "best.joblib"
     async with Client(build_server()) as client:
-        result = await client.call_tool("download_cloud_project_file", {
-            "project_id": "abc123", "path": "models/best.joblib", "dest_path": str(destination),
-            "snapshot": 12, "sha256": digest,
-        })
+        result = await client.call_tool(
+            "download_cloud_project_file",
+            {
+                "project_id": "abc123",
+                "path": "models/best.joblib",
+                "dest_path": str(destination),
+                "snapshot": 12,
+                "sha256": digest,
+            },
+        )
     assert destination.read_bytes() == body
     assert request.last_request.qs == {
-        "path": ["models/best.joblib"], "snapshot": ["12"], "sha256": [digest], "download": ["1"],
+        "path": ["models/best.joblib"],
+        "snapshot": ["12"],
+        "sha256": [digest],
+        "download": ["1"],
     }
     assert str(destination) in result.data
     assert list(destination.parent.iterdir()) == [destination]

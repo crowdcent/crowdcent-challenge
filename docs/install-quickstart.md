@@ -154,7 +154,8 @@ result = client.run_simulation(config={
     "rebalance_days": "30t", "include_funding": True,
 })
 result["stats"]       # sharpe, sortino, cagr, max_drawdown, ...
-result["oos_stats"]   # out-of-sample split
+result["is_stats"]    # in-sample: everything before the cut
+result["oos_stats"]   # out-of-sample: the final 90 days (oos_days=0 for none)
 result["web_url"]     # open this exact config on crowdcent.com
 
 # Grid-search constructions in one call (the client walks the whole grid)
@@ -163,7 +164,7 @@ sweep = client.run_sweep(
     sweep={"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t", "30t"]},
 )
 for row in sweep["results"]:
-    print(row["params"], row["oos_stats"]["sharpe"])
+    print(row["params"], row["is_stats"]["sharpe"])
 
 # Blend weighted sleeves into one ensemble book
 blend = client.run_blend(sleeves=[
@@ -172,9 +173,6 @@ blend = client.run_blend(sleeves=[
 ])
 blend["correlation"]  # sleeve-by-sleeve correlation matrix
 ```
-
-!!! tip "Read plateaus, not peaks"
-    Knobs above your CC Points tier are clamped, not rejected (`result["locked"]` names what changed). When reading a sweep, prefer a stable region over a single bright cell, and weight `oos_stats` over `is_stats`.
 
 The same tools work in natural language through the [MCP server](ai-agents-mcp.md), and the same client drives [Live Trading](live-trading.md) on Hyperliquid (`set_mandate`, `preview_rebalance`, `execute_rebalance`, ...), which requires Challenger tier (100+ CC Points) and an active submission in the last 30 days.
 
