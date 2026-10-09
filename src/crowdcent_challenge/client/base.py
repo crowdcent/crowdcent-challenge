@@ -4,6 +4,7 @@ helpers, and account-level calls shared by every API area."""
 import hashlib
 import logging
 import os
+import sys
 import tempfile
 import threading
 import time
@@ -25,16 +26,53 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-def _progress_bar(total_size: int, dest_path: str):
-    """A tqdm bar that also works in sandboxed interpreters (Pyodide/WASM
-    notebooks), where multiprocessing locks are unavailable and tqdm's default
-    write lock raises while being built.
+def _running_in_marimo() -> bool:
+    marimo = sys.modules.get("marimo")
+    if marimo is None:
+        return False
+    try:
+        return bool(marimo.running_in_notebook())
+    except Exception:
+        return False
 
-    The lock is probed through the public ``get_lock`` classmethod *before*
-    any bar is constructed: if tqdm's default lock cannot be created, a plain
-    threading lock is installed via ``set_lock``. Letting the constructor fail
-    instead would leave a half-initialised instance behind, and its ``__del__``
-    then prints an ``AttributeError`` traceback to stderr on collection."""
+
+def _stderr_draws_bars() -> bool:
+    """A terminal or a Jupyter kernel (whose stderr is not a TTY but renders
+    carriage returns in place). Anywhere else, e.g. piped output, CI and
+    Cloud job logs, every redraw would land as another line."""
+    stream = sys.stderr
+    try:
+        if stream is not None and stream.isatty():
+            return True
+    except Exception:
+        pass
+    return "ipykernel" in sys.modules
+
+
+def _progress_bar(total_size: int, dest_path: str):
+    """A download bar for wherever the client runs.
+
+    In a marimo notebook it is marimo's own progress bar: marimo shows stderr
+    in the cell console and does not redraw on carriage returns, so a tqdm bar
+    there prints as a stack of error-coloured lines. Elsewhere it is a tqdm
+    bar, disabled when stderr cannot draw one.
+
+    tqdm also has to work in sandboxed interpreters (Pyodide/WASM notebooks),
+    where multiprocessing locks are unavailable and tqdm's default write lock
+    raises while being built. The lock is probed through the public
+    ``get_lock`` classmethod *before* any bar is constructed: if tqdm's default
+    lock cannot be created, a plain threading lock is installed via
+    ``set_lock``. Letting the constructor fail instead would leave a
+    half-initialised instance behind, and its ``__del__`` then prints an
+    ``AttributeError`` traceback to stderr on collection."""
+    desc = f"Downloading {os.path.basename(dest_path)}"
+    if total_size > 0 and _running_in_marimo():
+        import marimo
+
+        return marimo.status.progress_bar(
+            total=total_size, title=desc, subtitle="bytes"
+        )
+
     from tqdm import tqdm
 
     try:
@@ -45,7 +83,8 @@ def _progress_bar(total_size: int, dest_path: str):
         total=total_size,
         unit="B",
         unit_scale=True,
-        desc=f"Downloading {os.path.basename(dest_path)}",
+        desc=desc,
+        disable=_running_in_marimo() or not _stderr_draws_bars(),
     )
 
 
