@@ -56,6 +56,13 @@ def register_simulation_tools(mcp) -> None:
           lw_shrinkage: bool. Continuous knobs snap to the step the
           capabilities listing reports (min/max/step per knob).
         - min_oi / min_volume / min_trades: liquidity floors (USD, USD, count)
+        - meta_construction: how the meta-model weights its members:
+          "points" (the published meta-model, default) | "equal" (one
+          weight per member) | "zca" (decorrelated). For "points" only:
+          meta_halflife: 1-365 days (default 7) and meta_points: "total"
+          | "performance" | "quality" (the mean of each member's scored
+          rounds). A non-default construction skips any release with
+          fewer than 5 effective contributors.
         - start_date: "YYYY-MM-DD"
 
         Knobs above the user's tier are silently clamped, never an error —
@@ -113,7 +120,8 @@ def register_simulation_tools(mcp) -> None:
                 fee_bps, funding, lag, risk_lookback (Challenger),
                 impact_book (Contender), carry (Centurion; only
                 carry-aware optimizers such as min_var read it), hedge,
-                rank_by, and the factor-lens knobs. Continuous knobs take
+                rank_by, meta_construction, meta_halflife, and the
+                factor-lens knobs. Continuous knobs take
                 any list of values inside the min/max the capabilities
                 listing reports (they snap to its step). Over budget or
                 above tier fails with an error that says exactly what is
