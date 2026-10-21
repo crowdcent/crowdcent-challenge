@@ -20,6 +20,7 @@ You can use the Simulator interactively in your browser without writing code, or
 The simulator supports several configuration parameters:
 
 - **Cohort sizing (`n_long`, `n_short`)**: Number of top-ranked assets bought long and bottom-ranked assets sold short (1 to 100 names per leg).
+- **Net exposure (`net_exposure`)**: Long gross minus short gross as a share of the book, from -1 (short only) to 1 (long only) in 0.01 steps. The default 0 is dollar-neutral at any leg sizes.
 - **Cadence and rolling tranches (`rebalance_days`)**: Rebalancing intervals of `1`, `5`, `10`, or `30` days. Values ending in `t` (`5t`, `10t`, or `30t`) use tranched rolling vintages. Tranched execution splits the portfolio into equal daily sub-cohorts to eliminate single-day rebalance timing luck.
 - **Optimizers (`optimizer`)**: `equal` (equal dollar allocation across assets), `inv_vol` (inverse 30-day volatility, Challenger tier), or `hrp` (Hierarchical Risk Parity, Challenger tier). Higher tiers unlock covariance optimizers and conviction-weighted sizing; the API's capabilities endpoint lists the optimizer keys and knobs your tier unlocks.
 - **Frictions and carry costs (`include_funding`, `fee_bps`, `impact_book`)**: Incorporates hourly perpetual funding rates (on by default), exchange transaction fees (0 to 20 bps per side, 3.5 by default), and order book market impact models for an assumed book size.

@@ -37,6 +37,8 @@ def register_simulation_tools(mcp) -> None:
         min_var at Contender, with carry_penalty 0.25 at Centurion):
         - rank_by: "pred_10d" | "pred_30d" | "blend" (Centurion tier)
         - n_long / n_short: names per leg, 1-100 each
+        - net_exposure: long gross minus short gross, -1 to 1 in 0.01
+          steps (default 0, dollar-neutral at any leg sizes)
         - rebalance_days: "1"|"5"|"10"|"30", or tranched "5t"|"10t"|"30t"
         - optimizer: "equal" | "inv_vol"/"hrp" (Challenger); higher tiers
           unlock covariance optimizers (Contender) and conviction
@@ -116,8 +118,8 @@ def register_simulation_tools(mcp) -> None:
             config: Base configuration; swept knobs override it.
             sweep: Sweepable knob -> list of values, e.g.
                 {"n_long": [5, 10, 20], "rebalance_days": ["5t", "10t"]}.
-                Sweepable: n_long, n_short, rebalance_days, optimizer, lw,
-                fee_bps, funding, lag, risk_lookback (Challenger),
+                Sweepable: n_long, n_short, net_exposure, rebalance_days,
+                optimizer, lw, fee_bps, funding, lag, risk_lookback (Challenger),
                 impact_book (Contender), carry (Centurion; only
                 carry-aware optimizers such as min_var read it), hedge,
                 rank_by, meta_construction, meta_halflife, and the
