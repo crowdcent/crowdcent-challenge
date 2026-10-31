@@ -49,6 +49,22 @@ def _progress_bar(total_size: int, dest_path: str):
     )
 
 
+def _whole_parquet(path: str, dest_path: str) -> bool:
+    """False when a ``.parquet`` download lacks the ``PAR1`` marker a whole file starts and ends with."""
+    if not str(dest_path).lower().endswith(".parquet"):
+        return True
+    with open(path, "rb") as f:
+        head = f.read(4)
+        if os.path.getsize(path) < 8:
+            return False
+        f.seek(-4, os.SEEK_END)
+        return head == b"PAR1" and f.read(4) == b"PAR1"
+
+
+class _IncompleteDownload(Exception):
+    """A download that ended short or broke mid-stream, so it is worth trying again."""
+
+
 class BaseClient:
     DEFAULT_BASE_URL = "https://crowdcent.com/api"
     DEFAULT_CHALLENGE_SLUG = "hyperliquid-ranking"
@@ -242,23 +258,60 @@ class BaseClient:
                 raise CrowdCentAPIError(f"Request failed: {e}") from e
 
     def _download_file(
-        self, endpoint: str, dest_path: str, description: str, *, params=None
+        self,
+        endpoint: str,
+        dest_path: str,
+        description: str,
+        *,
+        params=None,
+        max_retries: int = 3,
+        retry_delay: float = 2.0,
     ) -> None:
-        """Download a file from the API with progress bar.
+        """Download a file from the API with a progress bar, retrying a short or broken download.
 
         Args:
             endpoint: API endpoint to download from.
             dest_path: Local file path to save to. A ``.csv`` path asks the API
                 for the CSV copy of the file; anything else is parquet.
             description: Human-readable description for logging (e.g., "training data v1.0").
+            max_retries: How many times a short or interrupted download starts again.
+            retry_delay: Seconds before the first retry, doubled for each later one.
         """
         logger.info(f"Downloading {description} to {dest_path}")
         if params is None:
             params = {"as": "csv"} if str(dest_path).lower().endswith(".csv") else None
+        for attempt in range(max_retries + 1):
+            try:
+                self._download_once(endpoint, dest_path, params)
+            except _IncompleteDownload as e:
+                if attempt == max_retries:
+                    raise CrowdCentAPIError(
+                        f"Could not download {description}: {e} "
+                        f"Tried {max_retries + 1} times."
+                    ) from e
+                delay = retry_delay * (2**attempt)
+                logger.warning(
+                    f"Download of {description} failed: {e} Retrying in {delay:.0f}s "
+                    f"(attempt {attempt + 1}/{max_retries})"
+                )
+                time.sleep(delay)
+                continue
+            logger.info(f"Successfully downloaded {description} to {dest_path}")
+            return
+
+    def _download_once(self, endpoint: str, dest_path: str, params) -> None:
+        """Stream one download to a temporary file and move it into place only when it is whole."""
         response = self._request("GET", endpoint, params=params, stream=True)
         temporary = None
         try:
             total_size = int(response.headers.get("content-length", 0))
+            # A compressed body's length counts encoded bytes, not the bytes written.
+            expected_size = (
+                total_size
+                if response.headers.get("content-encoding", "identity") == "identity"
+                else 0
+            )
+            received = 0
             digest = hashlib.sha256()
             with (
                 tempfile.NamedTemporaryFile(
@@ -270,17 +323,30 @@ class BaseClient:
                 _progress_bar(total_size, dest_path) as pbar,
             ):
                 temporary = f.name
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-                    digest.update(chunk)
-                    pbar.update(len(chunk))
+                try:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+                        digest.update(chunk)
+                        received += len(chunk)
+                        pbar.update(len(chunk))
+                except requests_exceptions.RequestException as e:
+                    raise _IncompleteDownload(
+                        f"The connection broke after {received:,} bytes ({e})."
+                    ) from e
+            if expected_size and received != expected_size:
+                raise _IncompleteDownload(
+                    f"Received {received:,} of {expected_size:,} bytes."
+                )
+            if not expected_size and not _whole_parquet(temporary, dest_path):
+                raise _IncompleteDownload(
+                    f"The file ended after {received:,} bytes, before its end marker."
+                )
             expected = (params or {}).get("sha256")
             if expected and digest.hexdigest() != expected:
                 raise CrowdCentAPIError(
                     "Downloaded file does not match the requested SHA-256."
                 )
             os.replace(temporary, dest_path)
-            logger.info(f"Successfully downloaded {description} to {dest_path}")
         except IOError as e:
             raise CrowdCentAPIError(f"Could not download file: {e}") from e
         finally:

@@ -18,10 +18,11 @@ from .data import DataAPI
 from .simulator import SimulatorAPI
 from .submissions import SubmissionsAPI
 from .trading import TradingAPI
+from .zoo import ZooAPI
 
 
 class ChallengeClient(
-    DataAPI, SubmissionsAPI, SimulatorAPI, TradingAPI, CloudAPI, BaseClient
+    DataAPI, SubmissionsAPI, SimulatorAPI, TradingAPI, CloudAPI, ZooAPI, BaseClient
 ):
     """
     Client for interacting with a specific CrowdCent Challenge.
@@ -29,8 +30,9 @@ class ChallengeClient(
     Handles authentication and provides methods for accessing challenge data,
     training datasets, inference data, and managing prediction submissions for
     a specific challenge identified by its slug — plus meta-model simulation,
-    live trading (Challenger tier and above), and CrowdCent Cloud projects,
-    Cloud Runs, and schedules (public preview for Challenger+ members).
+    live trading (Challenger tier and above), CrowdCent Cloud projects,
+    Cloud Runs, and schedules (public preview for Challenger+ members), and
+    the model zoo.
     """
 
 

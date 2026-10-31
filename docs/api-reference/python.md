@@ -20,3 +20,15 @@ Generated from the client library's docstrings.
       show_source: false
       members_order: source
       heading_level: 3
+
+## Model zoo
+
+::: crowdcent_challenge.zoo
+    options:
+      show_root_heading: false
+      show_root_toc_entry: false
+      show_source: false
+      members:
+        - load
+        - ZooModel
+      heading_level: 3

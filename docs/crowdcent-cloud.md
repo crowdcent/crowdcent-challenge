@@ -2,7 +2,7 @@
 
 CrowdCent Cloud brings your code, saved models, and automated workflows into one project. Develop marimo notebooks and Python scripts in the Browser or a **Cloud Session**, then use **Cloud Runs** to execute saved code on demand or on a schedule.
 
-CrowdCent Cloud is open to **anyone with a Challenge submission**. No submission yet? Run the `hyperliquid-ranking` recipe free in your browser from the [Cloud page](https://crowdcent.com/cloud/) to make your first one. Enable **Allow Cloud** on an API key to use the Python client or MCP tools.
+CrowdCent Cloud is open to **anyone with a Challenge submission**. No submission yet? Press **Submit with Centaur** on the [Challenge page](https://crowdcent.com/challenge/hyperliquid-ranking/). Centaur makes your first submission with you from a ready-made model, in about 2 minutes. You can also run the `zoo-quickstart` recipe free in your browser from the [Cloud page](https://crowdcent.com/cloud/). Enable **Allow Cloud** on an API key to use the Python client or MCP tools.
 
 ## Overview
 
@@ -257,13 +257,17 @@ balance if you enable paid asks after its included allowance.
 - **One rate per machine.** Each size has the same hourly rate for Cloud Runs and Cloud Sessions, billed by the started minute. Credits are reserved up to an hour ahead of use; unused reservations are released when compute stops.
 - **Low balance handling.** Insufficient credits prevent new compute. The API returns HTTP `402 CREDITS_REQUIRED` with a direct URL to add credits.
 
-| Tier | CC Points | Included credits per month |
-|---|---:|---:|
-| Starter | any, with a submission | $2.50 |
-| Challenger | 100+ | $10 |
-| Contender | 500+ | $25 |
-| Centurion | 1,500+ | $50 |
-| Sovereign | 5,000+ | $100 |
+| Tier | CC Points | Included credits per month | Runs at once |
+|---|---:|---:|---:|
+| Starter | any, with a submission | $2.50 | 2 |
+| Challenger | 100+ | $10 | 4 |
+| Contender | 500+ | $25 | 6 |
+| Centurion | 1,500+ | $50 | 8 |
+| Sovereign | 5,000+ | $100 | 10 |
+
+Runs at once counts every Cloud Run you have queued, preparing or running. A new
+run past that cap is refused until one finishes, and a scheduled run that fires
+past it is skipped for that occurrence.
 
 Included credits reset on the first of each month at 00:00 UTC and do not roll
 over. The month's allowance is set when you first reserve included credits that

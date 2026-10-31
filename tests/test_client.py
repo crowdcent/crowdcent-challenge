@@ -358,6 +358,107 @@ def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch)
         assert pool.submit(other_thread_can_acquire).result(timeout=2)
 
 
+class _ShortStreamResponse(_DummyStreamResponse):
+    """Announces the full length but sends only part of the body, or breaks mid-stream."""
+
+    def __init__(self, content: bytes, sent: int, broken: bool = False):
+        super().__init__(content)
+        self._sent = sent
+        self._broken = broken
+
+    def iter_content(self, chunk_size: int = 8192):
+        yield self._content[: self._sent]
+        if self._broken:
+            raise requests.exceptions.ChunkedEncodingError("Connection broken")
+
+
+@pytest.mark.parametrize("broken", [False, True])
+def test_download_retries_a_short_download_until_it_is_whole(
+    client, tmp_path, monkeypatch, broken
+):
+    """A download cut short starts again, and only the whole file lands at dest."""
+    dest = tmp_path / "train.parquet"
+    responses = iter(
+        [
+            _ShortStreamResponse(b"0123456789", sent=7, broken=broken),
+            _ShortStreamResponse(b"0123456789", sent=3, broken=broken),
+            _DummyStreamResponse(b"0123456789"),
+        ]
+    )
+    sleeps = []
+    monkeypatch.setattr(client, "_request", lambda *a, **k: next(responses))
+    monkeypatch.setattr("crowdcent_challenge.client.base.time.sleep", sleeps.append)
+
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"0123456789"
+    assert sleeps == [2.0, 4.0]
+    assert [p.name for p in tmp_path.iterdir()] == ["train.parquet"]
+
+
+def test_download_that_stays_short_raises_a_clear_error(client, tmp_path, monkeypatch):
+    """After the retries, a download that is still short raises and writes nothing."""
+    dest = tmp_path / "train.parquet"
+    calls = []
+
+    def short(*a, **k):
+        calls.append(1)
+        return _ShortStreamResponse(b"0123456789", sent=4)
+
+    monkeypatch.setattr(client, "_request", short)
+    monkeypatch.setattr("crowdcent_challenge.client.base.time.sleep", lambda s: None)
+
+    with pytest.raises(CrowdCentAPIError, match="Received 4 of 10 bytes"):
+        client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert len(calls) == 4
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_inference_download_retries_a_short_download(client, tmp_path, monkeypatch):
+    dest = tmp_path / "inf.parquet"
+    responses = iter(
+        [_ShortStreamResponse(b"abcdef", sent=2), _DummyStreamResponse(b"abcdef")]
+    )
+    monkeypatch.setattr(client, "_request", lambda *a, **k: next(responses))
+    monkeypatch.setattr("crowdcent_challenge.client.base.time.sleep", lambda s: None)
+
+    client.download_inference_data(release_date="2025-01-02", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"abcdef"
+
+
+def test_parquet_without_a_length_is_checked_for_its_end_marker(
+    client, tmp_path, monkeypatch
+):
+    """With no Content-Length, a parquet cut short is caught by its missing footer."""
+    dest = tmp_path / "train.parquet"
+    whole = b"PAR1" + b"x" * 20 + b"PAR1"
+    cut, full = _DummyStreamResponse(whole[:15]), _DummyStreamResponse(whole)
+    cut.headers = full.headers = {}
+    responses = iter([cut, full])
+    monkeypatch.setattr(client, "_request", lambda *a, **k: next(responses))
+    monkeypatch.setattr("crowdcent_challenge.client.base.time.sleep", lambda s: None)
+
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == whole
+
+
+def test_compressed_download_is_not_held_to_its_encoded_length(
+    client, tmp_path, monkeypatch
+):
+    """Content-Length counts gzip bytes, so a decoded body of another size is whole."""
+    dest = tmp_path / "train.csv"
+    response = _DummyStreamResponse(b"decoded-body")
+    response.headers = {"content-length": "5", "content-encoding": "gzip"}
+    monkeypatch.setattr(client, "_request", lambda *a, **k: response)
+
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"decoded-body"
+
+
 def test_challenge_slug_defaults_to_hyperliquid_ranking(monkeypatch):
     """An empty ChallengeClient() targets the hyperliquid-ranking challenge."""
     monkeypatch.setenv("CROWDCENT_API_KEY", TEST_API_KEY)

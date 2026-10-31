@@ -143,6 +143,27 @@ Download the consolidated meta-model for a challenge. The meta-model typically r
     crowdcent download-meta-model -o ./data/meta_model.parquet
     ```
 
+## Model zoo
+
+The model zoo holds ready-made models that CrowdCent trains and scores. Load one, predict the latest inference data and submit, with no training step.
+
+```python
+import polars as pl
+from crowdcent_challenge import zoo
+
+client.list_models("hyperliquid-ranking")  # live models with their scores
+model = zoo.load("hl-ridge-baseline", client=client)
+model.manifest["evaluation"]["scores"]     # holdout scores
+
+client.download_inference_data("latest", "inference.csv")
+predictions = model.predict(pl.read_csv("inference.csv"))
+client.submit_predictions(df=predictions, slot=1)
+```
+
+A reference is `name@version`, such as `hl-ridge-baseline@1`. A bare name loads the newest live version. A version never changes, so pin the full reference when you need the same model every time.
+
+The client checks every file against the SHA-256 in the model's manifest and keeps it in `~/.cache/crowdcent/zoo/`. `model.oof()` returns the out-of-fold predictions on the training data, for stacking on a zoo model or building one that differs from it. XGBoost and LightGBM models need `xgboost` or `lightgbm` installed.
+
 ## Simulation & Trading
 
 Backtest portfolio constructions on the meta-model, the community's aggregated ranking (not your own submission), with the same engine as the site's [Simulator](simulator.md). Nothing to download; the backtest runs server-side.
