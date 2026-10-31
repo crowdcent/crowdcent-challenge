@@ -190,7 +190,7 @@ class ZooModel:
 
         Returns:
             A polars frame with ``id``, ``date``, ``pred_10d``, ``pred_30d``
-            and ``fold`` (1 to 4 for development folds, 5 for the holdout).
+            and ``fold`` (1 to 4 for development folds, 5 for the out-of-sample block).
         """
         import polars as pl
 

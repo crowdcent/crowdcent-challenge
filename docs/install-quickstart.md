@@ -153,7 +153,7 @@ from crowdcent_challenge import zoo
 
 client.list_models("hyperliquid-ranking")  # live models with their scores
 model = zoo.load("hl-ridge-baseline", client=client)
-model.manifest["evaluation"]["scores"]     # holdout scores
+model.manifest["evaluation"]["scores"]     # out-of-sample scores
 
 client.download_inference_data("latest", "inference.csv")
 predictions = model.predict(pl.read_csv("inference.csv"))
