@@ -303,6 +303,98 @@ def test_download_training_dataset_success(client, tmp_path, monkeypatch):
     assert dest.read_bytes() == b"bytes"
 
 
+class _FakeStderr:
+    def __init__(self, tty: bool):
+        self.tty = tty
+        self.written = []
+
+    def isatty(self):
+        return self.tty
+
+    def write(self, s):
+        self.written.append(s)
+
+    def flush(self):
+        pass
+
+
+@pytest.mark.parametrize(
+    "tty, ipykernel, enabled",
+    [(True, False, True), (False, True, True), (False, False, False)],
+)
+def test_download_bar_only_draws_where_stderr_can(
+    client, tmp_path, monkeypatch, tty, ipykernel, enabled
+):
+    """A terminal or Jupyter kernel gets the tqdm bar; piped output and job
+    logs get nothing instead of one line per redraw."""
+    import sys
+    import types
+
+    stderr = _FakeStderr(tty)
+    monkeypatch.setattr(sys, "stderr", stderr)
+    monkeypatch.delitem(sys.modules, "marimo", raising=False)
+    if ipykernel:
+        monkeypatch.setitem(sys.modules, "ipykernel", types.ModuleType("ipykernel"))
+    else:
+        monkeypatch.delitem(sys.modules, "ipykernel", raising=False)
+    monkeypatch.setattr(
+        client, "_request", lambda *a, **k: _DummyStreamResponse(b"bytes")
+    )
+
+    dest = tmp_path / "train.parquet"
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"bytes"
+    assert any("Downloading train.parquet" in s for s in stderr.written) is enabled
+
+
+def test_download_uses_marimo_progress_bar_in_marimo(client, tmp_path, monkeypatch):
+    """marimo shows stderr in the cell console without redrawing on carriage
+    returns, so inside a marimo notebook the download uses marimo's own bar
+    and writes nothing to stderr."""
+    import sys
+    import types
+
+    updates = []
+
+    class FakeBar:
+        def __init__(self, *, total, title, subtitle):
+            self.args = (total, title, subtitle)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def update(self, increment=1):
+            updates.append(increment)
+
+    bars = []
+
+    def progress_bar(**kwargs):
+        bars.append(FakeBar(**kwargs))
+        return bars[-1]
+
+    marimo = types.ModuleType("marimo")
+    marimo.running_in_notebook = lambda: True
+    marimo.status = types.SimpleNamespace(progress_bar=progress_bar)
+    monkeypatch.setitem(sys.modules, "marimo", marimo)
+    stderr = _FakeStderr(True)
+    monkeypatch.setattr(sys, "stderr", stderr)
+    monkeypatch.setattr(
+        client, "_request", lambda *a, **k: _DummyStreamResponse(b"bytes")
+    )
+
+    dest = tmp_path / "train.parquet"
+    client.download_training_dataset(version="1.0", dest_path=str(dest))
+
+    assert dest.read_bytes() == b"bytes"
+    assert [bar.args for bar in bars] == [(5, "Downloading train.parquet", "bytes")]
+    assert updates == [5]
+    assert stderr.written == []
+
+
 @pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
 def test_download_survives_wasm_tqdm_lock_failure(client, tmp_path, monkeypatch):
     """Pyodide under marimo's WASM runtime: multiprocessing.RLock raises a
