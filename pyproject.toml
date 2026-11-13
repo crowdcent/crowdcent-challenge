@@ -1,12 +1,13 @@
 [project]
 name = "crowdcent-challenge"
-version = "0.2.17"
-description = "CrowdCent Challenge Python Client"
+version = "0.2.18"
+description = "Python client and MCP server for the CrowdCent Challenge: download data, submit crypto predictions, check scores and run backtests."
 readme = "README.md"
 authors = [
     { name = "Jason Rosenfeld", email = "jason@crowdcent.com" }
 ]
 requires-python = ">=3.10"
+keywords = ["crowdcent", "machine-learning", "quant", "crypto", "prediction", "hyperliquid", "mcp", "data-science", "competition"]
 dependencies = [
     "click>=8.1.8",
     "narwhals>=1.41.0",
@@ -16,6 +17,12 @@ dependencies = [
     "scipy>=1.11.0",
     "tqdm>=4.66.0",
 ]
+
+[project.urls]
+Homepage = "https://crowdcent.com"
+Documentation = "https://docs.crowdcent.com"
+Repository = "https://github.com/crowdcent/crowdcent-challenge"
+"MCP server" = "https://docs.crowdcent.com/ai-agents-mcp/"
 
 [project.optional-dependencies]
 mcp = ["fastmcp>=3,<4", "pyarrow>=14.0.0"]
