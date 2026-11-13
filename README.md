@@ -1,3 +1,4 @@
+<!-- mcp-name: com.crowdcent/challenge -->
 <div align="center">
   <img src="docs/overrides/assets/images/cc_logo.png" alt="CrowdCent Logo" width="200">
   
