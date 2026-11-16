@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .params import READ_ONLY, ChallengeSlug
 from .runtime import (
     DEFAULT_CHALLENGE,
     api_base_url,
@@ -29,7 +30,7 @@ def _coerced_path(dest_path: str, suffix: str = ".parquet") -> Path:
 
 
 def register_challenge_tools(mcp) -> None:
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def list_all_challenges() -> List[Dict[str, Any]]:
         """List all active CrowdCent challenges.
 
@@ -42,8 +43,10 @@ def register_challenge_tools(mcp) -> None:
             api_key=api_key_for_request(), base_url=api_base_url()
         )
 
-    @mcp.tool
-    def get_challenge_info(challenge_slug: str = DEFAULT_CHALLENGE) -> Dict[str, Any]:
+    @mcp.tool(annotations=READ_ONLY)
+    def get_challenge_info(
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
+    ) -> Dict[str, Any]:
         """Get detailed information about a challenge.
 
         Args:
@@ -51,23 +54,27 @@ def register_challenge_tools(mcp) -> None:
         """
         return client_for(challenge_slug).get_challenge()
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def list_training_datasets(
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> List[Dict[str, Any]]:
         """List all training dataset versions for a challenge."""
         return client_for(challenge_slug).list_training_datasets()
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_training_dataset_info(
-        version: str, challenge_slug: str = DEFAULT_CHALLENGE
+        version: str, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
-        """Get details for one training dataset version ('latest' works)."""
+        """Get details for one training dataset version.
+
+        Args:
+            version: A dataset version such as '1.0', or 'latest'.
+        """
         return client_for(challenge_slug).get_training_dataset(version)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_inference_data_info(
-        release_date: str, challenge_slug: str = DEFAULT_CHALLENGE
+        release_date: str, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Get details for one inference period ('current' works).
 
@@ -76,20 +83,23 @@ def register_challenge_tools(mcp) -> None:
         """
         return client_for(challenge_slug).get_inference_data(release_date)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_training_dataset_url(
-        version: str, challenge_slug: str = DEFAULT_CHALLENGE
+        version: str, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> str:
         """Get a signed, time-limited download URL for a training dataset.
 
         Works everywhere (no local filesystem needed): fetch the URL with
-        any HTTP client. Use version='latest' for the newest.
+        any HTTP client.
+
+        Args:
+            version: A dataset version such as '1.0', or 'latest'.
         """
         return client_for(challenge_slug).get_training_dataset_url(version)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_inference_data_url(
-        release_date: str = "current", challenge_slug: str = DEFAULT_CHALLENGE
+        release_date: str = "current", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> str:
         """Get a signed, time-limited download URL for inference features.
 
@@ -98,15 +108,15 @@ def register_challenge_tools(mcp) -> None:
         """
         return client_for(challenge_slug).get_inference_data_url(release_date)
 
-    @mcp.tool
-    def get_meta_model_url(challenge_slug: str = DEFAULT_CHALLENGE) -> str:
+    @mcp.tool(annotations=READ_ONLY)
+    def get_meta_model_url(challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE) -> str:
         """Get a signed, time-limited download URL for the consolidated
         meta-model file."""
         return client_for(challenge_slug).get_meta_model_url()
 
     @mcp.tool
     def submit_predictions_from_dataframe(
-        df: str, slot: int = 1, challenge_slug: str = DEFAULT_CHALLENGE
+        df: str, slot: int = 1, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Submit predictions from a JSON representation of a dataframe.
 
@@ -129,9 +139,9 @@ def register_challenge_tools(mcp) -> None:
         frame = nw.from_dict(data, backend="pyarrow")
         return client_for(challenge_slug).submit_predictions(df=frame, slot=slot)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def list_submissions(
-        period: Optional[str] = None, challenge_slug: str = DEFAULT_CHALLENGE
+        period: Optional[str] = None, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> List[Dict[str, Any]]:
         """List your prediction submissions for a challenge.
 
@@ -140,18 +150,22 @@ def register_challenge_tools(mcp) -> None:
         """
         return client_for(challenge_slug).list_submissions(period=period)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_submission(
-        submission_id: int, challenge_slug: str = DEFAULT_CHALLENGE
+        submission_id: int, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
-        """Get details for one of your submissions by id."""
+        """Get details for one of your submissions by id.
+
+        Args:
+            submission_id: The submission id from list_submissions.
+        """
         return client_for(challenge_slug).get_submission(submission_id)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_performance(
         scored_only: bool = True,
         slot: Optional[int] = None,
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> List[Dict[str, Any]]:
         """Get your historical submission performance (scores flattened per
         row, newest first).
@@ -171,7 +185,7 @@ def register_challenge_tools(mcp) -> None:
 
     @mcp.tool
     def download_training_dataset(
-        version: str, dest_path: str, challenge_slug: str = DEFAULT_CHALLENGE
+        version: str, dest_path: str, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> str:
         """Download a training dataset to a local file, parquet or CSV by extension.
 
@@ -190,7 +204,7 @@ def register_challenge_tools(mcp) -> None:
         poll: bool = True,
         poll_interval: int = 30,
         timeout: Optional[int] = 900,
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> str:
         """Download inference features to a local file, parquet or CSV by extension.
 
@@ -213,7 +227,7 @@ def register_challenge_tools(mcp) -> None:
 
     @mcp.tool
     def download_meta_model(
-        dest_path: str, challenge_slug: str = DEFAULT_CHALLENGE
+        dest_path: str, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> str:
         """Download the consolidated meta-model to a local file, parquet or CSV by extension."""
         path = _coerced_path(dest_path)
@@ -222,7 +236,7 @@ def register_challenge_tools(mcp) -> None:
 
     @mcp.tool
     def submit_predictions_from_file(
-        file_path: str, slot: int = 1, challenge_slug: str = DEFAULT_CHALLENGE
+        file_path: str, slot: int = 1, challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Submit predictions from a local parquet or CSV file.
 

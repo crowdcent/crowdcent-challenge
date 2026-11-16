@@ -13,20 +13,21 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from .params import READ_ONLY, ChallengeSlug, Network
 from .runtime import DEFAULT_CHALLENGE, client_for
 
 
 def register_trading_tools(mcp) -> None:
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_trading_accounts() -> List[Dict[str, Any]]:
         """List the user's Hyperliquid trading accounts (both networks):
         status, can_trade, master_address, agent expiry, builder approval.
         Never any key material."""
         return client_for().get_trading_accounts()
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_mandate(
-        network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
+        network: Network = "testnet", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Get the live mandate (execution policy + weighted strategy
         sleeves) for this challenge on the given network."""
@@ -35,8 +36,8 @@ def register_trading_tools(mcp) -> None:
     @mcp.tool
     def set_mandate(
         mandate: Dict[str, Any],
-        network: str = "testnet",
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        network: Network = "testnet",
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Create or fully replace the mandate: {"sleeves": [{"config" |
         "config_token", "weight", "label"?}], ...execution knobs}.
@@ -52,9 +53,9 @@ def register_trading_tools(mcp) -> None:
         """
         return client_for(challenge_slug).set_mandate(mandate, network=network)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def get_target_book(
-        network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
+        network: Network = "testnet", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """The blended target book the mandate currently resolves to:
         natural-gross target holdings, ranking day, per-sleeve books, and
@@ -62,9 +63,9 @@ def register_trading_tools(mcp) -> None:
         or the smaller multiple its vol target picked under it)."""
         return client_for(challenge_slug).get_target_book(network=network)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def preview_rebalance(
-        network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
+        network: Network = "testnet", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Plan a rebalance WITHOUT executing: trades, turnover, estimated
         fees, plus the plan_hash needed for execution. Always the first
@@ -74,8 +75,8 @@ def register_trading_tools(mcp) -> None:
     @mcp.tool
     def execute_rebalance(
         plan_hash: str,
-        network: str = "testnet",
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        network: Network = "testnet",
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Execute a LIVE rebalance on the user's Hyperliquid account.
 
@@ -95,8 +96,8 @@ def register_trading_tools(mcp) -> None:
     def flatten_positions(
         plan_hash: Optional[str] = None,
         preview: bool = False,
-        network: str = "testnet",
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        network: Network = "testnet",
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Close EVERY position (full liquidation) — two-step like
         rebalancing: call with preview=true first, show the user the plan,
@@ -108,7 +109,7 @@ def register_trading_tools(mcp) -> None:
 
     @mcp.tool
     def pause_trading(
-        network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
+        network: Network = "testnet", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Pause the mandate: scheduled trading stops until resumed. Safe
         to call proactively when something looks wrong."""
@@ -116,17 +117,17 @@ def register_trading_tools(mcp) -> None:
 
     @mcp.tool
     def resume_trading(
-        network: str = "testnet", challenge_slug: str = DEFAULT_CHALLENGE
+        network: Network = "testnet", challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE
     ) -> Dict[str, Any]:
         """Resume the mandate (scheduled trading on). Confirm with the user
         before re-enabling live risk."""
         return client_for(challenge_slug).resume_trading(network=network)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def list_rebalance_runs(
         limit: int = 10,
-        network: str = "testnet",
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        network: Network = "testnet",
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> List[Dict[str, Any]]:
         """Recent rebalance runs (the audit trail): kind, status, ranking
         day, result summary, error. The morning-briefing feed."""
@@ -134,11 +135,11 @@ def register_trading_tools(mcp) -> None:
             limit=limit, network=network
         )
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def list_open_orders(
         status: Optional[str] = None,
-        network: str = "testnet",
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        network: Network = "testnet",
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> List[Dict[str, Any]]:
         """The order blotter, newest first, optionally filtered by status
         (resting, filled, twap_running, ...)."""

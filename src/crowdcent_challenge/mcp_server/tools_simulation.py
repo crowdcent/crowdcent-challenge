@@ -7,11 +7,12 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from .params import READ_ONLY, ChallengeSlug
 from .runtime import DEFAULT_CHALLENGE, client_for
 
 
 def register_simulation_tools(mcp) -> None:
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def run_simulation(
         config: Dict[str, Any],
         include_curve: bool = False,
@@ -20,7 +21,7 @@ def register_simulation_tools(mcp) -> None:
         leverage: float = 1.0,
         target_vol: float = 0.0,
         oos_days: int = 90,
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Backtest one portfolio config against the live meta-model.
 
@@ -99,12 +100,12 @@ def register_simulation_tools(mcp) -> None:
             oos_days=oos_days,
         )
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def sweep_simulations(
         config: Dict[str, Any],
         sweep: Dict[str, List[Any]],
         oos_days: int = 90,
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Grid-search up to your tier's budget (96 configs at Contender,
         24 below) of portfolio constructions in one call.
@@ -134,13 +135,13 @@ def register_simulation_tools(mcp) -> None:
         """
         return client_for(challenge_slug).run_sweep(config, sweep, oos_days=oos_days)
 
-    @mcp.tool
+    @mcp.tool(annotations=READ_ONLY)
     def blend_simulations(
         sleeves: List[Dict[str, Any]],
         leverage: float = 1.0,
         target_vol: float = 0.0,
         oos_days: int = 90,
-        challenge_slug: str = DEFAULT_CHALLENGE,
+        challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> Dict[str, Any]:
         """Blend up to 5-50 weighted sleeves (tier-capped: 5 Challenger, 10
         Contender, 25 Centurion, 50 Sovereign) into one ensemble

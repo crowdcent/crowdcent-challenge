@@ -1,5 +1,8 @@
 """Hosted-mode auth and middleware (mcp.crowdcent.com).
 
+Anyone can initialize and list tools without a key, so agents and
+directories can see what the server does. Tool calls need a key.
+
 Imports fastmcp at module level — import this only from code paths that
 already require the [mcp] extra (build_server, tests).
 """
@@ -9,11 +12,24 @@ from __future__ import annotations
 import os
 import sys
 
+from fastmcp.exceptions import ToolError
 from fastmcp.server.auth import AccessToken, TokenVerifier
 from fastmcp.server.middleware import Middleware
+from mcp.server.auth.middleware.auth_context import AuthContextMiddleware
+from mcp.server.auth.middleware.bearer_auth import BearerAuthBackend
+from starlette.authentication import AuthenticationError
+from starlette.middleware import Middleware as ASGIMiddleware
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.responses import JSONResponse
 
 from . import runtime
 from .runtime import CLOUD_TOOL_NAMES, TRADING_TOOL_NAMES
+
+KEY_REQUIRED = (
+    "This tool needs a CrowdCent API key. Send it as "
+    "`Authorization: Bearer <key>`. Get a key at "
+    "https://crowdcent.com/profile/settings/."
+)
 
 
 class CrowdCentTokenVerifier(TokenVerifier):
@@ -79,6 +95,54 @@ class CrowdCentTokenVerifier(TokenVerifier):
             self._cache.clear()
         self._cache[token] = (time.monotonic() + self.CACHE_TTL_S, access)
         return access
+
+
+class _OptionalKeyBackend(BearerAuthBackend):
+    """No Authorization header means an anonymous caller. A key that fails
+    verification is an error, so a user with a wrong key sees a 401 and
+    not a server that silently hides their tools."""
+
+    async def authenticate(self, conn):
+        result = await super().authenticate(conn)
+        if result is None and conn.headers.get("authorization"):
+            raise AuthenticationError("Invalid CrowdCent API key")
+        return result
+
+
+def _reject_invalid_key(conn, exc):
+    return JSONResponse(
+        {"error": "invalid_token", "error_description": str(exc)},
+        status_code=401,
+        headers={"WWW-Authenticate": 'Bearer error="invalid_token"'},
+    )
+
+
+def optional_auth_middleware(verifier: TokenVerifier) -> list[ASGIMiddleware]:
+    """HTTP middleware for the hosted app in place of FastMCP's `auth=`.
+
+    FastMCP's `auth=` puts the whole /mcp endpoint behind a 401, so
+    nobody can see the tool list without a key. These layers verify a
+    key when one is sent and let anonymous requests through.
+    `KeyRequiredMiddleware` then refuses anonymous tool calls."""
+    return [
+        ASGIMiddleware(
+            AuthenticationMiddleware,
+            backend=_OptionalKeyBackend(verifier),
+            on_error=_reject_invalid_key,
+        ),
+        ASGIMiddleware(AuthContextMiddleware),
+    ]
+
+
+class KeyRequiredMiddleware(Middleware):
+    """Hosted: anonymous callers can initialize and list tools and prompts,
+    but every tool call needs a key. The CrowdCent API also checks the key
+    on every call, so this gate gives a clear message, not the security."""
+
+    async def on_call_tool(self, context, call_next):
+        if runtime.is_hosted() and not runtime.api_key_for_request():
+            raise ToolError(KEY_REQUIRED)
+        return await call_next(context)
 
 
 class TradingAuditMiddleware(Middleware):

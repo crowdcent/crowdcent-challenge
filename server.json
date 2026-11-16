@@ -2,9 +2,23 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.crowdcent/challenge",
   "title": "CrowdCent Challenge",
-  "description": "Crypto prediction challenge: download data, submit predictions, check scores, run backtests.",
-  "version": "0.2.17",
+  "description": "Crypto prediction challenge for AI agents: data, submissions, backtests, trading, Cloud runs.",
+  "version": "0.2.19",
   "websiteUrl": "https://crowdcent.com",
+  "icons": [
+    {
+      "src": "https://storage.googleapis.com/crowdcent-challenge-static/images/brandkit/logo-icon/crowdcent-icon-black.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"],
+      "theme": "light"
+    },
+    {
+      "src": "https://storage.googleapis.com/crowdcent-challenge-static/images/brandkit/logo-icon/crowdcent-icon-white.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": ["any"],
+      "theme": "dark"
+    }
+  ],
   "repository": {
     "url": "https://github.com/crowdcent/crowdcent-challenge",
     "source": "github"

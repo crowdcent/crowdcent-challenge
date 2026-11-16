@@ -1,6 +1,7 @@
 # Hosted MCP server (mcp.crowdcent.com): a stateless protocol translator in
-# front of https://crowdcent.com/api. Bearer tokens are CrowdCent API keys, 
-# verified via /api/auth/check/.
+# front of https://crowdcent.com/api. Bearer tokens are CrowdCent API keys,
+# verified via /api/auth/check/. Anyone can initialize and list tools
+# without a key. Tool calls need one.
 #
 # Build:  docker build -f Dockerfile.mcp -t crowdcent-mcp .
 # Run:    docker run -p 8080:8080 crowdcent-mcp

@@ -43,10 +43,9 @@ def build_server():
     except ImportError as exc:
         raise SystemExit(INSTALL_HINT) from exc
 
-    from . import runtime
     from .hosted import (
         CloudVisibilityMiddleware,
-        CrowdCentTokenVerifier,
+        KeyRequiredMiddleware,
         TradingAuditMiddleware,
         TradingVisibilityMiddleware,
     )
@@ -55,17 +54,14 @@ def build_server():
     from .tools_simulation import register_simulation_tools
     from .tools_trading import register_trading_tools
 
-    kwargs = {}
-    if runtime.is_hosted():
-        kwargs["auth"] = CrowdCentTokenVerifier()
-
-    mcp = FastMCP(name="crowdcent", instructions=INSTRUCTIONS, **kwargs)
+    mcp = FastMCP(name="crowdcent", instructions=INSTRUCTIONS)
 
     register_challenge_tools(mcp)
     register_simulation_tools(mcp)
     register_trading_tools(mcp)
     register_cloud_tools(mcp)
     _register_prompts(mcp)
+    mcp.add_middleware(KeyRequiredMiddleware())
     mcp.add_middleware(TradingAuditMiddleware())
     mcp.add_middleware(TradingVisibilityMiddleware())
     mcp.add_middleware(CloudVisibilityMiddleware())
@@ -100,7 +96,12 @@ def http_app():
     can be served by independent instances without session affinity."""
     os.environ.setdefault("CROWDCENT_MCP_MODE", "hosted")
     _init_sentry()
-    return build_server().http_app(stateless_http=True)
+    from .hosted import CrowdCentTokenVerifier, optional_auth_middleware
+
+    return build_server().http_app(
+        stateless_http=True,
+        middleware=optional_auth_middleware(CrowdCentTokenVerifier()),
+    )
 
 
 def _register_prompts(mcp) -> None:

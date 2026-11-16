@@ -34,7 +34,7 @@ The `crowdcent-challenge` package ships with a built-in Model Context Protocol (
     }
     ```
 
-    The hosted server is a stateless pass-through to the CrowdCent API: it stores nothing, and your key simply authenticates each request the same way the Python client does. Instead of writing files to disk, it hands your assistant signed download URLs (`get_training_dataset_url`, `get_inference_data_url`, `get_meta_model_url`), which agents with a terminal or fetch tool can use directly.
+    The hosted server is a stateless pass-through to the CrowdCent API: it stores nothing, and your key simply authenticates each request the same way the Python client does. Instead of writing files to disk, it hands your assistant signed download URLs (`get_training_dataset_url`, `get_inference_data_url`, `get_meta_model_url`), which agents with a terminal or fetch tool can use directly. Clients can connect and list the tools without a key, so you can see what the server offers before you sign up. Every tool call needs your key.
 
 === "Local (one line, no clone)"
 

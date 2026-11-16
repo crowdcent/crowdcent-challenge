@@ -171,6 +171,7 @@ async def test_hosted_cannot_invoke_cloud_download_or_write_server_files(
 
     monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
     monkeypatch.setattr(runtime, "request_allows_cloud", lambda: True)
+    monkeypatch.setattr(runtime, "api_key_for_request", lambda: "cloud_key")
     fake = MagicMock()
     monkeypatch.setattr(tools_cloud, "client_for", fake)
     destination = tmp_path / "models" / "best.joblib"
@@ -603,3 +604,86 @@ async def test_read_key_gets_no_trading_scope(requests_mock):
     token = await verifier.verify_token("read_key")
     assert token is not None
     assert token.scopes == []
+
+
+# ------------------------------------------------ hosted anonymous discovery
+
+_MCP_HEADERS = {
+    "Content-Type": "application/json",
+    "Accept": "application/json, text/event-stream",
+}
+
+
+def _rpc(http, method, params=None, key=None):
+    import json
+
+    headers = dict(_MCP_HEADERS)
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    response = http.post(
+        "/mcp",
+        headers=headers,
+        json={"jsonrpc": "2.0", "id": 1, "method": method, "params": params or {}},
+    )
+    if response.status_code != 200:
+        return response, None
+    body = response.text
+    if body.startswith("event:") or "\ndata:" in body or body.startswith("data:"):
+        body = next(line[5:] for line in body.splitlines() if line.startswith("data:"))
+    return response, json.loads(body)
+
+
+@pytest.fixture
+def hosted_http(monkeypatch):
+    from starlette.testclient import TestClient
+
+    from crowdcent_challenge.mcp_server.app import http_app
+
+    monkeypatch.setenv("CROWDCENT_MCP_MODE", "hosted")
+    monkeypatch.delenv("CROWDCENT_API_KEY")
+    with TestClient(http_app()) as http:
+        yield http
+
+
+def test_hosted_anonymous_can_initialize_and_list_tools(hosted_http):
+    response, init = _rpc(
+        hosted_http,
+        "initialize",
+        {
+            "protocolVersion": "2025-06-18",
+            "capabilities": {},
+            "clientInfo": {"name": "probe", "version": "0"},
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert init["result"]["serverInfo"]["name"] == "crowdcent"
+
+    _, listed = _rpc(hosted_http, "tools/list")
+    names = {tool["name"] for tool in listed["result"]["tools"]}
+    assert {"get_challenge_info", "run_simulation"} <= names
+    # Anonymous callers have no key flags, so gated tools stay hidden.
+    assert not (names & TRADING_TOOL_NAMES)
+    assert not (names & CLOUD_TOOL_NAMES)
+
+
+def test_hosted_anonymous_tool_call_needs_a_key(hosted_http):
+    _, called = _rpc(
+        hosted_http, "tools/call", {"name": "get_challenge_info", "arguments": {}}
+    )
+    assert called["result"]["isError"] is True
+    assert "needs a CrowdCent API key" in called["result"]["content"][0]["text"]
+
+
+def test_hosted_wrong_key_gets_401(hosted_http, requests_mock):
+    requests_mock.get("http://api.test/api/auth/check/", status_code=403, json={})
+    response, _ = _rpc(hosted_http, "tools/list", key="wrong")
+    assert response.status_code == 401
+    assert "invalid_token" in response.headers["www-authenticate"]
+
+
+def test_hosted_valid_key_sees_its_gated_tools(hosted_http, requests_mock):
+    _mock_auth_check(requests_mock, allow_cloud=True)
+    response, listed = _rpc(hosted_http, "tools/list", key="cloud_key")
+    assert response.status_code == 200, response.text
+    names = {tool["name"] for tool in listed["result"]["tools"]}
+    assert (CLOUD_TOOL_NAMES - LOCAL_FS_TOOLS) <= names
