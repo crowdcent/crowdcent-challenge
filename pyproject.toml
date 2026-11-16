@@ -1,6 +1,6 @@
 [project]
 name = "crowdcent-challenge"
-version = "0.2.19"
+version = "0.2.22"
 description = "Python client and MCP server for the CrowdCent Challenge: download data, submit crypto predictions, check scores and run backtests."
 readme = "README.md"
 authors = [
