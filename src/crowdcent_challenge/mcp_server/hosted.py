@@ -117,6 +117,26 @@ def _reject_invalid_key(conn, exc):
     )
 
 
+class LenientAcceptMiddleware:
+    """Give every POST the Accept header that streamable HTTP requires.
+
+    The spec says clients send `Accept: application/json, text/event-stream`,
+    and the transport answers 406 otherwise. Some directory probes (mcptry)
+    send it only on `initialize`, so their `tools/list` failed and the
+    server was listed as down. Both response types are fine for us."""
+
+    ACCEPT = (b"accept", b"application/json, text/event-stream")
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["method"] == "POST":
+            headers = [(k, v) for k, v in scope["headers"] if k != b"accept"]
+            scope = {**scope, "headers": [*headers, self.ACCEPT]}
+        await self.app(scope, receive, send)
+
+
 def optional_auth_middleware(verifier: TokenVerifier) -> list[ASGIMiddleware]:
     """HTTP middleware for the hosted app in place of FastMCP's `auth=`.
 
@@ -125,6 +145,7 @@ def optional_auth_middleware(verifier: TokenVerifier) -> list[ASGIMiddleware]:
     key when one is sent and let anonymous requests through.
     `KeyRequiredMiddleware` then refuses anonymous tool calls."""
     return [
+        ASGIMiddleware(LenientAcceptMiddleware),
         ASGIMiddleware(
             AuthenticationMiddleware,
             backend=_OptionalKeyBackend(verifier),

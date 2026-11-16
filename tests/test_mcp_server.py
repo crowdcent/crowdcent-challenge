@@ -687,3 +687,14 @@ def test_hosted_valid_key_sees_its_gated_tools(hosted_http, requests_mock):
     assert response.status_code == 200, response.text
     names = {tool["name"] for tool in listed["result"]["tools"]}
     assert (CLOUD_TOOL_NAMES - LOCAL_FS_TOOLS) <= names
+
+
+def test_hosted_tools_list_works_without_the_streaming_accept_header(hosted_http):
+    # mcptry sends the full Accept header only on initialize.
+    response = hosted_http.post(
+        "/mcp",
+        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        json={"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}},
+    )
+    assert response.status_code == 200, response.text
+    assert "get_challenge_info" in response.text
