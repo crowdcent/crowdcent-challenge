@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "com.crowdcent/challenge",
   "title": "CrowdCent Challenge",
-  "description": "AI agents build, backtest and run crypto prediction models: data, submissions, trading, Cloud runs.",
-  "version": "0.2.20",
+  "description": "AI agents train ML models on cloud GPUs, submit market predictions, backtest and trade strategies.",
+  "version": "0.2.21",
   "websiteUrl": "https://crowdcent.com",
   "icons": [
     {
