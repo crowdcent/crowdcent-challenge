@@ -441,9 +441,22 @@ def test_whoami(runner, mock_client):
 
 def test_performance_filters(runner, mock_client):
     mock_client.get_performance.return_value = [{"id": 1}]
-    result = runner.invoke(cli, ["performance", "--slot", "2", "--include-pending"])
+    result = runner.invoke(
+        cli,
+        [
+            "performance",
+            "--user",
+            "alice",
+            "--slot",
+            "2",
+            "--include-pending",
+            "--daily",
+        ],
+    )
     assert result.exit_code == 0
-    mock_client.get_performance.assert_called_once_with(scored_only=False, slot=2)
+    mock_client.get_performance.assert_called_once_with(
+        user="alice", scored_only=False, slot=2, daily=True
+    )
 
 
 # --- Simulator ---

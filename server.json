@@ -3,7 +3,7 @@
   "name": "com.crowdcent/challenge",
   "title": "CrowdCent Challenge",
   "description": "AI agents build, backtest and run ML prediction models: market data, cloud GPUs, live trading.",
-  "version": "0.2.22",
+  "version": "0.2.23",
   "websiteUrl": "https://crowdcent.com",
   "icons": [
     {

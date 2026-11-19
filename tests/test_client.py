@@ -617,42 +617,105 @@ def test_submit_predictions_partial_success_queue_rejected(
     assert resp["queue_error"]
 
 
-def test_get_performance_includes_experimental_and_notes(client, requests_mock):
-    """get_performance() rows must additively expose is_experimental and notes."""
-    mock_url = f"{BASE_URL}/challenges/{TEST_SLUG}/submissions/"
-    mock_data = [
-        {
-            "id": 1,
-            "slot": 1,
-            "inference_data_release_date": "2025-01-15T00:00:00Z",
-            "submitted_at": "2025-01-15T14:05:00Z",
-            "status": "evaluated",
-            "is_experimental": False,
-            "notes": "baseline",
-            "score_details": {"spearman_10d": 0.05},
-            "percentile_details": {"composite": 0.72},
-        },
-        {
-            "id": 2,
-            "slot": 2,
-            "inference_data_release_date": "2025-01-15T00:00:00Z",
-            "submitted_at": "2025-01-15T14:06:00Z",
-            "status": "evaluated",
-            "is_experimental": True,
-            "notes": "transformer trial",
-            "score_details": {"spearman_10d": 0.04},
-            "percentile_details": {"composite": 0.65},
-        },
-    ]
-    requests_mock.get(mock_url, json=mock_data)
+def _scores_page(results, next_page=None):
+    return {
+        "count": len(results),
+        "next": next_page,
+        "previous": None,
+        "results": results,
+    }
+
+
+def _scored_sub(id, slot, release="2025-01-15", **extra):
+    return {
+        "id": id,
+        "slot": slot,
+        "inference_data_release_date": f"{release}T00:00:00Z",
+        "submitted_at": f"{release}T14:05:00Z",
+        "status": "evaluated",
+        "is_experimental": False,
+        "score_details": {"spearman_10d": 0.05},
+        "percentile_details": {"composite_percentile": 72.0},
+        **extra,
+    }
+
+
+def test_get_performance_keeps_its_columns_and_notes(client, requests_mock):
+    """Your own rows keep the columns, in the order, they always had."""
+    requests_mock.get(
+        f"{BASE_URL}/challenges/{TEST_SLUG}/scores/",
+        json=_scores_page(
+            [
+                _scored_sub(1, 1, notes="baseline"),
+                _scored_sub(2, 2, notes="transformer trial", is_experimental=True),
+            ]
+        ),
+    )
 
     rows = client.get_performance()
-    assert len(rows) == 2
+
+    assert list(rows[0]) == [
+        "id",
+        "slot",
+        "release_date",
+        "submitted_at",
+        "status",
+        "is_experimental",
+        "notes",
+        "score_spearman_10d",
+        "composite_percentile",
+    ]
     by_slot = {r["slot"]: r for r in rows}
-    assert by_slot[1]["is_experimental"] is False
     assert by_slot[1]["notes"] == "baseline"
     assert by_slot[2]["is_experimental"] is True
-    assert by_slot[2]["notes"] == "transformer trial"
+
+
+def test_get_performance_follows_every_page(client, requests_mock):
+    url = f"{BASE_URL}/challenges/{TEST_SLUG}/scores/"
+    mock = requests_mock.get(
+        url,
+        [
+            {"json": _scores_page([_scored_sub(1, 1)], next_page=f"{url}?page=2")},
+            {"json": _scores_page([_scored_sub(2, 1, release="2025-01-14")])},
+        ],
+    )
+
+    rows = client.get_performance(user="alice")
+
+    assert [r["id"] for r in rows] == [1, 2]
+    assert [r.qs["page"] for r in mock.request_history] == [["1"], ["2"]]
+    assert all(r.qs["user"] == ["alice"] for r in mock.request_history)
+    assert "notes" not in rows[0]
+
+
+def test_get_performance_daily_is_one_row_per_metric_and_day(client, requests_mock):
+    sub = _scored_sub(
+        7,
+        1,
+        status="pending",
+        daily_score_details={
+            "spearman_10d": {"day_11": 0.04, "day_2": 0.02, "day_10": 0.03},
+            "spearman_30d": {"day_2": 0.01},
+        },
+        daily_percentile_details={"spearman_10d": {"day_10": 61.0}},
+    )
+    mock = requests_mock.get(
+        f"{BASE_URL}/challenges/{TEST_SLUG}/scores/", json=_scores_page([sub])
+    )
+
+    rows = client.get_performance(user="alice", daily=True)
+
+    assert mock.last_request.qs["daily"] == ["true"]
+    assert [(r["metric"], r["day"], r["is_final"]) for r in rows] == [
+        ("spearman_10d", 2, False),
+        ("spearman_10d", 10, True),
+        ("spearman_10d", 11, False),
+        ("spearman_30d", 2, False),
+    ]
+    assert rows[1]["score"] == 0.03 and rows[1]["percentile"] == 61.0
+    assert rows[0]["percentile"] is None
+    assert rows[0]["id"] == 7 and rows[0]["release_date"] == "2025-01-15"
+    assert rows[0]["status"] == "pending"
 
 
 def test_download_to_a_csv_path_asks_for_csv(client, tmp_path, monkeypatch):

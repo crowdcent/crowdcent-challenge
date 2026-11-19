@@ -214,107 +214,143 @@ class SubmissionsAPI:
         user: Optional[str] = None,
         scored_only: bool = True,
         slot: Optional[int] = None,
+        daily: bool = False,
+        status: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Get performance history for a user (defaults to authenticated user).
+        """Get the performance history of any member (defaults to you).
 
-        Fetches submissions with their scores and percentiles, flattens the
-        nested score data, and returns a list ready to wrap in pandas/polars.
+        Every member's scores are public, as on their profile's Scores tab.
+        Returns a list ready to wrap in pandas/polars, newest period first.
 
         Args:
-            user: Username to fetch performance for. If None (default), fetches
-                performance for the authenticated user.
-                *Note: Fetching other users' performance is not yet supported.*
+            user: The member's username. If None (default), fetches your own.
             scored_only: If True (default), only include submissions that have been scored.
-                For pending submissions, only the most recent (partially resolved) score
-                is available — daily granularity is not currently exposed by the API.
             slot: Optional slot filter. If provided, only include submissions from this slot.
+            daily: If False (default), one row per submission with its scores.
+                If True, one row per submission, metric and scored day.
+            status: Optional status filter, "pending" or "evaluated".
 
         Returns:
-            A list of dictionaries, each containing:
-            - id: Submission ID
-            - slot: Submission slot number
-            - release_date: The inference period date (ISO string)
-            - submitted_at: When the submission was made (ISO string)
-            - status: Submission status ("pending" or "evaluated")
-            - is_experimental: Whether this submission was marked experimental (bool)
-            - notes: Free-text note attached at submit time (str, may be empty)
-            - score_*: Individual score metrics (e.g., score_spearman_10d)
-            - percentile_*: Individual percentile metrics (e.g., percentile_spearman_10d)
-            - composite_percentile: Overall percentile ranking (if available)
+            With ``daily=False``, one dictionary per submission:
+
+            - id, slot, release_date (YYYY-MM-DD), submitted_at, status,
+              is_experimental
+            - notes: Free-text note attached at submit time (your own submissions only)
+            - score_*: Each score (e.g., score_spearman_10d)
+            - percentile_*: Each percentile, 0 to 100 (e.g., percentile_spearman_10d)
+            - composite_percentile: Overall percentile, 0 to 100 (if available)
+
+            With ``daily=True``, one dictionary per submission, metric and day:
+
+            - id, slot, release_date, status, is_experimental
+            - metric: e.g. "spearman_10d"
+            - day: Days after release (1, 2, ...)
+            - score: The metric scored against the return over the first ``day`` days
+            - percentile: That day's percentile, 0 to 100 (None if not computed)
+            - is_final: True on the day that is the metric's final score
+              (day 10 for ``_10d`` metrics, day 30 for ``_30d`` metrics)
 
         Note:
-            - For submissions with status="pending", scores reflect the most recent
-              partial evaluation (e.g., day 5 of a 10-day prediction). Daily score
-              progression is tracked server-side but not yet available via the API.
+            - A pending submission's scores are provisional. Its 10d scores are
+              final after day 10 and its 30d scores after day 30.
 
-            - Percentile fields (e.g., composite_percentile=0.75) indicate rank
-              relative to all participants — 0.75 means outperforming 75% of
-              submissions for that period.
+            - A ``_10d`` metric keeps a daily score up to day 30, but only day 10
+              counts as its final score.
 
-            - Experimental submissions are included in the result. They are
-              scored against the non-experimental competitive field (shadow
-              percentiles) but excluded from leaderboards, the meta-model, and
-              CC Points performance adjustment. Filter them out client-side if
-              you want only competitive history:
+            - Experimental submissions are included. They are scored against the
+              non-experimental field (shadow percentiles) but excluded from
+              leaderboards, the meta-model, and CC Points. Filter them out with
               ``[r for r in rows if not r["is_experimental"]]``.
 
         Example:
-            >>> client = ChallengeClient("momentum-alpha")
-            >>> history = client.get_performance()
-            >>> import pandas as pd
-            >>> df = pd.DataFrame(history)
+            >>> client = ChallengeClient("hyperliquid-ranking")
+            >>> mine = client.get_performance()
+            >>> alice = client.get_performance(user="alice", daily=True)
+            >>> import polars as pl
+            >>> df = pl.DataFrame(alice)
         """
+        params: Dict[str, Any] = {}
         if user is not None:
-            raise NotImplementedError(
-                "Fetching performance for specific users is not yet supported via the API. "
-                "Leave `user=None` to fetch your own performance."
-            )
+            params["user"] = user
+        if daily:
+            params["daily"] = "true"
+        if status is not None:
+            params["status"] = status
 
-        logger.info(f"Fetching submission history for '{self.challenge_slug}'...")
-        submissions = self.list_submissions()
-
-        if not submissions:
-            logger.info("No submissions found.")
-            return []
+        logger.info(
+            f"Fetching submission history of {user or 'you'} for '{self.challenge_slug}'..."
+        )
+        submissions: List[Dict[str, Any]] = []
+        page = 1
+        while True:
+            body = self._request(
+                "GET",
+                f"/challenges/{self.challenge_slug}/scores/",
+                params={**params, "page": page},
+            ).json()
+            submissions.extend(body["results"])
+            if not body.get("next"):
+                break
+            page += 1
 
         rows = []
         for sub in submissions:
-            # Skip unscored if requested
             if scored_only and not sub.get("score_details"):
                 continue
-
-            # Skip if slot filter doesn't match
             if slot is not None and sub.get("slot") != slot:
+                continue
+            release = sub.get("inference_data_release_date")
+            base = {
+                "id": sub.get("id"),
+                "slot": sub.get("slot"),
+                "release_date": release[:10] if release else None,
+                "status": sub.get("status"),
+                "is_experimental": sub.get("is_experimental", False),
+            }
+            if daily:
+                rows.extend(_daily_rows(base, sub))
                 continue
 
             row = {
-                "id": sub.get("id"),
-                "slot": sub.get("slot"),
-                "release_date": sub.get("inference_data_release_date", "")[:10]
-                if sub.get("inference_data_release_date")
-                else None,
+                "id": base["id"],
+                "slot": base["slot"],
+                "release_date": base["release_date"],
                 "submitted_at": sub.get("submitted_at"),
-                "status": sub.get("status"),
-                "is_experimental": sub.get("is_experimental", False),
-                "notes": sub.get("notes", "") or "",
+                "status": base["status"],
+                "is_experimental": base["is_experimental"],
             }
-
-            # Flatten score_details (avoid redundant prefix if key already contains it)
-            score_details = sub.get("score_details") or {}
-            for key, value in score_details.items():
-                col = key if "score" in key else f"score_{key}"
-                row[col] = value
-
-            # Flatten percentile_details (avoid redundant prefix if key already contains it)
-            percentile_details = sub.get("percentile_details") or {}
-            for key, value in percentile_details.items():
-                col = key if "percentile" in key else f"percentile_{key}"
-                row[col] = value
-
+            if "notes" in sub:
+                row["notes"] = sub["notes"] or ""
+            # Flatten, without doubling a prefix the key already has.
+            for key, value in (sub.get("score_details") or {}).items():
+                row[key if "score" in key else f"score_{key}"] = value
+            for key, value in (sub.get("percentile_details") or {}).items():
+                row[key if "percentile" in key else f"percentile_{key}"] = value
             rows.append(row)
 
-        # Sort by release_date descending (most recent first)
-        rows.sort(key=lambda x: x.get("release_date") or "", reverse=True)
-
-        logger.info(f"Loaded {len(rows)} scored submissions.")
+        logger.info(f"Loaded {len(rows)} rows.")
         return rows
+
+
+_HORIZONS = {"_10d": 10, "_30d": 30}
+
+
+def _daily_rows(base: Dict[str, Any], sub: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """One row per metric and scored day, oldest day first."""
+    percentiles = sub.get("daily_percentile_details") or {}
+    rows = []
+    for metric, days in (sub.get("daily_score_details") or {}).items():
+        horizon = next((n for s, n in _HORIZONS.items() if metric.endswith(s)), None)
+        for key in sorted(days, key=lambda k: int(k.removeprefix("day_"))):
+            day = int(key.removeprefix("day_"))
+            rows.append(
+                {
+                    **base,
+                    "metric": metric,
+                    "day": day,
+                    "score": days[key],
+                    "percentile": percentiles.get(metric, {}).get(key),
+                    "is_final": day == horizon,
+                }
+            )
+    return rows

@@ -47,6 +47,7 @@ client.submit_predictions(file_path="preds.csv", slot=2, is_experimental=True, n
 
 client.list_submissions(period="current")
 client.get_performance()                                         # list of dicts; wrap in a DataFrame
+client.get_performance(user="alice", daily=True)                 # any member; one row per metric and day
 ```
 
 A `.csv` path works anywhere a file is read or written. Submitting outside a window queues the submission for the next one, and `queue_next=True` (the default) also rolls it into the next period.
@@ -66,7 +67,7 @@ crowdcent download-training-data latest -o train.parquet
 crowdcent download-inference-data current -o inference.parquet
 crowdcent submit preds.parquet --slot 1 [--experimental --notes "..."]
 crowdcent list-submissions
-crowdcent performance [--slot 1]
+crowdcent performance [--slot 1] [--user alice] [--daily]
 crowdcent download-meta-model -o meta_model.parquet
 ```
 

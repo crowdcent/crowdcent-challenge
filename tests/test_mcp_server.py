@@ -698,3 +698,17 @@ def test_hosted_tools_list_works_without_the_streaming_accept_header(hosted_http
     )
     assert response.status_code == 200, response.text
     assert "get_challenge_info" in response.text
+
+
+async def test_daily_performance_covers_only_pending_submissions(monkeypatch):
+    from crowdcent_challenge.mcp_server import tools_challenge
+
+    fake = MagicMock()
+    fake.return_value.get_performance.return_value = []
+    monkeypatch.setattr(tools_challenge, "client_for", fake)
+    async with Client(build_server()) as client:
+        await client.call_tool("get_performance", {"user": "alice", "daily": True})
+        await client.call_tool("get_performance", {"user": "alice"})
+    daily, final = fake.return_value.get_performance.call_args_list
+    assert daily.kwargs["status"] == "pending" and daily.kwargs["daily"] is True
+    assert final.kwargs["status"] is None and final.kwargs["user"] == "alice"

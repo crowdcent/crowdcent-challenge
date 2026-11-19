@@ -311,7 +311,12 @@ Manage and review your submissions for a challenge, including listing all submis
 
 ```python
 history = client.get_performance()  # List of scored submissions with scores & percentiles
+
+# Any member's scores are public. daily=True gives one row per metric and day.
+alice = client.get_performance(user="alice", daily=True)
 ```
+
+On the command line, run `crowdcent performance --user alice --daily`.
 
 See the [Track Your Performance tutorial](tutorials/track-your-performance.ipynb) for analysis and visualization examples.
 

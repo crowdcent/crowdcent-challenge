@@ -672,17 +672,26 @@ def whoami():
 
 @cli.command("performance")
 @challenge_option
+@click.option(
+    "--user", default=None, help="Another member's username. Defaults to you."
+)
 @click.option("--slot", type=int, default=None, help="Only this submission slot.")
 @click.option(
     "--include-pending",
     is_flag=True,
     help="Also include submissions that have not been scored yet.",
 )
+@click.option("--daily", is_flag=True, help="One row per metric and scored day instead.")
 @handle_api_error
-def performance(challenge_slug, slot, include_pending):
-    """Your submissions with their scores and percentiles, newest period first."""
+def performance(challenge_slug, user, slot, include_pending, daily):
+    """A member's submissions (yours by default) with their scores and
+    percentiles, newest period first."""
     client = get_client(challenge_slug)
-    echo_json(client.get_performance(scored_only=not include_pending, slot=slot))
+    echo_json(
+        client.get_performance(
+            user=user, scored_only=not include_pending, slot=slot, daily=daily
+        )
+    )
 
 
 # --- Simulator Commands ---

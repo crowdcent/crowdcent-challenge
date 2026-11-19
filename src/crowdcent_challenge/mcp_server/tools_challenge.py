@@ -163,19 +163,29 @@ def register_challenge_tools(mcp) -> None:
 
     @mcp.tool(annotations=READ_ONLY)
     def get_performance(
+        user: Optional[str] = None,
         scored_only: bool = True,
         slot: Optional[int] = None,
+        daily: bool = False,
         challenge_slug: ChallengeSlug = DEFAULT_CHALLENGE,
     ) -> List[Dict[str, Any]]:
-        """Get your historical submission performance (scores flattened per
-        row, newest first).
+        """Get a member's submission performance, newest first. Every member's
+        scores are public. Percentiles run 0 to 100.
 
         Args:
+            user: The member's username. Leave empty for your own.
             scored_only: Only include submissions that have been scored.
             slot: Optional slot filter (1-5).
+            daily: Instead, return one row per metric and day for the member's
+                pending submissions (the ones still being scored). `is_final`
+                marks the day that becomes the final score.
         """
         return client_for(challenge_slug).get_performance(
-            scored_only=scored_only, slot=slot
+            user=user,
+            scored_only=scored_only,
+            slot=slot,
+            daily=daily,
+            status="pending" if daily else None,
         )
 
     # Local-filesystem tools are meaningful only under stdio; on a shared
